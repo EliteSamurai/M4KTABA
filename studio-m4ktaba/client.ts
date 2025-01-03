@@ -6,7 +6,7 @@ export const client = createClient({
   apiVersion: '2024-01-01',
   token:
     'sk8KlSga9hjImi9qZEE7iiVA1LuRAaIsQYMkM7jjjLnDQGWUc4AfK9tIA8qLULHHWF33yVN1yZguG61Jsflw6SM9ZdB08tLcaeSZBs91yEGtDw9IAnH6rnRk9prdpBsS2kR5yRgo4MCnOkJZPfk3pgeFDeJVDAAeDMzL8dp5R3StlWRxsmGQ',
-  useCdn: false, // Change to true in production
+  useCdn: true, 
 })
 
 export async function getTopSellers() {
