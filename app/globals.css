@@ -1,21 +1,83 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --radius: 0.5rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  .dark {
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
+}
+
+.link-shadow {
+  transition-property: box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 350ms;
+}
+
+.link-shadow:hover {
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.link-shadow1 {
+  @apply transition-all duration-300;
+}
+
+.link-shadow1:hover {
+  @apply -translate-y-0.5;
+}
+
+
+
+.profile-btn:hover {
+  background-color: rgb(17, 24, 39); /* Dark background */
+  color: white; /* White text */
+  transition-property: background-color, color; /* Target specific properties */
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); /* Smooth easing */
+  transition-duration: 350ms; /* Duration for transition */
+}
+
+.hero-section {
+  position: relative;
+  height: 60vh;
+  padding:8px;
+  overflow: hidden;
+  border-radius: 25px;
+}
+
+.hero-section img {
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  border-radius: 25px;
+}
+
+.zoom-image {
+  cursor: zoom-in; /* Changes cursor to a magnifying glass with a plus sign */
+}
+
+.zoom-active {
+  cursor: zoom-out; /* Changes cursor to a magnifying glass with a minus sign */
 }

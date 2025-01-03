@@ -1,101 +1,188 @@
 import Image from "next/image";
+import Link from "next/link";
+import {
+  Book,
+  Truck,
+  BookOpen,
+  BadgeDollarSign,
+  ArrowRight,
+} from "lucide-react";
+import HeroImage from "@/public/image (1).jpg";
 
-export default function Home() {
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import BookProductCard from "@/components/ProductCard";
+import { Book as BookType } from "@/types/shipping-types";
+
+async function fetchLatestBooks() {
+  const query = `*[_type == "book" && quantity > 0] | order(_createdAt desc)[0...5]{
+    _id,
+    title,
+    price,
+    user->{
+      email
+    },
+    "image": photos[0].asset->url
+  }`;
+ 
+  const endpoint =
+    "https://32kxkt38.api.sanity.io/v2024-01-01/data/query/blog-m4ktaba";
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query }),
+    next: { revalidate: 1800 },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch latest books");
+  }
+
+  const { result } = await response.json();
+
+  return result;
+}
+
+export default async function Home() {
+  const latestBooks = await fetchLatestBooks();
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <div className="relative flex min-h-[70vh] items-center justify-center overflow-hidden">
         <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
+          src={HeroImage}
+          alt="Buying & Selling Books"
           priority
+          fill
+          className="object-cover"
         />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+          <h1 className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl md:text-6xl">
+            The eBay for Arabic-Islamic Books
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-300">
+            Discover, buy, and sell your favorite Islamic literature in Arabic.
+            Join our community of knowledge seekers today.
+          </p>
+          <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
+            <Button size="lg" className="hover:bg-primary/90" asChild>
+              <Link href="/all">
+                Browse Collection
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <Link href="/sell">Start Selling</Link>
+            </Button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
+      </div>
+
+      {/* Features Section */}
+      <section className="relative z-20 -mt-16 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                title: "Affordable Books",
+                description:
+                  "Find lots of books at prices that are easy to afford.",
+                icon: BadgeDollarSign,
+              },
+              {
+                title: "Fast & Free Shipping",
+                description:
+                  "Get your books delivered fast, with free shipping every time.",
+                icon: Truck,
+              },
+              {
+                title: "Wide Variety of Books",
+                description:
+                  "Explore many Islamic books in Arabic on many different topics.",
+                icon: BookOpen,
+              },
+              {
+                title: "Sell Your Old Books",
+                description:
+                  "Sell the books you no longer need and let others enjoy them.",
+                icon: Book,
+              },
+            ].map((feature, index) => (
+              <Card key={index} className="border-none shadow-lg ">
+                <CardHeader>
+                  <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                    <feature.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base">
+                    {feature.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Latest Books Section */}
+      <section className="py-16 sm:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h2 className="text-3xl font-bold tracking-tight">
+                Latest Books
+              </h2>
+              <p className="text-muted-foreground">
+                Discover our most recent additions to the collection
+              </p>
+            </div>
+            <Button variant="outline" asChild>
+              <Link href="/all">
+                View all
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          <Separator className="my-8" />
+
+          {latestBooks.length > 0 ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+              {latestBooks.map((book: BookType) => (
+                <BookProductCard
+                  key={book._id}
+                  id={book._id}
+                  title={book.title}
+                  user={book.user || "Unknown"}
+                  price={book.price || 0}
+                  image={book.image || "/placeholder.svg"}
+                  loading={false}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex min-h-[200px] items-center justify-center rounded-lg border border-dashed">
+              <p className="text-center text-muted-foreground">
+                No books found.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
