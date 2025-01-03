@@ -18,7 +18,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -72,11 +71,13 @@ export default function RefundModal({
       });
       handleClose();
     } catch (error) {
+      if (error instanceof Error) {
       toast({
         title: "Error",
-        description: "Failed to submit refund request. Please try again.",
+        description: error.message,
         variant: "destructive",
       });
+    }
     } finally {
       setIsSubmitting(false);
     }

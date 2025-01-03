@@ -6,6 +6,8 @@ import AuthProvider from "./context/AuthProvider";
 import SupportWidget from "@/components/SupportWidget";
 import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from "@/contexts/CartContext";
+import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/react"
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -72,6 +74,8 @@ export default function RootLayout({
       className={`${montserrat.className} m-8 bg-slate-50 antialiased`}
     >
       <body>
+        <SpeedInsights/>
+        <Analytics/>
         <AuthProvider>
           <CartProvider>
             <Navbar />

@@ -1,5 +1,7 @@
+import { CartItem } from "@/types/shipping-types";
+
 interface CartSummaryProps {
-  cart: any[];
+  cart: CartItem[];
 }
 
 export function CartSummary({ cart }: CartSummaryProps) {

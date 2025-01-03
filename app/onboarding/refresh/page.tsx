@@ -74,7 +74,7 @@ export default function OnboardingRefresh() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              "Let's get you back on track to complete your onboarding process."
+            &quot;Let&apos;s get you back on track to complete your onboarding process.&quot;
             </p>
           </blockquote>
         </div>
@@ -87,7 +87,7 @@ export default function OnboardingRefresh() {
                 Onboarding Incomplete
               </CardTitle>
               <CardDescription>
-                Let's help you complete your account setup
+                Let&apos;s help you complete your account setup
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -95,8 +95,8 @@ export default function OnboardingRefresh() {
                 <RefreshCcw className="h-4 w-4" />
                 <AlertTitle>Action Required</AlertTitle>
                 <AlertDescription>
-                  It looks like you didn't complete the onboarding process.
-                  You'll need to complete this to access all features.
+                  It looks like you didn&apos;t complete the onboarding process.
+                  You&apos;ll need to complete this to access all features.
                 </AlertDescription>
               </Alert>
             </CardContent>

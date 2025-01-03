@@ -32,7 +32,6 @@ export default function StripeDashboard() {
         );
         const result = await response.json();
         console.log(result);
-        
 
         if (!response.ok) {
           throw new Error(result.message || "Failed to fetch dashboard data");
@@ -47,7 +46,7 @@ export default function StripeDashboard() {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [session?.user.stripeAccountId]);
 
   if (loading) {
     return (

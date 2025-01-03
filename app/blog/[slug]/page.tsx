@@ -4,16 +4,12 @@ import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 import { client } from "@/studio-m4ktaba/client";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
+import Image from "next/image";
 
 const POST_QUERY = `
 *[_type == "post" && slug.current == $slug][0]{
@@ -55,7 +51,7 @@ const calculateWordCount = (body: any[]): number => {
 
   const extractTextFromBlock = (block: any) => {
     if (block.children) {
-      block.children.forEach((child: any) => {
+      block.children.forEach((child: { text: string }) => {
         if (child.text) {
           wordCount += child.text.split(" ").length;
         }
@@ -89,7 +85,8 @@ export default async function PostPage({
       <div className="flex min-h-[40vh] flex-col items-center justify-center gap-2">
         <h1 className="text-2xl font-bold">Post not found</h1>
         <p className="text-muted-foreground">
-          The post you're looking for doesn't exist or has been removed.
+          The post you&apos;re looking for doesn&apos;t exist or has been
+          removed.
         </p>
         <Button asChild variant="outline" className="mt-4">
           <Link href="/blog">
@@ -128,7 +125,7 @@ export default async function PostPage({
         {/* Post Image */}
         {postImageUrl && (
           <div className="overflow-hidden rounded-xl border bg-muted">
-            <img
+            <Image
               src={postImageUrl}
               alt={post.title}
               className="aspect-video w-full object-cover transition-transform hover:scale-105"

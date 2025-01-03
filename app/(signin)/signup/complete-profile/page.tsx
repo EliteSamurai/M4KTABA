@@ -140,8 +140,8 @@ export default function CompleteProfilePage() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              "Join our community of book lovers and start your reading journey
-              today."
+            &quot;Join our community of book lovers and start your reading journey
+              today.&quot;
             </p>
           </blockquote>
         </div>

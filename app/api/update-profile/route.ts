@@ -1,4 +1,3 @@
-import EasyPost from "@easypost/api";
 import { NextRequest, NextResponse } from "next/server";
 import { client } from "@/studio-m4ktaba/client";
 import { v4 as uuidv4 } from "uuid";
@@ -80,11 +79,13 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("Error:", error.message);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error:", error.message);
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      );
+    }
   }
 }

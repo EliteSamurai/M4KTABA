@@ -28,7 +28,6 @@ interface ReviewModalProps {
 export function ReviewModal({
   isOpen,
   onClose,
-  sellerId,
   rating,
   setRating,
   reviewText,
@@ -58,11 +57,13 @@ export function ReviewModal({
       });
       onClose();
     } catch (error) {
+      if (error instanceof Error) {
       toast({
         title: "Error",
-        description: "Failed to submit review. Please try again.",
+        description: error.message,
         variant: "destructive",
       });
+    }
     } finally {
       setIsSubmitting(false);
     }

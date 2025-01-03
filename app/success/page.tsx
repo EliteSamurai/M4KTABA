@@ -87,7 +87,7 @@ export default function SuccessPage() {
               setReceiptUrl(data.receiptUrl);
 
               const orderPayload = {
-                cart: parsedCartData.map((item: any) => ({
+                cart: parsedCartData.map((item: CartItem) => ({
                   _key: `${item.id}-${Date.now()}`, // Unique key for the item
                   id: item.id, // Product ID
                   title: item.title, // Product title

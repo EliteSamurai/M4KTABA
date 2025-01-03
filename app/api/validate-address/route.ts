@@ -4,7 +4,16 @@ import { NextRequest, NextResponse } from "next/server";
 const EASYPOST_API_URL = "https://api.easypost.com/v2";
 const EASYPOST_API_KEY = process.env.EASYPOST_API_KEY;
 
-async function validateAddress(address: any) {
+async function validateAddress(
+  address: {
+    street1: string;
+    street2?: string;
+    city: string;
+    zip: string;
+    state: string;
+    country: string;
+  },
+) {
   try {
     // Add the `verify` flag to trigger address verification
     const response = await fetch(`${EASYPOST_API_URL}/addresses`, {
@@ -26,7 +35,7 @@ async function validateAddress(address: any) {
 
     // Parse the response data
     const data = await response.json();
-    
+
     // Access the 'verifications' object and check the status
     const verifications = data?.verifications || {};
 

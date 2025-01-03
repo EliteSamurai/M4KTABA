@@ -34,9 +34,6 @@ export async function POST(req: NextRequest) {
     // Fetch existing Stripe account ID from your database
     let accountId = await fetchStripeAccountIdFromDatabase(userId);
     if (!accountId) {
-      const forwarded = req.headers.get("x-forwarded-for");
-      const ip = forwarded ? forwarded.split(",")[0] : "127.0.0.1";
-
       // Create a new Stripe Express account
       const account = await stripe.accounts.create({
         type: "express", // Use 'express' instead of 'custom' or 'standard'
@@ -46,7 +43,7 @@ export async function POST(req: NextRequest) {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
-        
+
         business_profile: {
           product_description: "Platform for selling books",
         },
@@ -69,8 +66,10 @@ export async function POST(req: NextRequest) {
       status: "needs_onboarding",
       url: onboardingUrl.url,
     });
-  } catch (error: any) {
-    console.error("Error creating Stripe account:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error creating Stripe account:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
   }
 }

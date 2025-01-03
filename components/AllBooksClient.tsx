@@ -33,12 +33,8 @@ interface AllBooksClientProps {
 
 export default function AllBooksClient({
   initialBooks,
-  totalBooks,
   // categories,
 }: AllBooksClientProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [books, setBooks] = useState(initialBooks);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -152,7 +148,7 @@ export default function AllBooksClient({
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-          {books.map((book) => (
+          {initialBooks.map((book) => (
             <BookProductCard
               key={book._id}
               id={book._id}

@@ -82,8 +82,8 @@ export default function HoneyProductPage() {
                   Its rich, sweet flavor makes it perfect for tea, toast, or
                   even by itself. Sidr honey is one of the rarest honeys in the
                   world because it comes from a tree that blooms only a few
-                  weeks each year. Many people call it "liquid gold" because of
-                  its unique taste and benefits.
+                  weeks each year. Many people call it &quot;liquid gold&quot;
+                  because of its unique taste and benefits.
                 </p>
                 <div className="pt-2">
                   <strong>Size:</strong> 226g

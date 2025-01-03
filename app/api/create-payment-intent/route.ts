@@ -2,6 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/options";
+import { CartItem } from "@/types/shipping-types";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -9,7 +10,6 @@ export async function POST(req: Request) {
   try {
     const { cart, shippingDetails } = await req.json();
     // console.log(cart, shippingDetails);
-    
 
     if (!cart || cart.length === 0) {
       throw new Error("Cart is empty. Please add items before checkout.");
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
     // Calculate subtotal
     const subtotal = cart.reduce(
-      (sum: number, item: any) => sum + item.price * item.quantity,
+      (sum: number, item: CartItem) => sum + item.price * item.quantity,
       0
     );
 
@@ -56,30 +56,46 @@ export async function POST(req: Request) {
 
       metadata: {
         shippingDetails: JSON.stringify(shippingDetails),
-        userEmail: session.user.email
+        userEmail: session.user.email,
       },
       receipt_email: session.user.email,
     });
 
     return NextResponse.json({ clientSecret: paymentIntent.client_secret });
-  } catch (error: any) {
-    console.error("Error creating payment intent:", error.message);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error creating payment intent:", error.message);
 
-    if (error.type === "StripeInvalidRequestError") {
+      // Handle Stripe-specific error types
+      if ("type" in error && error.type === "StripeInvalidRequestError") {
+        return NextResponse.json(
+          { error: "Invalid request to Stripe. Please contact support." },
+          { status: 400 }
+        );
+      } else if (
+        "type" in error &&
+        error.type === "StripeAuthenticationError"
+      ) {
+        return NextResponse.json(
+          {
+            error: "Authentication with Stripe failed. Please try again later.",
+          },
+          { status: 500 }
+        );
+      }
+
+      // Generic error handling
       return NextResponse.json(
-        { error: "Invalid request to Stripe. Please contact support." },
-        { status: 400 }
+        { error: error.message || "Internal server error." },
+        { status: 500 }
       );
-    } else if (error.type === "StripeAuthenticationError") {
+    } else {
+      // If the error is not an instance of Error (e.g., it could be a string or something else)
+      console.error("An unknown error occurred:", error);
       return NextResponse.json(
-        { error: "Authentication with Stripe failed. Please try again later." },
+        { error: "An unknown error occurred." },
         { status: 500 }
       );
     }
-
-    return NextResponse.json(
-      { error: error.message || "Internal server error." },
-      { status: 500 }
-    );
   }
 }

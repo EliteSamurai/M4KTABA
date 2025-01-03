@@ -86,14 +86,16 @@ export function CheckoutForm({ cart }: CheckoutFormProps) {
         });
         window.location.href = `/success?payment_intent=${result.paymentIntent.id}&cart=${cartData}`;
       }
-    } catch (error: any) {
-      console.error("Error:", error);
-      setError("An unexpected error occurred. Please try again.");
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error:", error);
+        setError("An unexpected error occurred. Please try again.");
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }

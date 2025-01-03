@@ -64,7 +64,7 @@ export default function BillingPage() {
   const [maxRefundAmount, setMaxRefundAmount] = useState<number>(0);
   const [itemTitle, setItemTitle] = useState<string>("");
   const { toast } = useToast();
-  const { data: session } = useSession();  
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchOrderHistory = async () => {
@@ -82,8 +82,10 @@ export default function BillingPage() {
         }
         const data = await response.json();
         setOrders(data.orders || []);
-      } catch (err: any) {
-        setError(err.message || "An error occurred while fetching orders.");
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message || "An error occurred while fetching orders.");
+        }
       }
     };
 
@@ -197,7 +199,8 @@ export default function BillingPage() {
       if (response.ok) {
         toast({
           title: "Refund Requested",
-          description: "Your refund request has been submitted successfully. Be sure to check your junk email.",
+          description:
+            "Your refund request has been submitted successfully. Be sure to check your junk email.",
         });
       } else {
         toast({
@@ -294,7 +297,7 @@ export default function BillingPage() {
                   <Alert>
                     <InfoCircle className="h-4 w-4" />
                     <AlertDescription>
-                      To buy or sell items on M4KTABA, you'll need to connect
+                      To buy or sell items on M4KTABA, you&apos;ll need to connect
                       your Stripe account. This ensures secure payments and
                       protects both buyers and sellers.
                     </AlertDescription>

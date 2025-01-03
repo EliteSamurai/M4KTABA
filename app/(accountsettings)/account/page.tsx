@@ -14,13 +14,11 @@ import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
@@ -79,8 +77,10 @@ export default function AccountPage() {
       setAlert({ type: "success", message: "Your account has been deleted." });
       setDialogOpen(true);
     } catch (error) {
-      setAlert({ type: "error", message: "An unexpected error occurred." });
-      setDialogOpen(true);
+      if (error instanceof Error) {
+        setAlert({ type: "error", message: error.message });
+        setDialogOpen(true);
+      }
     }
   };
 
@@ -104,10 +104,14 @@ export default function AccountPage() {
         "new-password": "",
         "confirm-password": "",
       });
-    } catch (error: any) {
-      setAlert({ message: error.message, type: "error" });
-    } finally {
-      setDialogOpen(true);
+    } catch (error) {
+      if (error instanceof Error) {
+        setAlert({
+          type: "error",
+          message: error.message || "An unknown error occurred",
+        });
+        setDialogOpen(true);
+      }
     }
   };
 

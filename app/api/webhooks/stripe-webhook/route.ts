@@ -197,8 +197,10 @@ export async function POST(req: Request) {
   try {
     const payload = await req.text();
     event = stripe.webhooks.constructEvent(payload, sig, webhookSecret);
-  } catch (error: any) {
-    console.error("Webhook signature verification failed:", error.message);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Webhook signature verification failed:", error.message);
+    }
     return NextResponse.json(
       { error: "Webhook signature verification failed." },
       { status: 400 }
@@ -235,12 +237,14 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ received: true }, { status: 200 });
-  } catch (error: any) {
-    console.error("Error handling webhook event:", error.message);
-    return NextResponse.json(
-      { error: "Webhook handler error." },
-      { status: 500 }
-    );
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error handling webhook event:", error.message);
+      return NextResponse.json(
+        { error: "Webhook handler error." },
+        { status: 500 }
+      );
+    }
   }
 }
 
@@ -348,7 +352,10 @@ async function handlePaymentIntentSucceeded(
 
       try {
         if (sellerStripeAccountId !== "acct_1QST64IpRAmWbte3") {
-          if (paymentIntent.latest_charge && typeof paymentIntent.latest_charge === "string") {
+          if (
+            paymentIntent.latest_charge &&
+            typeof paymentIntent.latest_charge === "string"
+          ) {
             // Create a transfer using the latest charge
             const transfer = await stripe.transfers.create({
               amount: Math.round(sellerPayout * 100), // Convert to cents

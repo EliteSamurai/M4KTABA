@@ -44,12 +44,14 @@ export async function POST(req: NextRequest) {
     const card = externalAccounts.data[0] || null;
 
     return NextResponse.json({ status: "active", card });
-  } catch (error: any) {
-    console.error("Error fetching account details:", error);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error fetching account details:", error);
 
-    return NextResponse.json(
-      { error: error.message || "Failed to retrieve account details" },
-      { status: 500 }
-    );
+      return NextResponse.json(
+        { error: error.message || "Failed to retrieve account details" },
+        { status: 500 }
+      );
+    }
   }
 }

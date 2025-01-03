@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function CancelPage() {
   return (
     <div className="container">
@@ -6,9 +8,9 @@ export default function CancelPage() {
         Your payment has been canceled. You can return to your cart and try
         again.
       </p>
-      <a href="/" className="button">
+      <Link href="/" className="button">
         Go Home
-      </a>
+      </Link>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { paymentIntentId, transfers, applicationFees } = await req.json();
+    const { paymentIntentId, transfers } = await req.json();
 
     for (const transfer of transfers) {
       await stripe.transfers.create({
@@ -15,7 +15,9 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
   }
 }

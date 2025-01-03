@@ -1,7 +1,7 @@
 import { client } from "@/studio-m4ktaba/client";
 import { createTransport } from "nodemailer";
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
     // Fetch all orders with 'refundStatus' as 'requested'
     const orders = await client.fetch(
@@ -46,13 +46,15 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error sending checkup emails:", error);
-    return new Response(
-      JSON.stringify({
-        message: "Error sending checkup emails.",
-        error: error.message,
-      }),
-      { status: 500 }
-    );
+    if (error instanceof Error) {
+      console.error("Error sending checkup emails:", error);
+      return new Response(
+        JSON.stringify({
+          message: "Error sending checkup emails.",
+          error: error.message,
+        }),
+        { status: 500 }
+      );
+    }
   }
 }

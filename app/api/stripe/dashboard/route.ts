@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
         { message: "Stripe account ID is required" },
         { status: 400 }
       );
-    }    
+    }
 
     // Retrieve balance, charges, and payouts from the Connect Account
     const [balance, charges, payouts] = await Promise.all([
@@ -30,9 +30,8 @@ export async function GET(req: NextRequest) {
     ]);
 
     console.log("Balance Response:", balance);
-  console.log("Charges Response:", charges);
-  console.log("Payouts Response:", payouts);
-
+    console.log("Charges Response:", charges);
+    console.log("Payouts Response:", payouts);
 
     // Format transactions
     const transactions = charges.data.map((charge) => ({
@@ -67,14 +66,16 @@ export async function GET(req: NextRequest) {
       transactions,
       payouts: formattedPayouts,
     });
-  } catch (error: any) {
-    console.error(
-      "Error fetching Stripe account data:",
-      error.message || error
-    );
-    return NextResponse.json(
-      { message: "Failed to fetch Stripe dashboard data" },
-      { status: 500 }
-    );
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(
+        "Error fetching Stripe account data:",
+        error.message || error
+      );
+      return NextResponse.json(
+        { message: "Failed to fetch Stripe dashboard data" },
+        { status: 500 }
+      );
+    }
   }
 }

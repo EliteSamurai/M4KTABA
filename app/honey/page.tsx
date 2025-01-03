@@ -28,7 +28,7 @@ export default function HoneyPage() {
               Raw Sidr Honey
             </h1>
             <p className="text-lg text-white/90 sm:text-xl">
-              Experience the pure, natural sweetness of Yemen's finest honey
+              Experience the pure, natural sweetness of Yemen&apos;s finest honey
             </p>
           </div>
         </div>

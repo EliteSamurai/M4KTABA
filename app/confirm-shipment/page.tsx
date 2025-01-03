@@ -16,11 +16,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useSearchParams } from 'next/navigation';
 
-interface ConfirmShipmentProps {
-  orderId: string;
-  itemId: string;
-}
-
 export default function ConfirmShipment() {
   const [hasShipped, setHasShipped] = useState<boolean | null>(null);
   const [trackingNumber, setTrackingNumber] = useState<string>("");

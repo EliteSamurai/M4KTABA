@@ -77,18 +77,16 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
-    if (session?.user?.location) {
-      const { location } = session.user;
-      form.reset({
-        name: session.user.name || "",
-        street1: location.street || "",
-        street2: "",
-        city: location.city || "",
-        zip: location.zip || "",
-        state: location.state || "",
-        country: location.country || "",
-      });
-    }
+    const { location } = session.user;
+    form.reset({
+      name: session.user.name || "",
+      street1: location.street || "",
+      street2: "",
+      city: location.city || "",
+      zip: location.zip || "",
+      state: location.state || "",
+      country: location.country || "",
+    });
   }, [session, form]);
 
   useEffect(() => {
@@ -156,7 +154,9 @@ export default function CheckoutPage() {
         );
       }
     } catch (error) {
-      setAddressError("Error validating address. Please try again.");
+      if (error instanceof Error) {
+        setAddressError(error.message);
+      }
     } finally {
       setIsValidating(false);
     }

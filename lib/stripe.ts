@@ -7,7 +7,7 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 
 export async function getTransactions(timeframe: 'week' | 'month' | 'year') {
   const now = new Date()
-  let startDate = new Date()
+  const startDate = new Date()
 
   switch (timeframe) {
     case 'week':

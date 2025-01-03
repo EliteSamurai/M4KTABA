@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { client } from "@/studio-m4ktaba/client";
 import { createTransport } from "nodemailer";
+import { CartItem } from "@/types/shipping-types";
 
 export async function POST(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
     }
 
     // Find the cart item
-    const cartItem = order.cart.find((item: any) => item.id === itemId);
+    const cartItem = order.cart.find((item: CartItem) => item.id === itemId);
 
     if (!cartItem) {
       return NextResponse.json(
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
     }
 
     // Update the shipping status of the specific cart item
-    const updatedCart = order.cart.map((item: any) =>
+    const updatedCart = order.cart.map((item: CartItem) =>
       item.id === itemId ? { ...item, shippingStatus: "shipped" } : item
     );
 

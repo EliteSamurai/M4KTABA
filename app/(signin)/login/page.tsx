@@ -48,7 +48,9 @@ export default function LoginPage() {
         window.location.href = "/";
       }
     } catch (error) {
-      setError("An unexpected error occurred");
+      if (error instanceof Error) {
+      setError(error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +71,7 @@ export default function LoginPage() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg italic">
-            "He who seeks knowledge, he has gained a treasure that is more valuable than gold or silver."
+            &quot;He who seeks knowledge, he has gained a treasure that is more valuable than gold or silver.&quot;
             </p>
             <footer className="text-sm">Imam as-Suyuti</footer>
           </blockquote>

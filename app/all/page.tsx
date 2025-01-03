@@ -1,8 +1,6 @@
 import { BookOpen, Search } from "lucide-react";
 import { client } from "@/studio-m4ktaba/client";
 import AllBooksClient from "@/components/AllBooksClient";
-import { Separator } from "@/components/ui/separator";
-import { Book } from "@/types/shipping-types";
 
 export const revalidate = 60;
 
