@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -36,7 +36,20 @@ import type { CartItem } from "@/types/shipping-types";
 import { useCart } from "@/contexts/CartContext";
 import { useSession } from "next-auth/react";
 
-export default function SuccessPage() {
+const SkeletonFallback = () => {
+  return (
+    <div className="container mx-auto flex min-h-[40vh] items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
+        <p className="mt-2 text-sm text-muted-foreground">
+          Loading order details...
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export function SuccessContent() {
   const searchParams = useSearchParams();
   const paymentIntentId = searchParams.get("payment_intent");
   const cartData = searchParams.get("cart");
@@ -159,16 +172,7 @@ export default function SuccessPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto flex min-h-[40vh] items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
-          <p className="mt-2 text-sm text-muted-foreground">
-            Loading order details...
-          </p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -273,5 +277,13 @@ export default function SuccessPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<SkeletonFallback />}>
+      <SuccessContent />
+    </Suspense>
   );
 }

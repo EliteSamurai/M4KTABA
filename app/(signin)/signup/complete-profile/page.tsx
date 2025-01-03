@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
   CardContent,
@@ -17,6 +18,44 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+function ProfilePageSkeleton() {
+  return (
+    <div className="container mx-auto relative min-h-screen items-center justify-center py-8 md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
+      <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
+        <div className="absolute inset-0 bg-purple-900" />
+        <div className="relative z-20 flex items-center text-lg font-medium">
+          <Skeleton className="mr-2 h-6 w-6 rounded-full" />
+          <Skeleton className="h-6 w-24" />
+        </div>
+        <div className="relative z-20 mt-auto">
+          <Skeleton className="h-6 w-80 mb-4" />
+          <Skeleton className="h-6 w-64" />
+        </div>
+      </div>
+      <div className="lg:p-8">
+        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px] lg:w-[400px]">
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-5 w-64 mb-4" />
+          <div className="space-y-4">
+            <Skeleton className="h-20 w-20 rounded-full mx-auto mb-4" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-64" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="grid gap-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+          <Skeleton className="h-10 w-full mt-6" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function CompleteProfileContent() {
   const { toast } = useToast();
@@ -270,7 +309,7 @@ export function CompleteProfileContent() {
 
 export default function CompleteProfilePage() {
   return (
-    <Suspense fallback={<div>Loading profile page...</div>}>
+    <Suspense fallback={<ProfilePageSkeleton />}>
       <CompleteProfileContent />
     </Suspense>
   );

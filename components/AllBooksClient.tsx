@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

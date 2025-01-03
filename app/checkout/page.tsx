@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Elements } from "@stripe/react-stripe-js";
@@ -32,6 +32,24 @@ import { CheckoutForm } from "./checkout-form";
 import type { CartItem } from "@/types/shipping-types";
 import { useRouter } from "next/navigation";
 
+const SkeletonLoader = () => (
+  <div className="container mx-auto min-h-screen py-8 md:py-12">
+    <div className="mx-auto max-w-5xl">
+      <div className="mb-8">
+        <div className="h-8 w-48 bg-gray-300 rounded animate-pulse"></div>
+        <div className="mt-2 h-4 w-64 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+      <div className="grid gap-8 md:grid-cols-2">
+        <div className="h-40 bg-gray-200 rounded animate-pulse"></div>
+        <div className="space-y-6">
+          <div className="h-56 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-40 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
@@ -48,7 +66,7 @@ const shippingSchema = z.object({
 
 type ShippingFormValues = z.infer<typeof shippingSchema>;
 
-export default function CheckoutPage() {
+export function CheckoutContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -359,5 +377,13 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<SkeletonLoader />}>
+      <CheckoutContent />
+    </Suspense>
   );
 }
