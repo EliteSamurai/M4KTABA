@@ -60,8 +60,13 @@ const LoginButton = () => {
       </DropdownMenuTrigger>
 
       {session && (
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuContent
+          align="end"
+          className="w-[calc(100vw-2rem)] max-w-[16rem] p-2 rounded-md bg-white shadow-md sm:w-48"
+        >
+          <DropdownMenuLabel className="text-sm font-semibold">
+            My Account
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link href="/profile">Profile</Link>

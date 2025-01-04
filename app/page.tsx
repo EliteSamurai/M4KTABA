@@ -31,7 +31,7 @@ async function fetchLatestBooks() {
     },
     "image": photos[0].asset->url
   }`;
- 
+
   const endpoint =
     "https://32kxkt38.api.sanity.io/v2024-01-01/data/query/blog-m4ktaba";
 
@@ -60,13 +60,16 @@ export default async function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <div className="relative flex min-h-[70vh] items-center justify-center overflow-hidden">
+        {/* Image */}
         <Image
           src={HeroImage}
           alt="Buying & Selling Books"
           priority
           fill
-          className="object-cover"
+          className="absolute top-0 left-0 w-screen h-full object-cover"
         />
+
+        {/* Content */}
         <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
           <h1 className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl md:text-6xl">
             The eBay for Arabic-Islamic Books
@@ -87,6 +90,8 @@ export default async function Home() {
             </Button>
           </div>
         </div>
+
+        {/* Gradient Overlay */}
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
       </div>
 

@@ -180,32 +180,7 @@ function generateSellerEmailContent(
 `;
 }
 
-export async function POST(req: Request) {
-  const sig = req.headers.get("stripe-signature");
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  if (!sig || !webhookSecret) {
-    console.error("Missing Stripe signature or webhook secret.");
-    return NextResponse.json(
-      { error: "Missing Stripe signature or webhook secret." },
-      { status: 400 }
-    );
-  }
-
-  let event: Stripe.Event;
-
-  try {
-    const payload = await req.text();
-    event = stripe.webhooks.constructEvent(payload, sig, webhookSecret);
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error("Webhook signature verification failed:", error.message);
-    }
-    return NextResponse.json(
-      { error: "Webhook signature verification failed." },
-      { status: 400 }
-    );
-  }
+ 
 
   try {
     switch (event.type) {

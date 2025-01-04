@@ -129,6 +129,8 @@ export default async function PostPage({
               src={postImageUrl}
               alt={post.title}
               className="aspect-video w-full object-cover transition-transform hover:scale-105"
+              width={100}
+              height={100}
             />
           </div>
         )}
@@ -153,10 +155,11 @@ export default async function PostPage({
 
         {/* Author Card */}
         <Card className="overflow-hidden">
-          <CardHeader className="border-b bg-muted/50 p-4">
-            <div className="flex items-center justify-between">
+          <CardHeader className="border-b bg-muted/50 p-4 sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              {/* User Information */}
               <div className="flex items-center gap-4">
-                <Avatar className="h-12 w-12 border-2">
+                <Avatar className="h-10 w-10 border-2 sm:h-12 sm:w-12">
                   {userImageUrl ? (
                     <AvatarImage
                       src={userImageUrl}
@@ -172,20 +175,27 @@ export default async function PostPage({
                   )}
                 </Avatar>
                 <div>
-                  <p className="font-semibold">M4KTABA TEAM</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-semibold text-sm sm:text-base">
+                    M4KTABA TEAM
+                  </p>
+                  <p className="text-xs text-muted-foreground sm:text-sm">
                     {post.user?.email.split("@")[0]}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+
+              {/* Post Metadata */}
+              <div className="flex flex-wrap justify-between items-center gap-4 text-xs text-muted-foreground sm:text-sm">
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
                   <time dateTime={post.publishedAt}>
                     {formatDate(post.publishedAt)}
                   </time>
                 </div>
-                <Separator orientation="vertical" className="h-4" />
+                <Separator
+                  orientation="vertical"
+                  className="h-4 hidden sm:block"
+                />
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
                   <span>{readTime} min read</span>

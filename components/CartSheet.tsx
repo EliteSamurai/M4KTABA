@@ -32,7 +32,7 @@ export function CartSheet() {
         <Button
           variant="outline"
           size="icon"
-          className="relative transition-colors hover:bg-muted"
+          className="relative w-9 h-9 transition-colors hover:bg-muted"
         >
           <ShoppingCart className="h-5 w-5" />
           {getCartCount() > 0 && (

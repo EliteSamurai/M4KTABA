@@ -82,7 +82,7 @@ export default function AllBooksClient({
         </form>
 
         {/* Filters */}
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <Select value={sortBy} onValueChange={handleSort}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Sort by" />
@@ -126,14 +126,14 @@ export default function AllBooksClient({
                           {category.title}
                         </SelectItem>
                       ))} */}
-                    </SelectContent>
+                    {/* </SelectContent>
                   </Select>
-                </div>
+                </div> */}
                 {/* Add more filters as needed */}
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
+              {/* </div>
+            </SheetContent> */}
+          {/* </Sheet>
+        </div> */}
       </div>
 
       <Separator />

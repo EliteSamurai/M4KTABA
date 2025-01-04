@@ -45,18 +45,18 @@ export default function SubscribeForm() {
   };
 
   return (
-    <div className="flex gap-4 max-w-2xl items-center mx-auto">
+    <div className="flex flex-col sm:flex-row gap-4 items-center mx-auto w-full">
       <input
         type="email"
         placeholder="Enter your email"
-        className="flex-1 border px-4 py-2 rounded"
+        className="w-full sm:flex-1 border px-4 py-2 rounded focus:outline-none focus:ring focus:ring-gray-300"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
       />
       <button
         onClick={handleSubscribe}
-        className="bg-gray-900 text-white px-4 py-2 rounded"
+        className="w-full sm:w-auto bg-gray-900 text-white px-4 py-2 rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={isSubmitting}
       >
         {isSubmitting ? "Subscribing..." : "Subscribe"}

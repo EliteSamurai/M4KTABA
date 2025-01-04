@@ -13,16 +13,18 @@ export default function HoneyPage() {
     <div className="flex min-h-screen flex-col">
       {/* Hero Section */}
       <section className="relative h-[60vh] w-full overflow-hidden">
-        <Image
-          src={NewHoneyHero}
-          alt="Sidr Honey"
-          priority
-          className="object-cover object-bottom"
-          fill
-          sizes="100vw"
-        />
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="container mx-auto absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0">
+          <Image
+            src={NewHoneyHero}
+            alt="Sidr Honey"
+            priority
+            className="h-full w-full object-cover object-bottom"
+            fill
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
+        <div className="relative z-10 container mx-auto flex h-full items-center justify-center px-4">
           <div className="max-w-2xl text-center text-white">
             <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
               Raw Sidr Honey
@@ -33,7 +35,7 @@ export default function HoneyPage() {
           </div>
         </div>
       </section>
-
+  
       {/* Products Section */}
       <section className="container mx-auto py-12 md:py-20">
         <div className="mx-auto max-w-md">
@@ -42,4 +44,5 @@ export default function HoneyPage() {
       </section>
     </div>
   );
+  
 }
