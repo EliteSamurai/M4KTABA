@@ -1,11 +1,11 @@
 import { BookOpen, Search } from "lucide-react";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient } from "@/studio-m4ktaba/client";
 import AllBooksClient from "@/components/AllBooksClient";
 
 export const revalidate = 60;
 
 async function fetchInitialBooks(limit: number = 10) {
-  const books = await client.fetch(
+  const books = await readClient.fetch(
     `*[_type == "book" && quantity > 0] | order(_createdAt desc) [0...${limit}] {
       _id,
       title,
@@ -17,8 +17,8 @@ async function fetchInitialBooks(limit: number = 10) {
   );
 
   const [total, categories] = await Promise.all([
-    client.fetch(`count(*[_type == "book"])`),
-    client.fetch(`*[_type == "category"] { title, _id }`),
+    readClient.fetch(`count(*[_type == "book"])`),
+    readClient.fetch(`*[_type == "category"] { title, _id }`),
   ]);
 
   return { books, total, categories };

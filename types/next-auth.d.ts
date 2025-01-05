@@ -20,6 +20,7 @@ declare module "next-auth" {
     _id?: string;
     email: string;
     image?: string;
+    picture?: string;
     stripeAccountId: string;
     location?: {
       street?: string;

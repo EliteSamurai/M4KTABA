@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Calendar, Hash } from "lucide-react";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient, writeClient } from "@/studio-m4ktaba/client";
 import BlogHeroImg from "@/public/islamiclibrary.jpg";
 import ImageUrlBuilder from "@sanity/image-url";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
@@ -34,7 +34,7 @@ const options = { next: { revalidate: 30 } };
 
 // Memoized image URL builder
 const urlFor = (source: SanityImageSource) => {
-  return ImageUrlBuilder(client).image(source);
+  return ImageUrlBuilder(writeClient).image(source);
 };
 
 // Helper function for date formatting
@@ -57,7 +57,7 @@ type Post = {
 };
 
 const Blog = async () => {
-  const posts = await client.fetch<Post[]>(POSTS_QUERY, {}, options);
+  const posts = await readClient.fetch<Post[]>(POSTS_QUERY, {}, options);
 
   return (
     <main className="min-h-screen bg-gradient-to-b">

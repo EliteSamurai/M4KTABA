@@ -5,6 +5,12 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   typescript: true,
 });
 
+export const config = {
+  api: {
+    bodyParser: false, // Disable Next.js body parser for this webhook
+  },
+}
+
 export async function getTransactions(timeframe: 'week' | 'month' | 'year') {
   const now = new Date()
   const startDate = new Date()

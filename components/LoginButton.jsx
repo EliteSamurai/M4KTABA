@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import getInitial from "@/utils/initials";
 import { useCart } from "@/contexts/CartContext";
+import { urlFor } from "@/utils/imageUrlBuilder";
 
 const LoginButton = () => {
   const { data: session, status } = useSession();
@@ -36,7 +37,7 @@ const LoginButton = () => {
             {session.user.image ? (
               <AvatarImage
                 className="object-cover"
-                src={session.user.image}
+                src={urlFor(session.user.image)}
                 alt={session.user.username || "User Avatar"}
               />
             ) : (

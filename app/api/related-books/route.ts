@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient } from "@/studio-m4ktaba/client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const books = await client.fetch(
+    const books = await readClient.fetch(
       `*[_type == "book" && selectedCategory._ref == $category && _id != $excludeBookId]{
           _id,
           title,

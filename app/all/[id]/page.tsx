@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient } from "@/studio-m4ktaba/client";
 import ProductPageClient from "@/components/ProductPageClient";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,7 +28,7 @@ function ProductPageSkeleton() {
 // Fetch function
 async function fetchBookData(id: string): Promise<Book> {
   try {
-    const book = await client.fetch(
+    const book = await readClient.fetch(
       `*[_type == "book" && _id == $id][0]{
         _id,
         title,

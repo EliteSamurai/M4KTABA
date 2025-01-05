@@ -1,7 +1,7 @@
 import { PortableText, type SanityDocument } from "next-sanity";
 import imageUrlBuilder from "@sanity/image-url";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient } from "@/studio-m4ktaba/client";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardFooter, CardHeader } from "@/components/ui/card";
@@ -25,7 +25,7 @@ const POST_QUERY = `
 }
 `;
 
-const { projectId, dataset } = client.config();
+const { projectId, dataset } = readClient.config();
 const urlFor = (source: SanityImageSource) =>
   projectId && dataset
     ? imageUrlBuilder({ projectId, dataset }).image(source)
@@ -73,7 +73,7 @@ export default async function PostPage({
   const { slug } = await asyncParams;
 
   // Fetch Post Data
-  const post = await client.fetch<SanityDocument>(
+  const post = await readClient.fetch<SanityDocument>(
     POST_QUERY,
     { slug },
     options

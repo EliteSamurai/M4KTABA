@@ -1,16 +1,23 @@
 import {createClient} from '@sanity/client'
 
-export const client = createClient({
+export const readClient = createClient({
   projectId: '32kxkt38',
   dataset: 'blog-m4ktaba',
   apiVersion: '2024-01-01',
-  token:
-    'sk8KlSga9hjImi9qZEE7iiVA1LuRAaIsQYMkM7jjjLnDQGWUc4AfK9tIA8qLULHHWF33yVN1yZguG61Jsflw6SM9ZdB08tLcaeSZBs91yEGtDw9IAnH6rnRk9prdpBsS2kR5yRgo4MCnOkJZPfk3pgeFDeJVDAAeDMzL8dp5R3StlWRxsmGQ',
+  token: process.env.SANITY_API_TOKEN!,
   useCdn: true, 
 })
 
+export const writeClient = createClient({
+  projectId: '32kxkt38',
+  dataset: 'blog-m4ktaba',
+  apiVersion: '2024-01-01',
+  token: process.env.SANITY_API_TOKEN!,
+  useCdn: false, 
+})
+
 export async function getTopSellers() {
-  return client.fetch(`
+  return readClient.fetch(`
     *[_type == "book"] | order(sales desc) [0...5] {
       _id,
       title,
@@ -22,7 +29,7 @@ export async function getTopSellers() {
 }
 
 export async function getAllBooks() {
-  return client.fetch(`
+  return readClient.fetch(`
     *[_type == "book"] {
       _id,
       title,
@@ -47,7 +54,7 @@ export async function fetchLatestBooks() {
 }`
 
   try {
-    const latestBooks = await client.fetch(query)
+    const latestBooks = await readClient.fetch(query)
     return latestBooks
   } catch (error) {
     console.error('Error fetching latest books:', error)

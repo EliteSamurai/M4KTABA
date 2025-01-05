@@ -1,5 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient } from "@/studio-m4ktaba/client";
 import { getServerSession } from "next-auth";
 import ProfileForm from "@/components/ProfileForm";
 
@@ -11,7 +11,7 @@ export default async function Page() {
   }
 
   const query = `*[_type == "user" && email == $email][0]`;
-  const user = await client.fetch(query, { email: session.user.email });
+  const user = await readClient.fetch(query, { email: session.user.email });
 
   return (
     <main className="flex-1 py-6">

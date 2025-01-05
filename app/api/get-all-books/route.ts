@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { client } from "@/studio-m4ktaba/client"; // Adjust the path as needed
+import { readClient } from "@/studio-m4ktaba/client"; // Adjust the path as needed
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   const offset = parseInt(searchParams.get("offset") || "0");
 
   try {
-    const books = await client.fetch(
+    const books = await readClient.fetch(
       `*[_type == "book"] | order(_createdAt desc) [${offset}...${offset + limit}] {
         _id,
         title,
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
       }`
     );
 
-    const total = await client.fetch(`count(*[_type == "book"])`);
+    const total = await readClient.fetch(`count(*[_type == "book"])`);
     return NextResponse.json({ books, total });
   } catch (error) {
     console.error("Error fetching books:", error);

@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs"; // For hashing and comparing passwords
-import { client } from "@/studio-m4ktaba/client"; // Your configured Sanity client
+import { writeClient, readClient } from "@/studio-m4ktaba/client"; // Your configured Sanity client
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     // Fetch the user's password from Sanity
     const query = `*[_type == "user" && _id == $userId][0]`;
-    const user = await client.fetch(query, { userId });
+    const user = await readClient.fetch(query, { userId });
 
     if (!user || !user.password) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update the password in Sanity
-    await client.patch(userId).set({ password: hashedPassword }).commit();
+    await writeClient.patch(userId).set({ password: hashedPassword }).commit();
 
     return NextResponse.json(
       { message: "Password updated successfully!" },

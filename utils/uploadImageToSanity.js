@@ -1,27 +1,67 @@
-import { client } from "@/studio-m4ktaba/client";
+import { writeClient } from "@/studio-m4ktaba/client";
+import axios from "axios";
 
-export async function uploadImageToSanity(imageUrl) {
+export async function uploadImageToSanity(imageSource) {
   try {
-    // Fetch the image as a buffer
-    const response = await fetch(imageUrl);
-    if (!response.ok) throw new Error("Failed to fetch image from URL");
-    const imageBuffer = await response.arrayBuffer();
+    let imageBuffer = null;
 
-    // Upload to Sanity
-    const uploadResponse = await client.assets.upload(
-      "image",
-      Buffer.from(imageBuffer),
-      {
-        filename: `google-profile-${Date.now()}.jpeg`,
+    // Fetch image buffer for a URL
+    if (typeof imageSource === "string" && imageSource.startsWith("http")) {
+      const response = await axios.get(imageSource, {
+        responseType: "arraybuffer",
+      });
+      imageBuffer = Buffer.from(response.data, "binary");
+    }
+    // Handle Base64 image
+    else if (
+      typeof imageSource === "string" &&
+      imageSource.startsWith("data:image/")
+    ) {
+      const base64Data = imageSource.split(",")[1];
+      if (!base64Data) {
+        throw new Error("Invalid Base64 image data.");
       }
-    );
+      imageBuffer = Buffer.from(base64Data, "base64");
+    } else {
+      throw new Error(
+        "Unsupported image source format. Provide a URL or Base64 string."
+      );
+    }
 
-    return {
-      _type: "image",
-      asset: { _ref: uploadResponse._id },
-    };
+    if (imageBuffer) {
+      // Upload the image to Sanity
+      const uploadResponse = await writeClient.assets.upload(
+        "image",
+        imageBuffer,
+        {
+          filename: `profile-image-${Date.now()}.jpg`,
+        }
+      );
+
+      // Return the Sanity image reference
+      return {
+        _type: "image",
+        asset: { _ref: uploadResponse._id },
+      };
+    } else {
+      throw new Error("Failed to process image buffer.");
+    }
   } catch (error) {
-    console.error("Failed to upload image to Sanity:", error);
+    console.error("Failed to upload image to Sanity:", error.message);
+    return null;
+  }
+}
+
+// Fetch the image from a URL and return it as a Buffer
+async function fetchImageFromUrl(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to fetch image from URL");
+
+    const imageBuffer = await response.arrayBuffer();
+    return Buffer.from(imageBuffer);
+  } catch (error) {
+    console.error("Error fetching image from URL:", error);
     return null;
   }
 }
@@ -39,9 +79,13 @@ export async function fileImageSanity(file) {
     const fileBuffer = Buffer.from(arrayBuffer);
 
     // Upload the image to Sanity
-    const uploadResponse = await client.assets.upload("image", fileBuffer, {
-      filename: file.name.replace(/[^a-zA-Z0-9._-]/g, "_"), // Clean filename
-    });
+    const uploadResponse = await writeClient.assets.upload(
+      "image",
+      fileBuffer,
+      {
+        filename: file.name.replace(/[^a-zA-Z0-9._-]/g, "_"), // Clean filename
+      }
+    );
 
     // Return the uploaded image's reference
     return {

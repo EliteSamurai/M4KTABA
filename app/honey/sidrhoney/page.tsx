@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient } from "@/studio-m4ktaba/client";
 import AddToCartButton from "@/components/AddToCartButton";
 import QuantitySelector from "@/components/QuantitySelector";
 import ThumbnailSwitcher from "@/components/ThumbnailSwitcher";
@@ -32,7 +32,7 @@ export default function HoneyProductPage() {
     if (hasFetched.current) return;
 
     async function fetchHoneyOwner() {
-      const data = await client.fetch(
+      const data = await readClient.fetch(
         `*[_type == "user" && _id == "MH7kyac4DmuRU6j51iL0It"][0]`
       );
       setHoneyOwner(data);

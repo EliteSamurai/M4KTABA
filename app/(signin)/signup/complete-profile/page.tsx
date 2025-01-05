@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { urlFor } from "@/utils/imageUrlBuilder";
 
 function ProfilePageSkeleton() {
   return (
@@ -62,7 +63,7 @@ export function CompleteProfileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);  
 
   const [imageBlob, setImage] = useState<string | null>(null);
   const [street, setStreet] = useState("");
@@ -79,7 +80,7 @@ export function CompleteProfileContent() {
     } else if (searchParams.get("userId")) {
       setUserId(searchParams.get("userId") as string);
     }
-  }, [session?.user?._id, searchParams]);
+  }, [session?.user?._id, searchParams]);    
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -123,6 +124,7 @@ export function CompleteProfileContent() {
     try {
       const response = await fetch("/api/complete-profile", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -133,8 +135,8 @@ export function CompleteProfileContent() {
 
       if (response.ok) {
         toast({
-          title: "Profile Updated",
-          description: "Your profile has been successfully updated.",
+          title: "Account Created",
+          description: "Your account has been successfully created.",
         });
 
         await signOut({
@@ -204,7 +206,7 @@ export function CompleteProfileContent() {
                     <div className="flex items-center gap-4">
                       <Avatar className="h-20 w-20">
                         <AvatarImage
-                          src={imageBlob || session?.user?.image || undefined}
+                          src={imageBlob || urlFor(session?.user?.image) || undefined}
                           alt="Profile picture"
                           className="object-cover"
                         />

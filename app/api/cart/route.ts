@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/options";
-import { client } from "@/studio-m4ktaba/client";
+import { writeClient } from "@/studio-m4ktaba/client";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   try {
     const { cart } = await req.json();
 
-    await client.patch(session.user._id).set({ cart }).commit();
+    await writeClient.patch(session.user._id).set({ cart }).commit();
 
     return NextResponse.json({ message: "Cart updated successfully" });
   } catch (error) {

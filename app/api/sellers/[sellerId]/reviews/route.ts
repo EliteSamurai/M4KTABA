@@ -1,4 +1,4 @@
-import { client } from "@/studio-m4ktaba/client";
+import { readClient, writeClient } from "@/studio-m4ktaba/client";
 
 export async function POST(
   req: Request,
@@ -13,7 +13,7 @@ export async function POST(
       });
     }
 
-    const seller = await client.fetch(
+    const seller = await readClient.fetch(
       `*[_type == "user" && _id == $sellerId][0]`,
       { sellerId: params.sellerId }
     );
@@ -24,7 +24,7 @@ export async function POST(
       });
     }
 
-    const updatedSeller = await client
+    const updatedSeller = await writeClient
       .patch(params.sellerId)
       .setIfMissing({ ratings: [] })
       .insert("after", "ratings[-1]", [

@@ -96,7 +96,7 @@ export default async function Home() {
       </div>
 
       {/* Features Section */}
-      <section className="relative z-20 -mt-16 px-4 sm:px-6 lg:px-8">
+      <section className="relative z-20 -mt-4 md:-mt-8 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[

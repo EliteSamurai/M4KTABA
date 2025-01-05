@@ -1,17 +1,19 @@
 import imageUrlBuilder from "@sanity/image-url";
-import { client } from "@/studio-m4ktaba/client"; // Your configured Sanity client
+import { writeClient } from "@/studio-m4ktaba/client"; // Your configured Sanity client
 
-const builder = imageUrlBuilder(client);
+const builder = imageUrlBuilder(writeClient);
 
 export function urlFor(source) {
-  if (source?.src) {
-    return source.src; // Return the `src` for Next.js image imports
+  if (typeof source === "string" && source.startsWith("http")) {
+    // Return external URLs directly
+    return source;
   }
 
-  // Handle Sanity image references
-  if (source) {
-    return builder.image(source).url() || ""; // Generate Sanity image URL
+  if (source?.asset?._ref) {
+    // Handle Sanity image references
+    return builder.image(source).url();
   }
 
-  // Fallback: Return an empty string for invalid inputs
-  return "";}
+  return ""; // Replace with your default image
+}
+

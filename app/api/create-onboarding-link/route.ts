@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { client } from "@/studio-m4ktaba/client"; // Adjust to your Sanity client path
+import { writeClient, readClient } from "@/studio-m4ktaba/client"; // Adjust to your Sanity client path
 import { NextRequest, NextResponse } from "next/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -9,7 +9,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 // Function to save Stripe Account ID to Sanity
 async function saveStripeAccountId(userId: string, stripeAccountId: string) {
   try {
-    await client.patch(userId).set({ stripeAccountId }).commit();
+    await writeClient.patch(userId).set({ stripeAccountId }).commit();
     console.log(`Stripe Account ID saved: ${stripeAccountId}`);
   } catch (error) {
     console.error("Error saving Stripe Account ID to Sanity:", error);
@@ -21,7 +21,7 @@ async function saveStripeAccountId(userId: string, stripeAccountId: string) {
 async function fetchStripeAccountIdFromDatabase(
   userId: string
 ): Promise<string | null> {
-  const user = await client.fetch(`*[_type == "user" && _id == $userId][0]`, {
+  const user = await readClient.fetch(`*[_type == "user" && _id == $userId][0]`, {
     userId,
   });
   return user?.stripeAccountId || null;

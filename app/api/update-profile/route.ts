@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { client } from "@/studio-m4ktaba/client";
+import { writeClient } from "@/studio-m4ktaba/client";
 import { v4 as uuidv4 } from "uuid";
 import { fileImageSanity } from "@/utils/uploadImageToSanity";
 
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     // Update user information in Sanity
     if (userId) {
-      await client
+      await writeClient
         .patch(userId.toString())
         .set({
           bio: bio

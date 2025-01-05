@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient, writeClient } from "@/studio-m4ktaba/client";
 import { authOptions } from "../auth/[...nextauth]/options";
 import { getServerSession } from "next-auth/next";
 
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const existingOrder = await client.fetch(
+    const existingOrder = await readClient.fetch(
       `*[_type == "order" && paymentId == $paymentId][0]`,
       { paymentId }
     );
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       cart,
     };
 
-    const response = await client.create(orderDocument);
+    const response = await writeClient.create(orderDocument);
 
     for (const cartItem of cart) {
       if (cartItem.id.includes("honey")) {
@@ -56,13 +56,13 @@ export async function POST(req: Request) {
       }
 
       // Update inventory and unpublish if quantity hits 0
-      await client
+      await writeClient
         .patch(cartItem.id)
         .dec({ quantity: cartItem.quantity })
         .commit();
     }
 
-    await client
+    await writeClient
       .patch(userId)
       .setIfMissing({ orderHistory: [] })
       .insert("after", "orderHistory[-1]", [
@@ -101,7 +101,7 @@ export async function GET() {
   }
 
   try {
-    const orders = await client.fetch(
+    const orders = await readClient.fetch(
       `*[_type == "order" && _id in *[_id == $userId].orderHistory[]._ref] | order(_createdAt desc) {
           _id,
           status,

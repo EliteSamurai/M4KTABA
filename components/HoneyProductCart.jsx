@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import HoneyPortrait from "@/public/HoneyPortrait.png";
 import { useState, useEffect } from "react";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient } from "@/studio-m4ktaba/client";
 import { ShoppingCart } from "lucide-react";
 
 export default function HoneyProductCard() {
@@ -36,7 +36,7 @@ export default function HoneyProductCard() {
   useEffect(() => {
     async function fetchSeller() {
       try {
-        const sellerData = await client.fetch(
+        const sellerData = await readClient.fetch(
           `*[_type == "user" && _id == $id][0]{
             _id,
             email,

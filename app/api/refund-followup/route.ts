@@ -1,10 +1,10 @@
-import { client } from "@/studio-m4ktaba/client";
+import { readClient } from "@/studio-m4ktaba/client";
 import { createTransport } from "nodemailer";
 
 export async function POST() {
   try {
     // Fetch all orders with 'refundStatus' as 'requested'
-    const orders = await client.fetch(
+    const orders = await readClient.fetch(
       `*[_type == "order" && cart[].refundDetails.refundStatus == "requested"]`
     );
 

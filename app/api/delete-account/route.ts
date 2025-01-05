@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { client } from "@/studio-m4ktaba/client";
+import { writeClient } from "@/studio-m4ktaba/client";
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     }
 
     // Unpublish the document
-    await client.delete(userId);
+    await writeClient.delete(userId);
 
     return NextResponse.json(
       { message: "Account deleted successfully." },

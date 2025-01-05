@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { client } from "@/studio-m4ktaba/client"; // Adjust the import path as necessary
+import { readClient } from "@/studio-m4ktaba/client"; // Adjust the import path as necessary
 
 export async function GET(req: NextRequest,{ params }: { params: { id: string } }) {
   console.log(params); // Check if params is coming through correctly
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest,{ params }: { params: { id: string } 
 
   try {
     // Fetch the book data from Sanity by the provided `id`
-    const book = await client.fetch('*[_type == "book" && _id == $id][0]', {
+    const book = await readClient.fetch('*[_type == "book" && _id == $id][0]', {
       id,
     });
 

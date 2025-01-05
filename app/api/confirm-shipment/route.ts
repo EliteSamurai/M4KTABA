@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient, writeClient } from "@/studio-m4ktaba/client";
 import { createTransport } from "nodemailer";
 import { CartItem } from "@/types/shipping-types";
 
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
   try {
     // Fetch the order
-    const order = await client.fetch(
+    const order = await readClient.fetch(
       `*[_type == "order" && paymentId == $orderId][0]`,
       { orderId }
     );
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const buyer = await client.fetch(
+    const buyer = await readClient.fetch(
       `*[_type == "user" && references(*[_type == "order" && paymentId == $orderId]._id)]{
           _id,
           email
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     );
 
     // Update the order in the database
-    await client.patch(order._id).set({ cart: updatedCart }).commit();
+    await writeClient.patch(order._id).set({ cart: updatedCart }).commit();
 
     // Send email to the customer
     const transporter = createTransport({

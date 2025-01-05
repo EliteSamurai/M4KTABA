@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient, writeClient } from "@/studio-m4ktaba/client";
 
 export async function POST(req: Request) {
   try {
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     }
 
     // Check if the user already exists in the database
-    const existingUser = await client.fetch(
+    const existingUser = await readClient.fetch(
       `*[_type == "user" && email == $email][0]`,
       { email }
     );
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     // Hash the password and create the new user
     const hashedPassword = await hash(password, 10);
 
-    const newUser = await client.create({
+    const newUser = await writeClient.create({
       _type: "user",
       email,
       password: hashedPassword,

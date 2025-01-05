@@ -1,4 +1,4 @@
-import { client } from "@/studio-m4ktaba/client";
+import { readClient, writeClient } from "@/studio-m4ktaba/client";
 import { createTransport } from "nodemailer"; // Assuming you're using Nodemailer
 
 const transporter = createTransport({
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     }
 
     // Fetch the order document from Sanity
-    const order = await client.fetch(
+    const order = await readClient.fetch(
       `*[_type == "order" && _id == $orderId][0]`,
       { orderId: orderId }
     );
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     }
 
     // Fetch user and seller information
-    const user = await client.fetch(
+    const user = await readClient.fetch(
       `*[_type == "user" && $orderId in orderHistory[]._ref][0]
 `,
       {
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
 
     const sellerUserId = cartItem.user._id;
 
-    const seller = await client.fetch(
+    const seller = await readClient.fetch(
       `*[_type == "user" && _id == $sellerId][0]`,
       { sellerId: sellerUserId }
     );
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
     }
 
     // Update refund status
-    const updatedOrder = await client
+    const updatedOrder = await writeClient
       .patch(orderId)
       .setIfMissing({ cartItems: [] })
       .insert("replace", "cartItems[_key == $cartItemId]", [

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient } from "@/studio-m4ktaba/client";
 
 type Book = {
   quantity: number;
@@ -21,7 +21,7 @@ export async function GET(
     }
 
     // Fetch the product from Sanity
-    const book: Book | null = await client.fetch(
+    const book: Book | null = await readClient.fetch(
       `*[_type == "book" && _id == $id][0]{
         quantity
       }`,

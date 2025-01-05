@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { stripe } from "@/lib/stripe";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient } from "@/studio-m4ktaba/client";
 
 async function getUserById(userId: string) {
   const query = `*[_type == "user" && _id == $userId][0]{
@@ -10,7 +10,7 @@ async function getUserById(userId: string) {
     }`;
 
   try {
-    const user = await client.fetch(query, { userId });
+    const user = await readClient.fetch(query, { userId });
 
     if (!user) {
       console.error(`User with ID ${userId} not found`);

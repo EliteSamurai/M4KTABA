@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { Stripe } from "stripe";
 import { createTransport } from "nodemailer";
 import { CartItem, User } from "@/types/shipping-types";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient } from "@/studio-m4ktaba/client";
 
 export const config = {
   api: {
@@ -14,7 +14,7 @@ export const config = {
 async function getCartFromSanity(email: string): Promise<User | null> {
   try {
     const query = `*[_type == "user" && email == $email][0]`;
-    const user: User | null = await client.fetch(query, { email });
+    const user: User | null = await readClient.fetch(query, { email });
 
     if (!user || !user.cart) {
       console.error(`No user or cart found for email: ${email}`);
@@ -181,6 +181,8 @@ function generateSellerEmailContent(
 }
 
 export async function POST(req: Request) {
+  console.log("Stripe Webhook Secret:", process.env.STRIPE_WEBHOOK_SECRET);
+  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
   const sig = req.headers.get("stripe-signature");
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 

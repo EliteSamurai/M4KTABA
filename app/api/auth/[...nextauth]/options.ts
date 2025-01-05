@@ -1,10 +1,11 @@
 import NextAuth, { NextAuthOptions, User } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import { client } from "@/studio-m4ktaba/client";
+import { writeClient, readClient } from "@/studio-m4ktaba/client";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { urlFor } from "@/utils/imageUrlBuilder";
+import { uploadImageToSanity } from "@/utils/uploadImageToSanity";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -30,24 +31,28 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Missing email or password.");
         }
 
+        // Fetch user from database based on email
         const query = `*[_type == "user" && email == $email][0]`;
-        const user = await client.fetch(query, { email });
+        const user = await writeClient.fetch(query, { email });
 
         if (!user) {
+          console.error("User not found in the database:", email); // Log user not found
           throw new Error("User not found.");
         }
 
+        // Compare password with the hashed password in the database
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
+          console.error("Invalid password for user:", email); // Log invalid password
           throw new Error("Invalid email or password.");
         }
 
         return {
-          _id: user._id, // Use `_id` directly
+          _id: user._id,
           email: user.email,
           image: user.image ? urlFor(user.image) : "",
           location: user.location,
-          stripeAccountId: user.stripeAccountId || null, // Include stripeAccountId
+          stripeAccountId: user.stripeAccountId || null,
         } as User;
       },
     }),
@@ -58,82 +63,71 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user, account }) {
       if (user) {
-        token._id = user._id; // Use `_id` directly
+        // Populate token with user data
+        token._id = user._id || token._id;
         token.email = user.email;
         token.location = user.location || {};
-        token.stripeAccountId = user.stripeAccountId || null; // Add stripeAccountId
+        token.stripeAccountId = user.stripeAccountId || null;
 
         if (account?.provider === "google") {
           try {
-            let existingUser = await client.fetch(
+            let existingUser = await readClient.fetch(
               `*[_type == "user" && email == $email][0]`,
               { email: token.email }
             );
 
             if (!existingUser) {
+              const imageRef = user.image
+                ? await uploadImageToSanity(user.image)
+                : null;
+
               const newUser = {
                 _type: "user",
-                _id: user._id ?? uuidv4(), // Use `_id`
+                _id: user._id || uuidv4(),
                 email: user.email,
                 location: user.location || {},
-                image: user.image || null,
-                stripeAccountId: user.stripeAccountId || null, // Save stripeAccountId
+                image: imageRef || null,
+                stripeAccountId: user.stripeAccountId || null,
               };
 
-              await client.createIfNotExists(newUser);
+              await writeClient.createIfNotExists(newUser);
               existingUser = newUser;
             }
 
-            token._id = existingUser._id; // Use `_id`
-            token.image = existingUser.image
-              ? urlFor(existingUser.image)
-              : user.image || "";
+            token._id = existingUser._id;
+            token.image = existingUser.image || null; // Preserve Sanity image object
             token.location = existingUser.location || {};
-            token.stripeAccountId = existingUser.stripeAccountId || null; // Add stripeAccountId
+            token.stripeAccountId = existingUser.stripeAccountId || null;
           } catch (error) {
             console.error("Error fetching or creating Google user:", error);
           }
         } else {
-          token._id = user._id; // Use `_id`
-          token.image = user.image || "";
-          token.location = user.location || {};
-          token.stripeAccountId = user.stripeAccountId || null; // Add stripeAccountId
+          token.image = user.image || null;
         }
       }
 
       return token;
     },
+
     async session({ session, token }) {
-      session.user._id = token._id; // Use `_id`
+      session.user._id = token._id;
       session.user.email = token.email;
       session.user.location = token.location;
-      session.user.image = token.image || "";
-      session.user.stripeAccountId = token.stripeAccountId || null; // Add stripeAccountId
+      session.user.image = token.image || null; // Return the Sanity image object
+      session.user.stripeAccountId = token.stripeAccountId || null;
 
       try {
-        const latestUser = await client.fetch(
+        const latestUser = await readClient.fetch(
           `*[_type == "user" && _id == $_id][0]{email, image, location, stripeAccountId}`,
-          { _id: token._id } // Use `_id`
+          { _id: token._id }
         );
 
-        session.user.image = latestUser?.image?.asset?._ref
-          ? urlFor(latestUser.image)
-          : session.user.image || "";
+        session.user.image = latestUser?.image || session.user.image; // Keep the image object intact
         session.user.location = latestUser?.location || session.user.location;
         session.user.stripeAccountId =
-          latestUser?.stripeAccountId || session.user.stripeAccountId; // Update stripeAccountId
+          latestUser?.stripeAccountId || session.user.stripeAccountId;
       } catch (error) {
         console.error("Error fetching user data for session:", error);
-      }
-
-      try {
-        const userCart = await client.fetch(
-          `*[_type == "user" && _id == $_id][0].cart`,
-          { _id: token._id } // Use `_id`
-        );
-        session.user.cart = userCart || [];
-      } catch (error) {
-        console.error("Error fetching user cart:", error);
       }
 
       return session;

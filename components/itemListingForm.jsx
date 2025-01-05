@@ -34,7 +34,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { client } from "@/studio-m4ktaba/client";
+import { readClient, writeClient } from "@/studio-m4ktaba/client";
 import { uploadImagesToSanity } from "@/utils/uploadImageToSanity";
 import heic2any from "heic2any";
 
@@ -79,7 +79,7 @@ export default function ItemListingForm({ bookData }) {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const fetchedCategories = await client.fetch(
+        const fetchedCategories = await readClient.fetch(
           `*[_type == "category"]{_id, title}`
         );
         setCategories(fetchedCategories);
@@ -182,7 +182,7 @@ export default function ItemListingForm({ bookData }) {
         },
       };
 
-      const createdBook = await client.create(newBook);
+      const createdBook = await writeClient.create(newBook);
 
       toast({
         title: "Success!",

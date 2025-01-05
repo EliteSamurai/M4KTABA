@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
-import { client } from "@/studio-m4ktaba/client";
+import { writeClient } from "@/studio-m4ktaba/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/options";
 import { uploadImageToSanity } from "@/utils/uploadImageToSanity";
+
+function isValidUrl(url: string): boolean {
+  try {
+    // Try to create a URL object using the input string
+    new URL(url);
+    return true; // If URL creation is successful, it's a valid URL
+  } catch (error) {
+    return false; // If an error occurs, it's not a valid URL
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -31,10 +41,26 @@ export async function POST(req: Request) {
     }
 
     const imageSource = imageBlob ?? session?.user.image ?? "";
-    const sanityImage = await uploadImageToSanity(imageSource);
+
+    let sanityImage;
+    if (imageSource) {
+      if (typeof imageSource === "string") {
+        if (imageSource.startsWith("data:image/")) {
+          // Handle base64 string
+          sanityImage = await uploadImageToSanity(imageSource);
+        } else if (isValidUrl(imageSource)) {
+          // Handle image URL
+          sanityImage = await uploadImageToSanity(imageSource);
+        } else {
+          console.error("Invalid image source: Not a valid base64 or URL");
+        }
+      } else {
+        console.error("Image source is not a string:", imageSource);
+      }
+    }
 
     // Update user profile in Sanity
-    const updatedUser = await client
+    const updatedUser = await writeClient
       .patch(userId)
       .set({
         image: sanityImage,
