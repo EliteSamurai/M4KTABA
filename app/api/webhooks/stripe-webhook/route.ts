@@ -4,7 +4,6 @@ import type { Stripe } from "stripe";
 import { createTransport } from "nodemailer";
 import { CartItem, User } from "@/types/shipping-types";
 import { readClient } from "@/studio-m4ktaba/client";
-import { buffer } from "micro";
 
 export const config = {
   api: {
@@ -197,7 +196,7 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
 
   try {
-    const payload = await buffer(req);
+    const payload = await req.text();
     event = stripe.webhooks.constructEvent(payload, sig, webhookSecret);
     console.log(event);
   } catch (error) {
@@ -236,26 +235,6 @@ export async function POST(req: Request) {
       case "account.updated":
         const accountUpdated = event.data.object;
         // Then define and call a function to handle the event account.updated
-        break;
-      case "account.application.authorized":
-        const accountApplicationAuthorized = event.data.object;
-        // Then define and call a function to handle the event account.application.authorized
-        break;
-      case "account.application.deauthorized":
-        const accountApplicationDeauthorized = event.data.object;
-        // Then define and call a function to handle the event account.application.deauthorized
-        break;
-      case "account.external_account.created":
-        const accountExternalAccountCreated = event.data.object;
-        // Then define and call a function to handle the event account.external_account.created
-        break;
-      case "account.external_account.deleted":
-        const accountExternalAccountDeleted = event.data.object;
-        // Then define and call a function to handle the event account.external_account.deleted
-        break;
-      case "account.external_account.updated":
-        const accountExternalAccountUpdated = event.data.object;
-        // Then define and call a function to handle the event account.external_account.updated
         break;
       case "balance.available":
         const balanceAvailable = event.data.object;
