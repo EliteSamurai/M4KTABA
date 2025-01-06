@@ -76,7 +76,6 @@ export default async function Home() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-300">
             Discover, buy, and sell your favorite Islamic literature in Arabic.
-            Join our community of knowledge seekers today.
           </p>
           <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
             <Button size="lg" className="hover:bg-primary/90" asChild>

@@ -4,6 +4,7 @@ import type { Stripe } from "stripe";
 import { createTransport } from "nodemailer";
 import { CartItem, User } from "@/types/shipping-types";
 import { readClient } from "@/studio-m4ktaba/client";
+import { buffer } from "micro";
 
 export const config = {
   api: {
@@ -181,8 +182,7 @@ function generateSellerEmailContent(
 }
 
 export async function POST(req: Request) {
-  console.log("Stripe Webhook Secret:", process.env.STRIPE_WEBHOOK_SECRET);
-  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
   const sig = req.headers.get("stripe-signature");
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -197,10 +197,9 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
 
   try {
-    const payload = await req.text();
+    const payload = await buffer(req);
     event = stripe.webhooks.constructEvent(payload, sig, webhookSecret);
     console.log(event);
-    
   } catch (error) {
     if (error instanceof Error) {
       console.error("Webhook signature verification failed:", error.message);
@@ -354,86 +353,6 @@ export async function POST(req: Request) {
         const customerUpdated = event.data.object;
         // Then define and call a function to handle the event customer.updated
         break;
-      case "customer.discount.created":
-        const customerDiscountCreated = event.data.object;
-        // Then define and call a function to handle the event customer.discount.created
-        break;
-      case "customer.discount.deleted":
-        const customerDiscountDeleted = event.data.object;
-        // Then define and call a function to handle the event customer.discount.deleted
-        break;
-      case "customer.discount.updated":
-        const customerDiscountUpdated = event.data.object;
-        // Then define and call a function to handle the event customer.discount.updated
-        break;
-      case "customer.source.created":
-        const customerSourceCreated = event.data.object;
-        // Then define and call a function to handle the event customer.source.created
-        break;
-      case "customer.source.deleted":
-        const customerSourceDeleted = event.data.object;
-        // Then define and call a function to handle the event customer.source.deleted
-        break;
-      case "customer.source.expiring":
-        const customerSourceExpiring = event.data.object;
-        // Then define and call a function to handle the event customer.source.expiring
-        break;
-      case "customer.source.updated":
-        const customerSourceUpdated = event.data.object;
-        // Then define and call a function to handle the event customer.source.updated
-        break;
-      case "customer.subscription.created":
-        const customerSubscriptionCreated = event.data.object;
-        // Then define and call a function to handle the event customer.subscription.created
-        break;
-      case "customer.subscription.deleted":
-        const customerSubscriptionDeleted = event.data.object;
-        // Then define and call a function to handle the event customer.subscription.deleted
-        break;
-      case "customer.subscription.paused":
-        const customerSubscriptionPaused = event.data.object;
-        // Then define and call a function to handle the event customer.subscription.paused
-        break;
-      case "customer.subscription.pending_update_applied":
-        const customerSubscriptionPendingUpdateApplied = event.data.object;
-        // Then define and call a function to handle the event customer.subscription.pending_update_applied
-        break;
-      case "customer.subscription.pending_update_expired":
-        const customerSubscriptionPendingUpdateExpired = event.data.object;
-        // Then define and call a function to handle the event customer.subscription.pending_update_expired
-        break;
-      case "customer.subscription.resumed":
-        const customerSubscriptionResumed = event.data.object;
-        // Then define and call a function to handle the event customer.subscription.resumed
-        break;
-      case "customer.subscription.trial_will_end":
-        const customerSubscriptionTrialWillEnd = event.data.object;
-        // Then define and call a function to handle the event customer.subscription.trial_will_end
-        break;
-      case "customer.subscription.updated":
-        const customerSubscriptionUpdated = event.data.object;
-        // Then define and call a function to handle the event customer.subscription.updated
-        break;
-      case "customer.tax_id.created":
-        const customerTaxIdCreated = event.data.object;
-        // Then define and call a function to handle the event customer.tax_id.created
-        break;
-      case "customer.tax_id.deleted":
-        const customerTaxIdDeleted = event.data.object;
-        // Then define and call a function to handle the event customer.tax_id.deleted
-        break;
-      case "customer.tax_id.updated":
-        const customerTaxIdUpdated = event.data.object;
-        // Then define and call a function to handle the event customer.tax_id.updated
-        break;
-      case "customer_cash_balance_transaction.created":
-        const customerCashBalanceTransactionCreated = event.data.object;
-        // Then define and call a function to handle the event customer_cash_balance_transaction.created
-        break;
-      case "file.created":
-        const fileCreated = event.data.object;
-        // Then define and call a function to handle the event file.created
-        break;
       case "identity.verification_session.canceled":
         const identityVerificationSessionCanceled = event.data.object;
         // Then define and call a function to handle the event identity.verification_session.canceled
@@ -586,26 +505,7 @@ export async function POST(req: Request) {
         const setupIntentSucceeded = event.data.object;
         // Then define and call a function to handle the event setup_intent.succeeded
         break;
-      case "tax.settings.updated":
-        const taxSettingsUpdated = event.data.object;
-        // Then define and call a function to handle the event tax.settings.updated
-        break;
-      case "tax_rate.created":
-        const taxRateCreated = event.data.object;
-        // Then define and call a function to handle the event tax_rate.created
-        break;
-      case "tax_rate.updated":
-        const taxRateUpdated = event.data.object;
-        // Then define and call a function to handle the event tax_rate.updated
-        break;
-      case "terminal.reader.action_failed":
-        const terminalReaderActionFailed = event.data.object;
-        // Then define and call a function to handle the event terminal.reader.action_failed
-        break;
-      case "terminal.reader.action_succeeded":
-        const terminalReaderActionSucceeded = event.data.object;
-        // Then define and call a function to handle the event terminal.reader.action_succeeded
-        break;
+
       case "transfer.created":
         const transferCreated = event.data.object;
         // Then define and call a function to handle the event transfer.created

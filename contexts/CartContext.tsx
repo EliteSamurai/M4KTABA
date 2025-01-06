@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { CartItem } from "@/types/shipping-types";
-import { getSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 
 type CartContextType = {
   cart: CartItem[];
@@ -23,15 +23,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   const [cart, setCart] = useState<CartItem[]>([]);
 
   useEffect(() => {
-    const fetchCart = async () => {
-      const session = await getSession();
-      
-      if (session?.user?.cart) {
-        setCart(session.user.cart);
+    const loadCartFromLocalStorage = () => {
+      const storedCart = localStorage.getItem("cart");
+      if (storedCart) {
+        setCart(JSON.parse(storedCart));
       }
     };
 
-    fetchCart();
+    loadCartFromLocalStorage();
   }, []);
 
   const syncCartWithBackend = async (updatedCart: CartItem[]) => {
@@ -43,15 +42,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       if (!response.ok) {
-        console.error("Error syncing cart:", await response.text()); // Debugging: check response
+        console.error("Error syncing cart:", await response.text());
       } else {
-        console.log(updatedCart);
-        
         console.log("Cart synced successfully");
       }
     } catch (error) {
       console.error("Failed to sync cart with backend", error);
     }
+  };
+
+  const updateLocalStorage = (updatedCart: CartItem[]) => {
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
 
   const addToCart = (item: CartItem) => {
@@ -64,6 +65,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
               : cartItem
           )
         : [...prevCart, item];
+      updateLocalStorage(updatedCart);
       syncCartWithBackend(updatedCart);
       return updatedCart;
     });
@@ -72,6 +74,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   const removeFromCart = (id: string) => {
     setCart((prevCart) => {
       const updatedCart = prevCart.filter((item) => item.id !== id);
+      updateLocalStorage(updatedCart);
       syncCartWithBackend(updatedCart);
       return updatedCart;
     });
@@ -79,11 +82,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const clearCart = () => {
     setCart([]);
+    updateLocalStorage([]);
     syncCartWithBackend([]);
   };
 
   const handleLogout = async () => {
     setCart([]);
+    updateLocalStorage([]);
     await signOut();
   };
 
@@ -92,7 +97,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const getCartCount = () => {
-    return cart.length; // Counts only unique items
+    return cart.length;
   };
 
   const isInCart = (id: string) => {
