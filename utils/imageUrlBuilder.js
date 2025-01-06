@@ -4,9 +4,15 @@ import { writeClient } from "@/studio-m4ktaba/client"; // Your configured Sanity
 const builder = imageUrlBuilder(writeClient);
 
 export function urlFor(source) {
-  if (typeof source === "string" && source.startsWith("http")) {
-    // Return external URLs directly
-    return source;
+  if (typeof source === "string") {
+    // Handle direct Sanity image references
+    if (source.startsWith("image-")) {
+      return builder.image({ asset: { _ref: source } }).url();
+    }
+    // Handle external URLs
+    if (source.startsWith("http")) {
+      return source;
+    }
   }
 
   if (source?.asset?._ref) {
@@ -16,4 +22,3 @@ export function urlFor(source) {
 
   return ""; // Replace with your default image
 }
-

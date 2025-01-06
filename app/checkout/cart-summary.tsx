@@ -17,15 +17,16 @@ export function CartSummary({ cart }: CartSummaryProps) {
       <div className="space-y-4">
         {cart.map((item, index) => (
           <div key={index} className="flex gap-4">
-            {/* <div className="w-24 h-24 relative">
-              <img
-                src={item.image || "/placeholder.svg"}
-                alt={item.title}
-                className="object-cover rounded"
-                width={96}
-                height={96}
-              />
-            </div> */}
+            {/* Image Section */}
+            {/* <div className="w-24 h-24 relative hidden sm:block">
+          <img
+            src={item.image || "/placeholder.svg"}
+            alt={item.title}
+            className="object-cover rounded"
+            width={96}
+            height={96}
+          />
+        </div> */}
             <div>
               <h3 className="font-medium">{item.title}</h3>
               <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
@@ -34,7 +35,8 @@ export function CartSummary({ cart }: CartSummaryProps) {
           </div>
         ))}
       </div>
-      <div className="mt-6 pb-2 space-y-2 border-t-2 absolute bottom-0 w-[calc(100%-3rem)]">
+      {/* Totals Section */}
+      <div className="mt-6 pb-2 space-y-2 border-t-2">
         <div className="pt-2 flex justify-between">
           <span>Subtotal</span>
           <span>${subtotal.toFixed(2)}</span>

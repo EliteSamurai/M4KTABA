@@ -33,7 +33,13 @@ export default function BookProductCard({
 }) {
   const { addToCart, isInCart } = useCart();
 
-  const imageUrl = image ? urlFor(image) : "/placeholder.svg";
+  const imageUrl = image ? urlFor(image) : image;
+  
+//   const builder = imageUrlBuilder(client);
+
+// function urlFor(source) {
+//   return builder.image(source);
+// }
 
   if (loading) {
     return (

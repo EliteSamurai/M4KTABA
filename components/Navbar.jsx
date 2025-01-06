@@ -14,7 +14,7 @@ const Links = [
 const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <nav className="flex h-14 items-center justify-between px-4">
+      <nav className="flex h-14 items-center justify-between sm:px-4">
         {/* Mobile Navigation */}
         <div className="flex items-center md:hidden">
           <MobileNav links={Links} />
@@ -23,7 +23,7 @@ const Navbar = () => {
         {/* Logo */}
           <Link
             href="/"
-            className="text-xl font-bold tracking-tighter transition-colors hover:text-foreground/80 lg:text-2xl"
+            className="text-xl pl-14 md:pl-0 font-bold tracking-tighter transition-colors hover:text-foreground/80 lg:text-2xl"
           >
             M4KTABA
           </Link>

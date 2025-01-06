@@ -50,12 +50,11 @@ const LoginButton = () => {
           </Avatar>
         ) : (
           <Link href="/login">
-            <Button
-              size="sm"
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            <button
+              className="p-2 md:p-1.5 bg-slate-200 rounded-md text-xs md:text-base hover:text-white hover:bg-black"
             >
               Login
-            </Button>
+            </button>
           </Link>
         )}
       </DropdownMenuTrigger>

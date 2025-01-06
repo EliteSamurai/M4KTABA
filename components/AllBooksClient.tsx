@@ -37,7 +37,7 @@ export default function AllBooksClient({
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [sortBy, setSortBy] = useState("recent");
+  const [sortBy, setSortBy] = useState("recent");  
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
