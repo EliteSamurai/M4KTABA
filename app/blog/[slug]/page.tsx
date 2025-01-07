@@ -99,9 +99,7 @@ export default async function PostPage({
   }
 
   // Generate Image URLs
-  const postImageUrl = post.mainImage
-    ? urlFor(post.mainImage)?.width(1200).height(675).url()
-    : null;
+  const postImageUrl = post.mainImage ? urlFor(post.mainImage)?.url() : null;
 
   const userImageUrl = post.user?.image
     ? urlFor(post.user.image)?.width(100).height(100).fit("crop").url()
@@ -129,8 +127,8 @@ export default async function PostPage({
               src={postImageUrl}
               alt={post.title}
               className="aspect-video w-full object-cover transition-transform hover:scale-105"
-              width={100}
-              height={100}
+              width={1200}
+              height={675}
             />
           </div>
         )}
