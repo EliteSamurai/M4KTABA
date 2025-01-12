@@ -6,8 +6,8 @@ import AuthProvider from "./context/AuthProvider";
 import SupportWidget from "@/components/SupportWidget";
 import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from "@/contexts/CartContext";
-import { SpeedInsights } from "@vercel/speed-insights/next"
-import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -17,11 +17,13 @@ const montserrat = Montserrat({
 
 export const metadata = {
   title: {
-    default: "M4KTABA",
+    default: "M4KTABA | Online Islamic-Arabic Books Marketplace",
     template: "%s | M4KTABA",
   },
-  description: "Discover the best in Islamic-Arabic books and honey products.",
-  keywords: "Islamic books, Arabic books, honey products, blog, M4KTABA",
+  description:
+    "Discover M4KTABA, the ultimate online marketplace for authentic Islamic-Arabic books and premium Yemeni Sidr honey. Buy, sell, and connect with a vibrant community today!",
+  keywords:
+    "Islamic books, islamic-arabic book marketplace, Arabic books, Islamic-Arabic books, premium sidr honey, royal honey, yemeni honey, blog, M4KTABA",
   author: "M4KTABA Team",
   icons: {
     icon: [
@@ -74,8 +76,8 @@ export default function RootLayout({
       className={`${montserrat.className} m-8 bg-slate-50 antialiased`}
     >
       <body>
-        <SpeedInsights/>
-        <Analytics/>
+        <SpeedInsights />
+        <Analytics />
         <AuthProvider>
           <CartProvider>
             <Navbar />

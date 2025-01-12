@@ -17,7 +17,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 const POSTS_QUERY = `*[
-  _type == "post" && defined(slug.current)
+  _type == "post" && defined(slug.current) && publishedAt <= now()
 ]|order(publishedAt desc)[0...12]{
   _id,
   title,

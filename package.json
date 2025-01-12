@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "check": "next check"
+    "check": "next check",
+    "postbuild": "next-sitemap"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
@@ -52,6 +53,7 @@
     "next": "15.0.3",
     "next-auth": "^4.24.10",
     "next-sanity": "^9.8.16",
+    "next-sitemap": "^4.2.3",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.16",
     "react": "18.3.1",
