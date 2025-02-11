@@ -43,6 +43,7 @@ const formatDate = (dateString: string) => {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: "UTC",
   }).format(new Date(dateString));
 };
 
