@@ -81,7 +81,9 @@ const Blog = async () => {
           </p>
           <div className="mt-10">
             <Button size="lg" variant="secondary" className="rounded-full">
+              <Link href="https://www.m4ktaba.com/blog/welcome-to-m4ktaba">
               Start Reading
+              </Link>
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>

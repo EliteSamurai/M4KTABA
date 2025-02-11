@@ -1,6 +1,7 @@
 import { BookOpen, Search } from "lucide-react";
 import { readClient } from "@/studio-m4ktaba/client";
 import AllBooksClient from "@/components/AllBooksClient";
+import { Book } from "@/types/shipping-types";
 
 export const revalidate = 60;
 
@@ -12,7 +13,8 @@ async function fetchInitialBooks(limit: number = 10) {
       "user": user->{_id, email, location, stripeAccountId}, 
       price,
       "image": photos[0].asset._ref,
-      categories[]->{ title }
+      selectedCategory->{ title },
+    _createdAt
     }`
   );
 
@@ -63,13 +65,16 @@ export default async function AllBooksPage() {
                 <p className="text-sm font-medium">New This Week</p>
               </div>
               <p className="mt-2 text-2xl font-bold">
-                {/* {
-                  books.filter(
-                    (b: Book) =>
-                      new Date(b._createdAt).getTime() >
+                {
+                  books.filter((b: Book) => {
+                    if (!b._createdAt) return false; // Exclude books with undefined _createdAt
+                    const createdAtDate = new Date(b._createdAt); // Safely create Date object
+                    return (
+                      createdAtDate.getTime() >
                       Date.now() - 7 * 24 * 60 * 60 * 1000
-                  ).length
-                } */}
+                    );
+                  }).length
+                }
               </p>
             </div>
           </div>

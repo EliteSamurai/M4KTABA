@@ -11,7 +11,7 @@ export interface CartItem {
       state?: string;
       zip?: string;
       country?: string;
-    }; 
+    };
     email?: string;
     stripeAccountId?: string;
     _id?: string;
@@ -49,4 +49,5 @@ export type Book = {
   image: string;
   sales: number;
   price: number;
+  _createdAt?: string | number;
 };

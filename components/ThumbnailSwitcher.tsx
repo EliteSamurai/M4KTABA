@@ -41,7 +41,7 @@ export default function ThumbnailSwitcher({ photos }: ThumbnailSwitcherProps) {
 
   const toggleZoom = () => {
     setIsZoomed(!isZoomed);
-  };
+  };  
 
   return (
     <div className="space-y-4">
@@ -54,7 +54,7 @@ export default function ThumbnailSwitcher({ photos }: ThumbnailSwitcherProps) {
           {mainImage && (
             <>
               <Image
-                src={urlFor(mainImage?.asset?._ref || mainImage)}
+                src={urlFor(mainImage?.asset?._ref) || mainImage}
                 alt="Product image"
                 className={cn(
                   "h-full w-full object-contain transition-transform duration-300",
@@ -103,7 +103,7 @@ export default function ThumbnailSwitcher({ photos }: ThumbnailSwitcherProps) {
             )}
           >
             <Image
-              src={urlFor(photo?.asset?._ref || photo)}
+              src={urlFor(photo?.asset?._ref) || photo}
               alt={`Product thumbnail ${i + 1}`}
               className="h-full w-full object-cover"
               width={150}
