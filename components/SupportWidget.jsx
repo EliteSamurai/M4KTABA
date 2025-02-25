@@ -79,8 +79,8 @@ export default function SupportWidget() {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
+      <DialogContent className="max-w-lg h-screen flex flex-col justify-center">
+      <DialogHeader>
             <DialogTitle className="text-xl font-semibold">
               Contact Support
             </DialogTitle>

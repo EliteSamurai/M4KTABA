@@ -3,17 +3,17 @@ import {createClient} from '@sanity/client'
 export const readClient = createClient({
   projectId: '32kxkt38',
   dataset: 'blog-m4ktaba',
-  apiVersion: '2024-01-01',
+  apiVersion: '2025-02-19',
   token: process.env.SANITY_API_TOKEN!,
-  useCdn: true, 
+  useCdn: true,
 })
 
 export const writeClient = createClient({
   projectId: '32kxkt38',
   dataset: 'blog-m4ktaba',
-  apiVersion: '2024-01-01',
+  apiVersion: '2025-02-19',
   token: process.env.SANITY_API_TOKEN!,
-  useCdn: false, 
+  useCdn: false,
 })
 
 export async function getTopSellers() {

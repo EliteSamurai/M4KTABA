@@ -182,7 +182,9 @@ export default function ItemListingForm({ bookData }) {
         },
       };
 
-      const createdBook = await writeClient.create(newBook);
+      const createdBook = await writeClient.create(newBook, {
+        perspective: "raw",
+      });
 
       toast({
         title: "Success!",
