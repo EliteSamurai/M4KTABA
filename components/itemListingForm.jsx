@@ -182,9 +182,7 @@ export default function ItemListingForm({ bookData }) {
         },
       };
 
-      const createdBook = await writeClient.create(newBook, {
-        perspective: "raw",
-      });
+      const createdBook = await writeClient.create(newBook);
 
       toast({
         title: "Success!",
@@ -214,7 +212,13 @@ export default function ItemListingForm({ bookData }) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault(); // Prevent page refresh
+              form.handleSubmit(onSubmit)(e);
+            }}
+            className="space-y-6"
+          >
             <FormField
               control={form.control}
               name="title"
