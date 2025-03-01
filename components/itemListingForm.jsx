@@ -365,7 +365,10 @@ export default function ItemListingForm({ bookData }) {
                         min={0}
                         step={1}
                         {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? "" : Number(value)); // Allow empty input
+                        }}
                       />
                     </FormControl>
                     <FormDescription>
@@ -375,7 +378,7 @@ export default function ItemListingForm({ bookData }) {
                   </FormItem>
                 )}
               />
-            </div>
+          </div>
 
             <FormField
               control={form.control}

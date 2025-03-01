@@ -33,7 +33,7 @@ async function fetchLatestBooks() {
   }`;
 
   const endpoint =
-    "https://32kxkt38.api.sanity.io/v2024-01-01/data/query/blog-m4ktaba";
+    "https://32kxkt38.api.sanity.io/v2025-02-19/data/query/blog-m4ktaba";
 
   const response = await fetch(endpoint, {
     method: "POST",
