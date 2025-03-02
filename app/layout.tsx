@@ -7,6 +7,7 @@ import SupportWidget from "@/components/SupportWidget";
 import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from "@/contexts/CartContext";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SupportProvider } from "@/contexts/support-context";
 import { Analytics } from "@vercel/analytics/react";
 import Script from "next/script";
 
@@ -108,6 +109,7 @@ export default function RootLayout({
         <SpeedInsights />
         <Analytics />
         <AuthProvider>
+        <SupportProvider>
           <CartProvider>
             <Navbar />
             {children}
@@ -115,6 +117,7 @@ export default function RootLayout({
             <SupportWidget />
             <Toaster />
           </CartProvider>
+          </SupportProvider>
         </AuthProvider>
       </body>
     </html>

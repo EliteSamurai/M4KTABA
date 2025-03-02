@@ -18,13 +18,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PaperclipIcon, X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast";
+import { useSupport } from "@/contexts/support-context";
 
 export default function SupportWidget() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, openSupport, closeSupport } = useSupport();
   const [attachments, setAttachments] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   const handleFileChange = (e) => {
     setAttachments(Array.from(e.target.files));
@@ -53,7 +54,7 @@ export default function SupportWidget() {
           title: "Support request sent",
           description: "We'll get back to you as soon as possible.",
         });
-        setIsOpen(false);
+        closeSupport()
       } else {
         throw new Error(result.error || "Failed to send email");
       }
@@ -71,16 +72,16 @@ export default function SupportWidget() {
   return (
     <>
       <Button
-        onClick={() => setIsOpen(true)}
+        onClick={openSupport}
         className="fixed bottom-6 right-6 rounded-full size-10 lg:size-14 p-0 px-10 shadow-lg hover:shadow-xl"
       >
         <p>Support</p>
         <span className="sr-only">Open support</span>
       </Button>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-lg h-screen flex flex-col justify-center">
-      <DialogHeader>
+      <Dialog open={isOpen} onOpenChange={closeSupport}>
+        <DialogContent className="max-w-lg h-screen flex flex-col justify-center">
+          <DialogHeader>
             <DialogTitle className="text-xl font-semibold">
               Contact Support
             </DialogTitle>
