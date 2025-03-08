@@ -78,22 +78,41 @@ export default function RootLayout({
       className={`${montserrat.className} m-8 bg-slate-50 antialiased`}
     >
       <head>
+        {/* Google Tag (gtag.js) */}
+        <Script
+          strategy="afterInteractive"
+          src="https://www.googletagmanager.com/gtag/js?id=G-N3YCSKEH3E"
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+  
+              gtag('config', 'G-N3YCSKEH3E');
+            `,
+          }}
+        />
+
         {/* Meta Pixel Script */}
         <Script
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
-            'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '2191762257905606');
-            fbq('track', 'PageView');
-          `,
+              !function(f,b,e,v,n,t,s)
+              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+              n.queue=[];t=b.createElement(e);t.async=!0;
+              t.src=v;s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s)}(window, document,'script',
+              'https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', '2191762257905606');
+              fbq('track', 'PageView');
+            `,
           }}
         />
         <noscript>
@@ -109,14 +128,14 @@ export default function RootLayout({
         <SpeedInsights />
         <Analytics />
         <AuthProvider>
-        <SupportProvider>
-          <CartProvider>
-            <Navbar />
-            {children}
-            <Footer />
-            <SupportWidget />
-            <Toaster />
-          </CartProvider>
+          <SupportProvider>
+            <CartProvider>
+              <Navbar />
+              {children}
+              <Footer />
+              <SupportWidget />
+              <Toaster />
+            </CartProvider>
           </SupportProvider>
         </AuthProvider>
       </body>
