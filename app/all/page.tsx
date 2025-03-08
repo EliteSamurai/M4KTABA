@@ -28,9 +28,12 @@ async function fetchInitialBooks(limit: number = 10) {
 
 export default async function AllBooksPage() {
   const { books, total, categories } = await fetchInitialBooks();
+  const uniqueCategories = new Set(books.map((book: Book) => book.selectedCategory?.title));
+  
 
   return (
     <div className="min-h-screen container mx-auto">
+      
       {/* Header Section */}
       <div>
         <div className="container py-8">
@@ -57,7 +60,7 @@ export default async function AllBooksPage() {
                 <Search className="h-4 w-4 text-muted-foreground" />
                 <p className="text-sm font-medium">Categories</p>
               </div>
-              <p className="mt-2 text-2xl font-bold">{categories.length}</p>
+              <p className="mt-2 text-2xl font-bold">{uniqueCategories.size}</p>
             </div>
             <div className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
               <div className="flex items-center gap-2">

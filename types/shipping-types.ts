@@ -49,5 +49,6 @@ export type Book = {
   image: string;
   sales: number;
   price: number;
+  selectedCategory: { _ref: string; title: string }; 
   _createdAt?: string | number;
 };

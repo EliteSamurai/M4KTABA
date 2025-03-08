@@ -1,25 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Book,
-  Truck,
-  BookOpen,
-  BadgeDollarSign,
-  ArrowRight,
-} from "lucide-react";
+import { Book, Truck, BookOpen, BadgeDollarSign, ArrowRight } from "lucide-react";
 import HeroImage from "@/public/image (1).jpg";
-
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import BookProductCard from "@/components/ProductCard";
 import { Book as BookType } from "@/types/shipping-types";
+import ModalWrapper from "@/components/ModalWrapper";
 
 async function fetchLatestBooks() {
   const query = `*[_type == "book" && quantity > 0] | order(_createdAt desc)[0...5]{
@@ -41,7 +29,6 @@ async function fetchLatestBooks() {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ query }),
-    next: { revalidate: 1800 },
   });
 
   if (!response.ok) {
@@ -58,9 +45,10 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen">
+      <ModalWrapper />
+
       {/* Hero Section */}
       <div className="relative flex min-h-[70vh] items-center justify-center overflow-hidden">
-        {/* Image */}
         <Image
           src={HeroImage}
           alt="Buying & Selling Books"
