@@ -1,6 +1,4 @@
-// components/PopupModal.tsx (Client Component)
-
-'use client';
+"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -18,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import booksImage from "@/public/books.jpg";
+import { event } from "@/lib/fbpixel";
 
 interface SellDialogProps {
   open: boolean;
@@ -25,13 +24,29 @@ interface SellDialogProps {
   booksImage?: string;
 }
 
-export default function PopupModal({ open, setOpen, booksImage = "/placeholder.svg" }: SellDialogProps) {
+export default function PopupModal({
+  open,
+  setOpen,
+  booksImage = "/placeholder.svg",
+}: SellDialogProps) {
   const router = useRouter();
 
   const features = [
-    { icon: DollarSign, title: "Higher payouts", description: "Keep more of what you earn" },
-    { icon: Clock, title: "Easy listing", description: "Post books in under a minute" },
-    { icon: Users, title: "Buyer demand", description: "Thousands of book lovers waiting" },
+    {
+      icon: DollarSign,
+      title: "Higher payouts",
+      description: "Keep more of what you earn",
+    },
+    {
+      icon: Clock,
+      title: "Easy listing",
+      description: "Post books in under a minute",
+    },
+    {
+      icon: Users,
+      title: "Buyer demand",
+      description: "Thousands of book lovers waiting",
+    },
   ];
 
   return (
@@ -65,7 +80,9 @@ export default function PopupModal({ open, setOpen, booksImage = "/placeholder.s
               </div>
               <div className="text-left">
                 <h3 className="font-medium">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {feature.description}
+                </p>
               </div>
             </div>
           ))}
@@ -74,10 +91,20 @@ export default function PopupModal({ open, setOpen, booksImage = "/placeholder.s
         <Separator />
 
         <DialogFooter className="flex flex-col gap-2 px-6 py-4 sm:flex-row">
-          <Button variant="outline" className="w-full sm:w-auto" onClick={() => setOpen(false)}>
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto"
+            onClick={() => setOpen(false)}
+          >
             Maybe Later
           </Button>
-          <Button className="w-full sm:w-auto" onClick={() => router.push("/sell")}>
+          <Button
+            className="w-full sm:w-auto"
+            onClick={() => {
+              event("StartSellingClick");
+              router.push("/sell"); // or wherever you're directing them
+            }}
+          >
             <BookOpen className="mr-2 h-4 w-4" />
             List Your First Book
           </Button>

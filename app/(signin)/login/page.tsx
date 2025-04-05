@@ -19,21 +19,26 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import BeautifulArt from "@/public/beautifulart2.jpg";
 import GoogleButton from "@/components/GoogleButton";
 import PasswordInput from "@/components/PasswordInput";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setError("Please fill in all fields");
+      toast({
+        title: "Missing fields",
+        description: "Please fill in both email and password.",
+        variant: "destructive",
+      });
       return;
     }
 
     setIsLoading(true);
-    setError("");
 
     try {
       const result = await signIn("credentials", {
@@ -43,14 +48,20 @@ export default function LoginPage() {
       });
 
       if (!result?.ok) {
-        setError("Invalid email or password");
+        toast({
+          title: "Login failed",
+          description: "Invalid email or password.",
+          variant: "destructive",
+        });
       } else {
         window.location.href = "/";
       }
     } catch (error) {
-      if (error instanceof Error) {
-      setError(error.message);
-      }
+      toast({
+        title: "Something went wrong",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -71,7 +82,8 @@ export default function LoginPage() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg italic">
-            &quot;He who seeks knowledge, he has gained a treasure that is more valuable than gold or silver.&quot;
+              &quot;He who seeks knowledge, he has gained a treasure that is
+              more valuable than gold or silver.&quot;
             </p>
             <footer className="text-sm">Imam as-Suyuti</footer>
           </blockquote>

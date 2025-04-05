@@ -39,13 +39,15 @@ export async function POST(req: NextRequest) {
         type: "express", // Use 'express' instead of 'custom' or 'standard'
         country: "US",
         business_type: "individual",
+        business_profile: {
+          name: "Seller on M4KTABA",
+          product_description: "Selling Islamic books via M4KTABA",
+          url: "https://www.m4ktaba.com", // Your site
+          mcc: "5942",
+        },
         capabilities: {
           card_payments: { requested: true },
           transfers: { requested: true },
-        },
-
-        business_profile: {
-          product_description: "Platform for selling books",
         },
       });
 

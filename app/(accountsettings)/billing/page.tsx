@@ -61,6 +61,7 @@ export default function BillingPage() {
   const [selectedCartItemId, setSelectedCartItemId] = useState<string | null>(
     null
   );
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [maxRefundAmount, setMaxRefundAmount] = useState<number>(0);
   const [itemTitle, setItemTitle] = useState<string>("");
   const { toast } = useToast();
@@ -107,6 +108,8 @@ export default function BillingPage() {
       return;
     }
 
+    setIsSubmittingReview(true);
+
     if (reviewText && reviewText.trim().length > 500) {
       toast({
         title: "Warning",
@@ -141,6 +144,7 @@ export default function BillingPage() {
         setRating(null);
         setReviewText("");
         setIsReviewModalOpen(false);
+        setIsSubmittingReview(false);
       } else {
         toast({
           title: "Error",
@@ -226,9 +230,10 @@ export default function BillingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: session?.user._id }),
       });
-
+  
       const data = await response.json();
       if (data.status === "needs_onboarding" && data.url) {
+        // Redirect to the onboarding page
         window.location.href = data.url;
       } else if (data.status === "onboarded") {
         alert("Your account is fully onboarded and ready to use!");
@@ -241,20 +246,34 @@ export default function BillingPage() {
       alert("An error occurred during onboarding. Please try again.");
     }
   };
+  
 
   const handleViewDashboard = async () => {
     setLoading(true);
-
+    setError("");
+  
     try {
       const response = await fetch("/api/create-account-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: session?.user._id }),
       });
-
+  
       const data = await response.json();
-      if (data.url) {
+  
+      console.log("Dashboard link response:", data); // Log the full response
+  
+      if (response.status === 404) {
+        setError("You haven't finished setting up your Stripe account.");
+        
+        // Trigger the onboarding process
+        await handleOnboard(); // This function handles the onboarding flow
+      } else if (data.status === "needs_onboarding" && data.url) {
+        // Redirect to the onboarding page
         window.location.href = data.url;
+      } else if (data.url) {
+        // Redirect to the Stripe dashboard for an express/custom account
+        window.open(data.url, "_blank");
       } else {
         setError("Failed to retrieve dashboard link.");
       }
@@ -265,6 +284,17 @@ export default function BillingPage() {
       setLoading(false);
     }
   };
+  
+
+  if (!session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">
+          You must be logged in to view this page.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -297,9 +327,9 @@ export default function BillingPage() {
                   <Alert>
                     <InfoCircle className="h-4 w-4" />
                     <AlertDescription>
-                      To buy or sell items on M4KTABA, you&apos;ll need to connect
-                      your Stripe account. This ensures secure payments and
-                      protects both buyers and sellers.
+                      To buy or sell items on M4KTABA, you&apos;ll need to
+                      connect your Stripe account. This ensures secure payments
+                      and protects both buyers and sellers.
                     </AlertDescription>
                   </Alert>
                   <div className="rounded-lg border bg-card p-6">
@@ -326,18 +356,16 @@ export default function BillingPage() {
               )}
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              {session?.user?.stripeAccountId && (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  size="lg"
-                  onClick={handleViewDashboard}
-                  disabled={loading}
-                >
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  View Stripe Dashboard
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                className="w-full"
+                size="lg"
+                onClick={handleViewDashboard}
+                disabled={loading}
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                View Stripe Dashboard
+              </Button>
             </CardFooter>
           </Card>
         </div>

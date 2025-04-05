@@ -1,9 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import LoginButton from "@/components/LoginButton";
 import { Button } from "./ui/button";
 import { CartSheet } from "./CartSheet";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./mobile-nav";
+import { event } from "@/lib/fbpixel";
 
 const Links = [
   { href: "/all", text: "All Books" },
@@ -12,6 +15,10 @@ const Links = [
 ];
 
 const Navbar = () => {
+  const handleClick = () => {
+    event("StartSelling");
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="flex h-14 items-center justify-between sm:px-4">
@@ -21,12 +28,12 @@ const Navbar = () => {
         </div>
 
         {/* Logo */}
-          <Link
-            href="/"
-            className="text-xl pl-14 md:pl-0 font-bold tracking-tighter transition-colors hover:text-foreground/80 lg:text-2xl"
-          >
-            M4KTABA
-          </Link>
+        <Link
+          href="/"
+          className="text-xl pl-14 md:pl-0 font-bold tracking-tighter transition-colors hover:text-foreground/80 lg:text-2xl"
+        >
+          M4KTABA
+        </Link>
 
         {/* Desktop Links */}
         <ul className="hidden md:flex items-center gap-6">
@@ -52,6 +59,7 @@ const Navbar = () => {
           <div className="hidden md:block">
             <Link href="/sell">
               <Button
+                onClick={handleClick}
                 className="bg-purple-600 text-white hover:bg-purple-700"
                 size="sm"
               >
