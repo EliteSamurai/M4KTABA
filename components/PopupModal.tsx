@@ -15,7 +15,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import booksImage from "@/public/books.jpg";
 import { event } from "@/lib/fbpixel";
 
 interface SellDialogProps {
@@ -34,18 +33,18 @@ export default function PopupModal({
   const features = [
     {
       icon: DollarSign,
-      title: "Higher payouts",
-      description: "Keep more of what you earn",
+      title: "Earn Instantly",
+      description: "List 2 books, get $10 — no strings attached",
     },
     {
       icon: Clock,
-      title: "Easy listing",
-      description: "Post books in under a minute",
+      title: "Fast & Simple",
+      description: "Post your books in under a minute",
     },
     {
       icon: Users,
-      title: "Buyer demand",
-      description: "Thousands of book lovers waiting",
+      title: "Trusted Marketplace",
+      description: "Thousands of Islamic book lovers waiting",
     },
   ];
 
@@ -65,10 +64,11 @@ export default function PopupModal({
 
         <DialogHeader className="px-6 pt-6">
           <DialogTitle className="text-center text-2xl font-bold tracking-tight">
-            Start Selling in 60 Seconds
+            List 2 Books, Get $10 Instantly
           </DialogTitle>
           <DialogDescription className="text-center text-muted-foreground">
-            Join our marketplace and reach thousands of Islamic book enthusiasts
+            Turn your unused Arabic-Islamic books into easy cash. It only takes
+            a minute to start — and we’ll send you $10 when you list 2 books.
           </DialogDescription>
         </DialogHeader>
 
@@ -102,11 +102,11 @@ export default function PopupModal({
             className="w-full sm:w-auto"
             onClick={() => {
               event("StartSellingClick");
-              router.push("/sell"); // or wherever you're directing them
+              router.push("/signup");
             }}
           >
             <BookOpen className="mr-2 h-4 w-4" />
-            List Your First Book
+            Get $10 — List Your Books
           </Button>
         </DialogFooter>
       </DialogContent>

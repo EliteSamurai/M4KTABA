@@ -9,6 +9,7 @@ import { PayoutsList } from "@/components/payouts-list";
 import { BalanceData, Transaction, Payout } from "@/types/stripe";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useSession } from "next-auth/react";
+import { getStripeAccountId } from "@/utils/getStripeId";
 
 export default function StripeDashboard() {
   const [loading, setLoading] = useState(true);
@@ -24,7 +25,7 @@ export default function StripeDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const stripeAccountId = session?.user.stripeAccountId;
+        const stripeAccountId = await getStripeAccountId(session?.user?.id);
 
         // Fetch data with the stripeAccountId as a query parameter
         const response = await fetch(

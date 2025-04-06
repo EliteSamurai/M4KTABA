@@ -223,68 +223,45 @@ export default function BillingPage() {
     }
   };
 
-  const handleOnboard = async () => {
-    try {
-      const response = await fetch("/api/create-onboarding-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: session?.user._id }),
-      });
-  
-      const data = await response.json();
-      if (data.status === "needs_onboarding" && data.url) {
-        // Redirect to the onboarding page
-        window.location.href = data.url;
-      } else if (data.status === "onboarded") {
-        alert("Your account is fully onboarded and ready to use!");
-      } else {
-        console.error("Unexpected response:", data);
-        alert("An unexpected error occurred. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error during onboarding:", error);
-      alert("An error occurred during onboarding. Please try again.");
-    }
-  };
-  
-
-  const handleViewDashboard = async () => {
+  const handleStripeButtonClick = async () => {
     setLoading(true);
-    setError("");
-  
+
     try {
-      const response = await fetch("/api/create-account-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: session?.user._id }),
-      });
-  
+      const response = await fetch("/api/stripe/account-link", { method: "POST" });
+
+      if (!response.ok) throw new Error("Failed to get Stripe link");
+
       const data = await response.json();
-  
-      console.log("Dashboard link response:", data); // Log the full response
-  
-      if (response.status === 404) {
-        setError("You haven't finished setting up your Stripe account.");
-        
-        // Trigger the onboarding process
-        await handleOnboard(); // This function handles the onboarding flow
-      } else if (data.status === "needs_onboarding" && data.url) {
-        // Redirect to the onboarding page
+
+      if (data?.url) {
         window.location.href = data.url;
-      } else if (data.url) {
-        // Redirect to the Stripe dashboard for an express/custom account
-        window.open(data.url, "_blank");
       } else {
-        setError("Failed to retrieve dashboard link.");
+        toast({
+          title: "Error",
+          description: "Could not retrieve Stripe link.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error("Error fetching dashboard link:", error);
-      setError("An error occurred while fetching the dashboard link.");
+      console.error("Error:", error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
-  
+
+  useEffect(() => {
+    if (window.location.search.includes("onboarding=success")) {
+      toast({
+        title: "Success",
+        description: "Stripe account created successfully!",
+      });
+    }
+  }, []);
 
   if (!session) {
     return (
@@ -316,55 +293,29 @@ export default function BillingPage() {
                 Stripe Account
               </CardTitle>
               <CardDescription>
-                {session?.user?.stripeAccountId
-                  ? "Your Stripe account details."
-                  : "Connect your Stripe account to start accepting payments."}
+                Connect your Stripe account to start accepting payments.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {!session?.user?.stripeAccountId && (
-                <>
-                  <Alert>
-                    <InfoCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      To buy or sell items on M4KTABA, you&apos;ll need to
-                      connect your Stripe account. This ensures secure payments
-                      and protects both buyers and sellers.
-                    </AlertDescription>
-                  </Alert>
-                  <div className="rounded-lg border bg-card p-6">
-                    <Button
-                      className="w-full"
-                      size="lg"
-                      onClick={handleOnboard}
-                      disabled={loading}
-                    >
-                      {loading && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Start Onboarding
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                </>
-              )}
 
+            <CardContent className="space-y-4">
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
             </CardContent>
-            <CardFooter className="flex flex-col gap-4">
+
+            <CardFooter>
               <Button
-                variant="outline"
                 className="w-full"
                 size="lg"
-                onClick={handleViewDashboard}
+                onClick={handleStripeButtonClick}
                 disabled={loading}
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                View Stripe Dashboard
+                {session?.user?.stripeAccountId
+                  ? "View Stripe Dashboard"
+                  : "Connect Stripe Account"}
               </Button>
             </CardFooter>
           </Card>

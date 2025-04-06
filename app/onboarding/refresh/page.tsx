@@ -21,25 +21,22 @@ export default function OnboardingRefresh() {
   const { data: session } = useSession();
 
   const handleRestartOnboarding = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/create-onboarding-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: session?.user._id }),
+    if (!session?.user._id) {
+      toast({
+        title: "Error",
+        description: "User not found. Please sign in again.",
+        variant: "destructive",
       });
-
-      const data = await response.json();
-
-      if (data.status === "needs_onboarding" && data.url) {
-        window.location.href = data.url;
-      } else {
-        toast({
-          title: "Unable to Restart",
-          description: "Please contact our support team for assistance.",
-          variant: "destructive",
-        });
-      }
+      return;
+    }
+  
+    setIsLoading(true);
+  
+    try {
+      // Directly generate the onboarding link here
+      const onboardingUrl = `https://connect.stripe.com/express/oauth/authorize?client_id=ca_RMzCLvBsK8yCiQlmmXPrAUMOIDix98YE&state=${session.user._id}&suggested_capabilities[]=transfers`;
+  
+      window.location.href = onboardingUrl;
     } catch (error) {
       console.error("Error restarting onboarding:", error);
       toast({
@@ -51,6 +48,7 @@ export default function OnboardingRefresh() {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="container relative min-h-screen items-center justify-center py-8 md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
