@@ -227,7 +227,9 @@ export default function BillingPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/stripe/account-link", { method: "POST" });
+      const response = await fetch("/api/stripe/account-link", {
+        method: "POST",
+      });
 
       if (!response.ok) throw new Error("Failed to get Stripe link");
 

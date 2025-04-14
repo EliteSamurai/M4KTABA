@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -35,6 +35,18 @@ import { Separator } from "@/components/ui/separator";
 import type { CartItem } from "@/types/shipping-types";
 import { useCart } from "@/contexts/CartContext";
 import { useSession } from "next-auth/react";
+
+// Loading Spinner UI
+const LoadingUI = () => {
+  return (
+    <div className="container mx-auto flex min-h-[40vh] items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+        <p className="mt-2 text-lg text-muted-foreground">Loading your order...</p>
+      </div>
+    </div>
+  );
+};
 
 const SkeletonFallback = () => {
   return (
@@ -100,25 +112,47 @@ export function SuccessContent() {
               setReceiptUrl(data.receiptUrl);
 
               const orderPayload = {
-                cart: parsedCartData.map((item: CartItem) => ({
-                  _key: `${item.id}-${Date.now()}`, // Unique key for the item
-                  id: item.id, // Product ID
-                  title: item.title, // Product title
-                  price: item.price, // Product price
-                  quantity: item.quantity, // Quantity
-                  user: {
-                    _id: item.user._id,
-                    email: item.user.email,
-                    location: item.user.location,
-                  },
-                  shippingStatus: "pending",
-                  refundDetails: {
-                    refundStatus: "not_requested",
-                  },
-                })),
-                status: "pending", // Order status
-                paymentId: paymentIntentId, // Payment ID
-                userId: session.user._id, // User ID
+                cart: parsedCartData.map((item: CartItem) => {
+                  // Special handling for honey products
+                  if (item.id === "honey-001") {
+                    return {
+                      _key: `${item.id}-${Date.now()}`,
+                      id: item.id,
+                      title: "Raw Sidr Honey (226g)",
+                      price: item.price,
+                      quantity: item.quantity,
+                      user: {
+                        _id: "MH7kyac4DmuRU6j51iL0It",
+                        email: "contact@m4ktaba.com",
+                      },
+                      shippingStatus: "pending",
+                      refundDetails: {
+                        refundStatus: "not_requested",
+                      },
+                    };
+                  }
+
+                  // Normal handling for other products
+                  return {
+                    _key: `${item.id}-${Date.now()}`,
+                    id: item.id,
+                    title: item.title,
+                    price: item.price,
+                    quantity: item.quantity,
+                    user: {
+                      _id: item.user._id,
+                      email: item.user.email,
+                      location: item.user.location,
+                    },
+                    shippingStatus: "pending",
+                    refundDetails: {
+                      refundStatus: "not_requested",
+                    },
+                  };
+                }),
+                status: "pending",
+                paymentId: paymentIntentId,
+                userId: session.user._id,
               };
 
               const saveOrderRes = await fetch("/api/orders", {
@@ -172,7 +206,7 @@ export function SuccessContent() {
   };
 
   if (isLoading) {
-    return null;
+    return <LoadingUI />; // Show loading UI while loading
   }
 
   return (

@@ -54,7 +54,7 @@ export default function SupportWidget() {
           title: "Support request sent",
           description: "We'll get back to you as soon as possible.",
         });
-        closeSupport()
+        closeSupport();
       } else {
         throw new Error(result.error || "Failed to send email");
       }
@@ -80,16 +80,19 @@ export default function SupportWidget() {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={closeSupport}>
-        <DialogContent className="max-w-lg h-screen flex flex-col justify-center">
+        <DialogContent className="max-w-lg max-h-[75vh] md:max-h-[90vh] overflow-y-auto mt-8 md:mt-0">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">
+            <DialogTitle className="text-lg md:text-xl font-semibold">
               Contact Support
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-lg font-semibold">
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+            <div className="space-y-1 md:space-y-2">
+              <label
+                htmlFor="email"
+                className="text-base md:text-lg font-semibold"
+              >
                 Email address
               </label>
               <Input
@@ -151,7 +154,6 @@ export default function SupportWidget() {
             </div>
 
             <div className="space-y-2">
-              {/* File Picker */}
               <div className="flex items-center gap-2">
                 <label htmlFor="attachments" className="relative">
                   <Button type="button" variant="outline" className="gap-2">
@@ -174,7 +176,6 @@ export default function SupportWidget() {
                 )}
               </div>
 
-              {/* File List */}
               {attachments.length > 0 && (
                 <ul className="text-sm text-gray-500">
                   {attachments.map((file, index) => (
@@ -186,11 +187,10 @@ export default function SupportWidget() {
                         variant="ghost"
                         size="sm"
                         className="size-4 p-0"
-                        onClick={
-                          () =>
-                            setAttachments(
-                              attachments.filter((_, i) => i !== index)
-                            ) // Remove file
+                        onClick={() =>
+                          setAttachments(
+                            attachments.filter((_, i) => i !== index)
+                          )
                         }
                       >
                         <X className="size-3" />

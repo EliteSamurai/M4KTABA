@@ -89,6 +89,7 @@ export default function LoginPage() {
           </blockquote>
         </div>
       </div>
+
       <div className="p-4 lg:p-8 h-full flex items-center">
         <Card className="mx-auto w-full max-w-md">
           <CardHeader className="space-y-1">
@@ -97,6 +98,7 @@ export default function LoginPage() {
               Enter your credentials to continue
             </CardDescription>
           </CardHeader>
+
           <CardContent className="space-y-4">
             <GoogleButton className="w-full" />
             <div className="relative">
@@ -109,7 +111,14 @@ export default function LoginPage() {
                 </span>
               </div>
             </div>
-            <div className="space-y-4">
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleLogin();
+              }}
+              className="space-y-4"
+            >
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -124,30 +133,24 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-2">
-                <div className="relative">
-                  <PasswordInput
-                    setPassword={setPassword}
-                    disabled={isLoading}
-                  />
-                </div>
+                <PasswordInput setPassword={setPassword} disabled={isLoading} />
               </div>
-            </div>
-            {error && (
-              <Alert variant="destructive">
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+
+              {error && (
+                <Alert variant="destructive">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Sign in
+              </Button>
+            </form>
           </CardContent>
+
           <CardFooter className="flex flex-col space-y-4">
-            <Button
-              className="w-full"
-              onClick={handleLogin}
-              disabled={isLoading}
-            >
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign in
-            </Button>
             <p className="text-center text-sm text-muted-foreground">
               Don&apos;t have an account?{" "}
               <Link

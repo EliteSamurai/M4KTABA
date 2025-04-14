@@ -11,6 +11,7 @@ export default function GoogleButton({
 }) {
   return (
     <Button
+    type="button"
       onClick={() => signIn("google", { callbackUrl })}
       variant="outline"
       className={cn(

@@ -75,10 +75,11 @@ function generateBuyerEmailContent(
   orderId: string
 ) {
   const itemsHtml = items
-    .map(
-      (item) =>
-        `<li>${item.title} - Quantity: ${item.quantity} - $${item.price.toFixed(2)}</li>`
-    )
+    .map((item) => {
+      const isHoney = item.id === "honey-001";
+      const itemName = isHoney ? "Raw Sidr Honey (226g)" : item.title;
+      return `<li>${itemName} - Quantity: ${item.quantity} - $${item.price.toFixed(2)}</li>`;
+    })
     .join("");
 
   const shippingAddress = `
@@ -123,24 +124,27 @@ function generateSellerEmailContent(
   sellerPayout?: number
 ) {
   const itemsHtml = items
-    .map(
-      (item) =>
-        `<li>${item.title} - Quantity: ${item.quantity} - $${item.price.toFixed(2)}</li>`
-    )
+    .map((item) => {
+      const isHoney = item.id === "honey-001";
+      const itemName = isHoney ? "Raw Sidr Honey (226g)" : item.title;
+      return `<li>${itemName} - Quantity: ${item.quantity} - $${item.price.toFixed(2)}</li>`;
+    })
     .join("");
 
   const itemLinks = items
-    .map(
-      (item) => `
-      <p>
-        <strong>Item:</strong> ${item.title} <br/>
-        <a href="${process.env.NEXT_PUBLIC_BASE_URL}/confirm-shipment?orderId=${paymentIntentId}&itemId=${item.id}" 
-          style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; text-align: center;">
-          Confirm Shipment for This Item
-        </a>
-      </p>
-    `
-    )
+    .map((item) => {
+      const isHoney = item.id === "honey-001";
+      const itemName = isHoney ? "Raw Sidr Honey (226g)" : item.title;
+      return `
+        <p>
+          <strong>Item:</strong> ${itemName} <br/>
+          <a href="${process.env.NEXT_PUBLIC_BASE_URL}/confirm-shipment?orderId=${paymentIntentId}&itemId=${item.id}" 
+            style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; text-align: center;">
+            Confirm Shipment for This Item
+          </a>
+        </p>
+      `;
+    })
     .join("");
 
   const shippingAddress = `
@@ -314,7 +318,15 @@ export async function POST(req: Request) {
         break;
       case "checkout.session.completed":
         const checkoutSessionCompleted = event.data.object;
-        // Then define and call a function to handle the event checkout.session.completed
+        // Add logic to fetch line items, check for honey
+        const lineItems = await stripe.checkout.sessions.listLineItems(
+          checkoutSessionCompleted.id,
+          {
+            expand: ["data.price.product"],
+          }
+        );
+
+        console.log("LINE ITEMS:", lineItems);
         break;
       case "checkout.session.expired":
         const checkoutSessionExpired = event.data.object;
@@ -549,10 +561,23 @@ async function handlePaymentIntentSucceeded(
       return;
     }
 
-    // Group items by seller
+    // Group items by seller, with special handling for honey
     const groupedSellers = user.cart.reduce(
       (acc: Record<string, CartItem[]>, item: CartItem) => {
-        const sellerId = item.user?._id;
+        let sellerId;
+
+        if (item.id === "honey-001") {
+          // Fixed seller ID for honey products
+          sellerId = "MH7kyac4DmuRU6j51iL0It";
+          // Add mock user object for honey products
+          item.user = {
+            _id: "MH7kyac4DmuRU6j51iL0It",
+            email: "contact@m4ktaba.com",
+            stripeAccountId: "acct_1QST64IpRAmWbte3",
+          };
+        } else {
+          sellerId = item.user?._id;
+        }
 
         if (!sellerId) {
           console.warn("Item is missing seller ID. Skipping item:", item);
@@ -580,7 +605,7 @@ async function handlePaymentIntentSucceeded(
       // Skip the seller with ID 'MH7kyac4DmuRU6j51iL0It' if it doesn't have a Stripe account ID
       if (sellerId === "MH7kyac4DmuRU6j51iL0It") {
         await sendEmail({
-          to: items[0]?.user?.email || "",
+          to: "contact@m4ktaba.com",
           subject: "New Order Received",
           html: generateSellerEmailContent(
             items,

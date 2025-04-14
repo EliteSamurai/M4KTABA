@@ -33,9 +33,10 @@ export default function SignUpPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!isChecked) {
       setError("Please accept the terms and conditions");
-      return;
+      return; // <-- THIS STOPS EXECUTION
     }
 
     setIsLoading(true);
@@ -62,7 +63,7 @@ export default function SignUpPage() {
       }
     } catch (error) {
       if (error instanceof Error) {
-      setError(error.message);
+        setError(error.message);
       }
     } finally {
       setIsLoading(false);

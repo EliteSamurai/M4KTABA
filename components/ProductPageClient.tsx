@@ -14,6 +14,8 @@ import { SellerInfo } from "@/components/seller-info";
 import calculateAverageRating from "@/utils/calculateAverageRating";
 import { urlFor } from "@/utils/imageUrlBuilder";
 import Link from "next/link";
+import EditableThumbnailManager from "./EditableThumbnailManager";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProductPageClientProps {
   book: any;
@@ -23,7 +25,9 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
   const [quantity, setQuantity] = useState(1);
   const [relatedBooks, setRelatedBooks] = useState<any[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
   const { data: session } = useSession();
+  const { toast } = useToast();
 
   if (!book) {
     return (
@@ -35,7 +39,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
 
   const {
     user,
-    photos,
+    photos: initialPhotos,
     title,
     description,
     selectedCondition,
@@ -45,46 +49,55 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
     _id,
   } = book;
 
+  const [photos, setPhotos] = useState(initialPhotos || []);
   const userRatings = user?.ratings || [];
   const averageRating = calculateAverageRating(userRatings);
   const isAvailable = availableQuantity > 0;
 
   useEffect(() => {
-    const fetchRelatedBooks = async () => {
-      if (selectedCategory?._id && book?._id) {
-        setLoadingRelated(true);
-        try {
-          const response = await fetch(`/api/related-books`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              category: selectedCategory._id,
-              excludeBookId: book._id,
-            }),
-          });
+    if (Array.isArray(book?.photos) && book.photos.length > 0) {
+      setPhotos(book.photos);
+    }
+  }, [book?.photos]);
 
-          if (!response.ok) {
-            throw new Error(
-              `Failed to fetch related books: ${response.statusText}`
-            );
-          }
+  const handleImageUpdate = async (updatedPhotos: any[]) => {
+    setIsUpdating(true);
+    try {
+      // Use POST for image upload
+      const response = await fetch(`/api/upload-image`, {
+        method: "POST",
+        body: JSON.stringify({
+          bookId: _id,
+          photos: updatedPhotos,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-          const data = await response.json();
-          setRelatedBooks(data);
-        } catch (error) {
-          console.error("Error fetching related books:", error);
-        } finally {
-          setLoadingRelated(false);
-        }
-      } else {
-        setLoadingRelated(false);
+      if (!response.ok) {
+        throw new Error("Failed to update images");
       }
-    };
 
-    fetchRelatedBooks();
-  }, [selectedCategory, book]);
+      const data = await response.json();
+      if (data.asset) {
+        setPhotos(updatedPhotos);
+        toast({
+          title: "Success",
+          description: "Images have been updated successfully.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update images. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Error updating images:", error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <div className="container mx-auto space-y-16 py-8 md:py-12">
@@ -92,7 +105,14 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Product Images */}
           <div className="top-24">
-            {photos && photos.length > 0 ? (
+            {session?.user?._id === user?._id ? (
+              <EditableThumbnailManager
+                photos={photos}
+                bookId={_id}
+                onChange={handleImageUpdate}
+                isLoading={isUpdating}
+              />
+            ) : photos && photos.length > 0 ? (
               <ThumbnailSwitcher photos={photos} />
             ) : (
               <Card className="aspect-square">
