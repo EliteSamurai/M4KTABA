@@ -27,9 +27,13 @@ export async function POST(request: Request) {
     })
   );
 
+  const email = formData.get("email");
+  const replyTo = typeof email === "string" ? email : undefined;
+
   const mailOptions = {
-    from: process.env.SUPPORT_EMAIL,
+    from: `"M4KTABA Support" <${process.env.SUPPORT_EMAIL}>`,
     to: process.env.SUPPORT_EMAIL,
+    replyTo,
     subject: "New Support Request",
     text: `
 Email: ${formData.get("email")}
