@@ -36,14 +36,14 @@ export const authOptions: NextAuthOptions = {
         const user = await writeClient.fetch(query, { email });
 
         if (!user) {
-          console.error("User not found in the database:", email); // Log user not found
+          console.error("User not found in the database"); // Removed email from log
           throw new Error("User not found.");
         }
 
         // Compare password with the hashed password in the database
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
-          console.error("Invalid password for user:", email); // Log invalid password
+          console.error("Invalid password attempt"); // Removed email from log
           throw new Error("Invalid email or password.");
         }
 

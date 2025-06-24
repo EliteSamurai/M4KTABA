@@ -44,11 +44,12 @@ export interface User {
 export type Book = {
   _id: number;
   title: string;
+  author: string;
   user: User;
   quantity?: number;
   image: string;
   sales: number;
   price: number;
-  selectedCategory: { _ref: string; title: string }; 
+  selectedCategory: { _ref: string; title: string };
   _createdAt?: string | number;
 };

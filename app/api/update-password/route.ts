@@ -1,8 +1,16 @@
 import bcrypt from "bcryptjs"; // For hashing and comparing passwords
 import { writeClient, readClient } from "@/studio-m4ktaba/client"; // Your configured Sanity client
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/options";
 
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?._id) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
 
@@ -16,6 +24,11 @@ export async function POST(req: NextRequest) {
 
     const { userId, currentPassword, newPassword, confirmPassword } =
       mappedBody;
+
+    // Ensure user can only update their own password
+    if (userId !== session.user._id) {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
 
     // Basic validations
     if (!userId || !currentPassword || !newPassword || !confirmPassword) {

@@ -78,7 +78,9 @@ function generateBuyerEmailContent(
     .map((item) => {
       const isHoney = item.id === "honey-001";
       const itemName = isHoney ? "Raw Sidr Honey (226g)" : item.title;
-      return `<li>${itemName} - Quantity: ${item.quantity} - $${item.price.toFixed(2)}</li>`;
+      return `<li>${itemName} - Quantity: ${
+        item.quantity
+      } - $${item.price.toFixed(2)}</li>`;
     })
     .join("");
 
@@ -87,7 +89,9 @@ function generateBuyerEmailContent(
     <p>${shippingDetails.name}</p>
     <p>${shippingDetails.street1}</p>
     ${shippingDetails.street2 ? `<p>${shippingDetails.street2}</p>` : ""}
-    <p>${shippingDetails.city}, ${shippingDetails.state}, ${shippingDetails.zip}</p>
+    <p>${shippingDetails.city}, ${shippingDetails.state}, ${
+    shippingDetails.zip
+  }</p>
     <p>${shippingDetails.country}</p>
   `;
 
@@ -127,7 +131,9 @@ function generateSellerEmailContent(
     .map((item) => {
       const isHoney = item.id === "honey-001";
       const itemName = isHoney ? "Raw Sidr Honey (226g)" : item.title;
-      return `<li>${itemName} - Quantity: ${item.quantity} - $${item.price.toFixed(2)}</li>`;
+      return `<li>${itemName} - Quantity: ${
+        item.quantity
+      } - $${item.price.toFixed(2)}</li>`;
     })
     .join("");
 
@@ -152,7 +158,9 @@ function generateSellerEmailContent(
     <p>${shippingDetails.name}</p>
     <p>${shippingDetails.street1}</p>
     ${shippingDetails.street2 ? `<p>${shippingDetails.street2}</p>` : ""}
-    <p>${shippingDetails.city}, ${shippingDetails.state}, ${shippingDetails.zip}</p>
+    <p>${shippingDetails.city}, ${shippingDetails.state}, ${
+    shippingDetails.zip
+  }</p>
     <p>${shippingDetails.country}</p>
   `;
 
@@ -165,12 +173,18 @@ function generateSellerEmailContent(
   
   ${
     sellerPayout
-      ? `<p><strong>Total Payout to You:</strong> $${sellerPayout.toFixed(2)}</p>
+      ? `<p><strong>Total Payout to You:</strong> $${sellerPayout.toFixed(
+          2
+        )}</p>
          <p>The amount has been adjusted for platform fees and will be transferred to your Stripe account.</p>`
       : ""
   }
   
-  ${shippingAddress ? `<p><strong>Shipping Address:</strong><br/>${shippingAddress}</p>` : ""}
+  ${
+    shippingAddress
+      ? `<p><strong>Shipping Address:</strong><br/>${shippingAddress}</p>`
+      : ""
+  }
   
   <p><strong>Order ID:</strong> ${paymentIntentId}</p>
   
@@ -598,7 +612,7 @@ async function handlePaymentIntentSucceeded(
 
     for (const [sellerId, items] of Object.entries(groupedSellers) as [
       string,
-      CartItem[],
+      CartItem[]
     ][]) {
       const sellerStripeAccountId = items[0]?.user?.stripeAccountId;
 
@@ -624,7 +638,7 @@ async function handlePaymentIntentSucceeded(
         0
       );
 
-      const platformFeePercentage = 0.1; // 10% platform fee
+      const platformFeePercentage = 0; // 0% platform fee (removed 10% fee)
       let platformFee = sellerTotal * platformFeePercentage;
 
       // Skip platform fee for specific Stripe account

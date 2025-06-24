@@ -74,6 +74,13 @@ export async function fileImageSanity(file) {
       return null;
     }
 
+    // Check file size (max 5MB)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > MAX_FILE_SIZE) {
+      console.error("File too large. Maximum size is 5MB.");
+      return null;
+    }
+
     // Convert file to buffer using arrayBuffer
     const arrayBuffer = await file.arrayBuffer();
     const fileBuffer = Buffer.from(arrayBuffer);

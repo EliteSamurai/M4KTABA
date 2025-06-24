@@ -114,6 +114,7 @@ export default function EditableThumbnailManager({
       if (uploadedImages.length > 0) {
         const updatedPhotos = uploadedImages.map((image) => ({
           _type: "image",
+          _key: image._key,
           asset: {
             _type: "reference",
             _ref: image.asset._ref,
@@ -137,7 +138,7 @@ export default function EditableThumbnailManager({
       {mainImage && (
         <div className="relative overflow-hidden rounded-lg border bg-background aspect-square">
           <Image
-            src={urlFor(mainImage?.asset?._ref)}
+            src={urlFor(mainImage?.asset?._ref) || "/placeholder.jpg"}
             alt="Main image"
             className="h-full w-full object-contain"
             width={600}
@@ -190,7 +191,7 @@ export default function EditableThumbnailManager({
             )}
           >
             <Image
-              src={urlFor(photo?.asset?._ref)}
+              src={urlFor(photo?.asset?._ref) || "/placeholder.jpg"}
               alt={`Thumbnail ${index + 1}`}
               className="h-full w-full object-cover"
               width={150}

@@ -1,33 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readClient } from "@/studio-m4ktaba/client";
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { category, excludeBookId } = body;
+    const { searchParams } = new URL(req.url);
+    const bookId = searchParams.get("bookId");
+    const categoryId = searchParams.get("categoryId");
+    const limit = parseInt(searchParams.get("limit") || "4");
 
-    if (!category) {
+    if (!bookId || !categoryId) {
       return NextResponse.json(
-        { message: "Category ID is required." },
+        { error: "bookId and categoryId are required" },
         { status: 400 }
       );
     }
 
-    const books = await readClient.fetch(
-      `*[_type == "book" && selectedCategory._ref == $category && _id != $excludeBookId]{
+    // Fetch related books from the same category, excluding the current book
+    const relatedBooks = await readClient.fetch(
+      `*[_type == "book" && selectedCategory._ref == $categoryId && _id != $bookId && quantity > 0] | order(_createdAt desc)[0...$limit]{
+        _id,
+        title,
+        price,
+        "photos": photos[0]{
+          _key,
+          asset
+        },
+        "user": user->{
           _id,
-          title,
-          photos,
-          price
-        }`,
-      { category, excludeBookId }
+          email
+        }
+      }`,
+      {
+        categoryId,
+        bookId,
+        limit,
+      }
     );
 
-    return NextResponse.json(books, { status: 200 });
+    return NextResponse.json({ books: relatedBooks });
   } catch (error) {
     console.error("Error fetching related books:", error);
     return NextResponse.json(
-      { message: "Error fetching related books", error },
+      { error: "Failed to fetch related books" },
       { status: 500 }
     );
   }

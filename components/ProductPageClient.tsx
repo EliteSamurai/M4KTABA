@@ -7,10 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Edit } from "lucide-react";
 import ThumbnailSwitcher from "@/components/ThumbnailSwitcher";
 import AddToCartButton from "@/components/AddToCartButton";
 import QuantitySelector from "@/components/QuantitySelector";
 import { SellerInfo } from "@/components/seller-info";
+import EditProductForm from "@/components/EditProductForm";
 import calculateAverageRating from "@/utils/calculateAverageRating";
 import { urlFor } from "@/utils/imageUrlBuilder";
 import Link from "next/link";
@@ -26,6 +29,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
   const [relatedBooks, setRelatedBooks] = useState<any[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
   const { data: session } = useSession();
   const { toast } = useToast();
 
@@ -53,12 +57,43 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
   const userRatings = user?.ratings || [];
   const averageRating = calculateAverageRating(userRatings);
   const isAvailable = availableQuantity > 0;
+  const isOwner = session?.user?._id === user?._id;
 
   useEffect(() => {
     if (Array.isArray(book?.photos) && book.photos.length > 0) {
       setPhotos(book.photos);
     }
   }, [book?.photos]);
+
+  // Fetch related products
+  useEffect(() => {
+    async function fetchRelatedBooks() {
+      if (!book?._id || !selectedCategory?._id) {
+        setLoadingRelated(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/related-books?bookId=${book._id}&categoryId=${selectedCategory._id}&limit=4`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setRelatedBooks(data.books || []);
+        } else {
+          console.error("Failed to fetch related books");
+          setRelatedBooks([]);
+        }
+      } catch (error) {
+        console.error("Error fetching related books:", error);
+        setRelatedBooks([]);
+      } finally {
+        setLoadingRelated(false);
+      }
+    }
+
+    fetchRelatedBooks();
+  }, [book?._id, selectedCategory?._id]);
 
   const handleImageUpdate = async (updatedPhotos: any[]) => {
     setIsUpdating(true);
@@ -99,13 +134,20 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
     }
   };
 
+  const handleEditSuccess = () => {
+    toast({
+      title: "Success",
+      description: "Product updated successfully!",
+    });
+  };
+
   return (
     <div className="container mx-auto space-y-16 py-8 md:py-12">
       <div className="mx-auto max-w-5xl">
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Product Images */}
           <div className="top-24">
-            {session?.user?._id === user?._id ? (
+            {isOwner ? (
               <EditableThumbnailManager
                 photos={photos}
                 bookId={_id}
@@ -126,14 +168,27 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
           {/* Product Info */}
           <div className="space-y-8">
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">{selectedCategory?.title}</Badge>
-                {isAvailable ? (
-                  <Badge variant="default" className="bg-green-600">
-                    In Stock
-                  </Badge>
-                ) : (
-                  <Badge variant="destructive">Out of Stock</Badge>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{selectedCategory?.title}</Badge>
+                  {isAvailable ? (
+                    <Badge variant="default" className="bg-green-600">
+                      In Stock
+                    </Badge>
+                  ) : (
+                    <Badge variant="destructive">Out of Stock</Badge>
+                  )}
+                </div>
+                {isOwner && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditFormOpen(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit Listing
+                  </Button>
                 )}
               </div>
               <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
@@ -181,7 +236,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                     onQuantityChange={setQuantity}
                     quantity={quantity}
                   />
-                  {user?._id !== session?.user?._id && (
+                  {!isOwner && (
                     <AddToCartButton
                       bookUser={user}
                       bookId={_id}
@@ -197,6 +252,14 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
           </div>
         </div>
       </div>
+
+      {/* Edit Product Form */}
+      <EditProductForm
+        book={book}
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        onSuccess={handleEditSuccess}
+      />
 
       {/* Related Products */}
       <section className="mx-auto max-w-5xl">
@@ -218,7 +281,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
             relatedBooks.map((relatedBook, i) => (
               <Link
                 key={i}
-                href={`/product/${relatedBook._id}`}
+                href={`/all/${relatedBook._id}`}
                 className="transition-transform hover:scale-105"
               >
                 <Card className="overflow-hidden">
@@ -226,7 +289,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                     <div className="aspect-[4/5] overflow-hidden">
                       <Image
                         src={
-                          urlFor(relatedBook.photos?.[0]) || "/placeholder.jpg"
+                          urlFor(relatedBook.photos) || "/placeholder.jpg"
                         }
                         alt={relatedBook.title || "Related product"}
                         className="h-full w-full object-cover"

@@ -32,6 +32,7 @@ async function fetchBookData(id: string): Promise<Book> {
       `*[_type == "book" && _id == $id][0]{
         _id,
         title,
+        author,
         user->{
           _id,
           email,

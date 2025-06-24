@@ -55,8 +55,17 @@ export async function POST(req: Request) {
         );
       }
 
+      // Ensure photos have _key property
+      const photosWithKeys = photos.map((photo: any, index: number) => ({
+        ...photo,
+        _key: photo._key || `photo-${index}-${Date.now()}`,
+      }));
+
       // Update the book's photos in Sanity
-      const result = await writeClient.patch(bookId).set({ photos }).commit();
+      const result = await writeClient
+        .patch(bookId)
+        .set({ photos: photosWithKeys })
+        .commit();
 
       return NextResponse.json({ success: true, result });
     }

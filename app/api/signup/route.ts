@@ -1,17 +1,31 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { readClient, writeClient } from "@/studio-m4ktaba/client";
+import { z } from "zod";
+
+const signupSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
 
 export async function POST(req: Request) {
-  try {
-    const { email, password } = await req.json();
+  // TODO: Implement rate limiting to prevent brute force attacks
+  // Consider using a library like 'express-rate-limit' or similar
+  // Recommended: max 5 signup attempts per IP per 15 minutes
 
-    if (!email || !password) {
+  try {
+    const body = await req.json();
+
+    // Validate input
+    const validationResult = signupSchema.safeParse(body);
+    if (!validationResult.success) {
       return NextResponse.json(
-        { message: "Email and password are required" },
+        { message: validationResult.error.errors[0].message },
         { status: 400 }
       );
     }
+
+    const { email, password } = validationResult.data;
 
     // Check if the user already exists in the database
     const existingUser = await readClient.fetch(
