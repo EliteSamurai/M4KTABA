@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -120,9 +121,13 @@ export default function SignUpPage() {
                 <div className="space-y-2">
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <label htmlFor="email" className="sr-only">
+                      Email
+                    </label>
                     <Input
                       id="email"
                       type="email"
+                      name="email"
                       placeholder="name@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -132,7 +137,16 @@ export default function SignUpPage() {
                     />
                   </div>
                 </div>
-                <Password setPassword={setPassword} disabled={isLoading} />
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
+                <Password
+                  id="password"
+                  setPassword={setPassword}
+                  disabled={isLoading}
+                  type="password"
+                  autoComplete="current-password"
+                />
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -171,7 +185,12 @@ export default function SignUpPage() {
               )}
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300 bg-slate-900 text-slate-50 hover:bg-slate-900/90 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-50/90 h-10 px-4 py-2 w-full"
+                disabled={isLoading || !isChecked}
+                data-testid="sign-up-button"
+              >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create account
               </Button>

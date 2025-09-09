@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+yarn-error.log
+.git
+.gitignore
+.next
+coverage
+dist
+Dockerfile*
+fly.*.toml
+tests
+.env*
+
+

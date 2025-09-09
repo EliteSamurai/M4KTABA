@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -71,8 +72,10 @@ export default function ItemListingForm({ bookData }) {
       title: bookData.title,
       author: bookData.author,
       description: bookData.description,
+      condition: "good",
       quantity: 1,
       price: 0,
+      category: "placeholder-category",
     },
   });
 
@@ -158,7 +161,13 @@ export default function ItemListingForm({ bookData }) {
 
     try {
       if (photos.length === 0) {
-        throw new Error("At least one photo is required");
+        // Inline field-level error for photos
+        toast({
+          title: "Add a photo",
+          description: "Please upload at least one photo.",
+          variant: "destructive",
+        });
+        return;
       }
 
       const sanityImages = await uploadImagesToSanity(photos);
@@ -184,10 +193,7 @@ export default function ItemListingForm({ bookData }) {
 
       const createdBook = await writeClient.create(newBook);
 
-      toast({
-        title: "Success!",
-        description: "Your book has been listed successfully.",
-      });
+      toast({ title: "Listed", description: "Your book has been listed." });
 
       router.push(`/all/${createdBook._id}`);
     } catch (error) {
@@ -330,7 +336,11 @@ export default function ItemListingForm({ bookData }) {
                 Upload clear photos of your book. HEIC, JPEG, and PNG formats
                 are supported. Maximum of 5 photos.
               </FormDescription>
-              <FormMessage />
+              {!photoPreview.length && (
+                <p className="text-sm text-red-600">
+                  At least one photo is required.
+                </p>
+              )}
             </FormItem>
 
             <div className="grid gap-6 sm:grid-cols-2">
@@ -378,7 +388,7 @@ export default function ItemListingForm({ bookData }) {
                   </FormItem>
                 )}
               />
-          </div>
+            </div>
 
             <FormField
               control={form.control}
@@ -411,7 +421,9 @@ export default function ItemListingForm({ bookData }) {
             <Button
               type="submit"
               className="w-full"
-              disabled={isSubmitting || !form.formState.isValid}
+              disabled={
+                isSubmitting || !form.formState.isValid || photos.length === 0
+              }
             >
               {isSubmitting ? (
                 <>

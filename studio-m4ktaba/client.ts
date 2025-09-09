@@ -12,7 +12,8 @@ export const writeClient = createClient({
   projectId: '32kxkt38',
   dataset: 'blog-m4ktaba',
   apiVersion: '2025-02-19',
-  token: process.env.NEXT_PUBLIC_SANITY_API_TOKEN!,
+  // Use a server-side token with write permissions (Editor or greater)
+  token: process.env.SANITY_API_TOKEN!,
   useCdn: false,
 })
 

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "esnext",
+    "target": "ES2022",
+    "module": "ESNext",
     "baseUrl": ".", // Base directory for resolving non-relative paths
     "paths": {
       "@/*": ["./*"] // Map `@/` to the root directory
@@ -11,7 +11,7 @@
     "checkJs": false,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -20,6 +20,7 @@
     "skipLibCheck": true,
     "incremental": true,
     "esModuleInterop": true,
+    "types": ["jest", "node"],
     "plugins": [
       {
         "name": "next"
@@ -30,6 +31,7 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "**/*.d.ts",
     "**/*.jsx",
     "next-env.d.ts",
     "types/**/*.ts",

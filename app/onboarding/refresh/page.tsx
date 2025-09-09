@@ -29,14 +29,20 @@ export default function OnboardingRefresh() {
       });
       return;
     }
-  
+
     setIsLoading(true);
-  
+
     try {
       // Directly generate the onboarding link here
-      const onboardingUrl = `https://connect.stripe.com/express/oauth/authorize?client_id=ca_RMzCLvBsK8yCiQlmmXPrAUMOIDix98YE&state=${session.user._id}&suggested_capabilities[]=transfers`;
-  
-      window.location.href = onboardingUrl;
+      // Initiate onboarding via server route to avoid exposing client_id
+      const token =
+        document.cookie.match(/(?:^|; )csrf_token=([^;]+)/)?.[1] || "";
+      const res = await fetch("/api/connect/account-link", {
+        method: "POST",
+        headers: { "x-csrf-token": token },
+      });
+      const data = await res.json();
+      if (data?.url) window.location.href = data.url;
     } catch (error) {
       console.error("Error restarting onboarding:", error);
       toast({
@@ -48,7 +54,6 @@ export default function OnboardingRefresh() {
       setIsLoading(false);
     }
   };
-  
 
   return (
     <div className="container relative min-h-screen items-center justify-center py-8 md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
@@ -72,7 +77,8 @@ export default function OnboardingRefresh() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-            &quot;Let&apos;s get you back on track to complete your onboarding process.&quot;
+              &quot;Let&apos;s get you back on track to complete your onboarding
+              process.&quot;
             </p>
           </blockquote>
         </div>

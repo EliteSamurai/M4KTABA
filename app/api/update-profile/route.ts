@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeClient } from "@/studio-m4ktaba/client";
 import { v4 as uuidv4 } from "uuid";
 import { fileImageSanity } from "@/utils/uploadImageToSanity";
+import { verifyCsrf } from "@/lib/csrf";
+import { ProfileUpdateSchema } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
+  const csrf = verifyCsrf(req);
+  if (csrf) return csrf as unknown as NextResponse;
   const apiKey = process.env.EASYPOST_API_KEY;
   if (!apiKey) {
     return new Response("Missing EasyPost API Key", { status: 500 });
@@ -18,6 +22,7 @@ export async function POST(req: NextRequest) {
   const userId = formData.get("userId");
   const imageFile = formData.get("image");
 
+  // Basic validation (form-data)
   if (!street || !city || !state || !zip || !country) {
     throw new Error("Complete address is required.");
   }
@@ -54,6 +59,16 @@ export async function POST(req: NextRequest) {
 
     // Update user information in Sanity
     if (userId) {
+      // Optional schema enforcement for consistency
+      const parsed = ProfileUpdateSchema.safeParse({
+        location: { street, city, state, zip, country },
+      });
+      if (!parsed.success) {
+        return NextResponse.json(
+          { success: false, error: "Invalid profile data" },
+          { status: 400 }
+        );
+      }
       await writeClient
         .patch(userId.toString())
         .set({

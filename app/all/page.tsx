@@ -2,6 +2,8 @@ import { BookOpen, Search } from "lucide-react";
 import { readClient } from "@/studio-m4ktaba/client";
 import AllBooksClient from "@/components/AllBooksClient";
 import { Book } from "@/types/shipping-types";
+import { SearchQuerySchema } from "@/lib/validation";
+import { notFound } from "next/navigation";
 
 export const revalidate = 60;
 
@@ -26,14 +28,50 @@ async function fetchInitialBooks(limit: number = 10) {
   return { books, total, categories };
 }
 
-export default async function AllBooksPage() {
+export default async function AllBooksPage({
+  searchParams,
+}: {
+  searchParams?: Record<string, string | string[]>;
+}) {
+  const parsed = SearchQuerySchema.safeParse({
+    q: typeof searchParams?.q === "string" ? searchParams?.q : undefined,
+    author:
+      typeof searchParams?.author === "string"
+        ? searchParams?.author
+        : undefined,
+    language:
+      typeof searchParams?.language === "string"
+        ? searchParams?.language
+        : undefined,
+    condition:
+      typeof searchParams?.condition === "string"
+        ? searchParams?.condition
+        : undefined,
+    price_min:
+      typeof searchParams?.price_min === "string"
+        ? searchParams?.price_min
+        : undefined,
+    price_max:
+      typeof searchParams?.price_max === "string"
+        ? searchParams?.price_max
+        : undefined,
+    sort:
+      typeof searchParams?.sort === "string" ? searchParams?.sort : undefined,
+    page:
+      typeof searchParams?.page === "string" ? searchParams?.page : undefined,
+    limit:
+      typeof searchParams?.limit === "string" ? searchParams?.limit : undefined,
+  });
+  if (!parsed.success) notFound();
+
+  // For SSR simplicity, still use initial fetch; the client will refine via API
   const { books, total, categories } = await fetchInitialBooks();
-  const uniqueCategories = new Set(books.map((book: Book) => book.selectedCategory?.title));
-  
+  const uniqueCategories = new Set(
+    books.map((book: Book) => book.selectedCategory?.title)
+  );
 
   return (
     <div className="min-h-screen container mx-auto">
-      
       {/* Header Section */}
       <div>
         <div className="container py-8">

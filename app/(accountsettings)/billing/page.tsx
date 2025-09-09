@@ -148,7 +148,9 @@ export default function BillingPage() {
       } else {
         toast({
           title: "Error",
-          description: `Failed to submit review: ${data.message || "Unknown error"}`,
+          description: `Failed to submit review: ${
+            data.message || "Unknown error"
+          }`,
           variant: "destructive",
         });
       }
@@ -227,8 +229,11 @@ export default function BillingPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/stripe/account-link", {
+      const token =
+        document.cookie.match(/(?:^|; )csrf_token=([^;]+)/)?.[1] || "";
+      const response = await fetch("/api/connect/account-link", {
         method: "POST",
+        headers: { "x-csrf-token": token },
       });
 
       if (!response.ok) throw new Error("Failed to get Stripe link");
@@ -354,10 +359,10 @@ export default function BillingPage() {
                         order.status === "completed"
                           ? "default"
                           : order.status === "pending"
-                            ? "secondary"
-                            : order.status === "refunded"
-                              ? "outline"
-                              : "destructive"
+                          ? "secondary"
+                          : order.status === "refunded"
+                          ? "outline"
+                          : "destructive"
                       }
                     >
                       {order.status.charAt(0).toUpperCase() +

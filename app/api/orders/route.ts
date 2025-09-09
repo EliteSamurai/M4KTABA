@@ -2,10 +2,18 @@ import { NextResponse } from "next/server";
 import { readClient, writeClient } from "@/studio-m4ktaba/client";
 import { authOptions } from "../auth/[...nextauth]/options";
 import { getServerSession } from "next-auth/next";
+import { verifyCsrf } from "@/lib/csrf";
+import { OrderCreateSchema } from "@/lib/validation";
 
 export async function POST(req: Request) {
+  const csrf = verifyCsrf(req);
+  if (csrf) return csrf;
   try {
     const body = await req.json();
+    const parsed = OrderCreateSchema.safeParse({
+      items: body.cart,
+      shippingDetails: body.shippingDetails,
+    });
     const { cart, status, userId, paymentId } = body;
 
     if (!Array.isArray(cart) || cart.length === 0) {

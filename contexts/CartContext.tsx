@@ -8,6 +8,7 @@ type CartContextType = {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
   removeFromCart: (id: string) => void;
+  updateItemQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   getCartTotal: () => number;
   getCartCount: () => number;
@@ -80,6 +81,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
+  const updateItemQuantity = (id: string, quantity: number) => {
+    setCart((prevCart) => {
+      const updatedCart = prevCart.map((item) =>
+        item.id === id ? { ...item, quantity } : item
+      );
+      updateLocalStorage(updatedCart);
+      // fire-and-forget; caller may optimistically handle revert on error
+      syncCartWithBackend(updatedCart);
+      return updatedCart;
+    });
+  };
+
   const clearCart = () => {
     setCart([]);
     updateLocalStorage([]);
@@ -110,6 +123,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         cart,
         addToCart,
         removeFromCart,
+        updateItemQuantity,
         clearCart,
         getCartTotal,
         getCartCount,

@@ -1,8 +1,17 @@
-import { stripe } from "@/lib/stripe";
+import { createPaymentIntentWithDestinationCharge } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/options";
 import { CartItem } from "@/types/shipping-types";
+import {
+  begin,
+  commit,
+  deriveIdempotencyKey,
+  fail,
+  makeKey,
+} from "@/lib/idempotency";
+import { reportError } from "@/lib/sentry";
+import { counter, withLatency } from "@/lib/metrics";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -47,24 +56,65 @@ export async function POST(req: Request) {
       );
     }
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(subtotal * 100),
-      currency: "usd",
-      automatic_payment_methods: {
-        enabled: true,
-      },
+    // Derive orderId (client should provide when starting checkout) or make a deterministic one
+    const orderId =
+      (shippingDetails?.orderId as string | undefined) ||
+      `${Date.now()}-${session.user._id}`;
+    const userId = session.user._id as string;
+    const step = "create";
+    const headerKey = (req.headers.get("Idempotency-Key") || "").trim();
+    const idemKey = headerKey || deriveIdempotencyKey(step, userId, orderId);
+    const storeKey = makeKey(["pay", step, userId, orderId]);
 
-      metadata: {
-        shippingDetails: JSON.stringify(shippingDetails),
-        userEmail: session.user.email,
-      },
-      receipt_email: session.user.email,
-    });
+    const start = await begin(storeKey);
+    if (start && start.status === "committed" && start.result) {
+      return NextResponse.json({ clientSecret: start.result.clientSecret });
+    }
 
-    return NextResponse.json({ clientSecret: paymentIntent.client_secret });
+    // Determine single-seller vs multi-seller
+    const sellerIds = Array.from(
+      new Set(
+        (cart as CartItem[])
+          .map((i) => i.user?._id)
+          .filter((v): v is string => typeof v === "string" && v.length > 0)
+      )
+    );
+    const sellerStripeAccountId =
+      sellerIds.length === 1 ? cart[0]?.user?.stripeAccountId || null : null;
+
+    const lineItemIds = (cart as CartItem[]).map((i) => i.id);
+
+    const pi = await withLatency("/api/create-payment-intent", () =>
+      createPaymentIntentWithDestinationCharge({
+        amountCents: Math.round(subtotal * 100),
+        currency: "usd",
+        buyerEmail: session.user.email,
+        orderId,
+        buyerId: userId,
+        sellerStripeAccountId,
+        sellerIds,
+        lineItemIds,
+        idempotencyKey: idemKey,
+        metadata: {
+          shippingDetails: JSON.stringify(shippingDetails),
+        },
+      })
+    );
+
+    await commit(storeKey, { clientSecret: pi.client_secret });
+    counter("checkout_started").inc();
+    return NextResponse.json({ clientSecret: pi.client_secret });
   } catch (error) {
     if (error instanceof Error) {
       console.error("Error creating payment intent:", error.message);
+      reportError(error, { where: "create-payment-intent" });
+      try {
+        const session = await getServerSession(authOptions);
+        const userId = session?.user?._id as string | undefined;
+        const orderId = undefined; // unknown here if failed before derivation
+        if (userId && orderId)
+          await fail(makeKey(["pay", "create", userId, orderId]));
+      } catch {}
 
       // Handle Stripe-specific error types
       if ("type" in error && error.type === "StripeInvalidRequestError") {

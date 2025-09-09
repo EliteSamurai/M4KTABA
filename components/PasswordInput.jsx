@@ -1,17 +1,24 @@
 "use client";
 
+import React, { forwardRef } from "react";
 import { useState } from "react";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export default function PasswordInput({
-  setPassword,
-  disabled,
-  ...props
-}) {
+const PasswordInput = forwardRef(function PasswordInput(
+  { setPassword, disabled, onChange: registeredOnChange, ...props },
+  ref
+) {
   const [showPassword, setShowPassword] = useState(false);
+
+  const handleChange = (e) => {
+    setPassword(e.target.value);
+    if (typeof registeredOnChange === "function") {
+      registeredOnChange(e);
+    }
+  };
 
   return (
     <div className="relative">
@@ -25,8 +32,10 @@ export default function PasswordInput({
           className={cn("pl-10 pr-10")}
           placeholder="At least 8 characters"
           minLength={8}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={handleChange}
           disabled={disabled}
+          id="password"
+          ref={ref}
           {...props}
         />
         <Button
@@ -49,4 +58,6 @@ export default function PasswordInput({
       </div>
     </div>
   );
-}
+});
+
+export default PasswordInput;

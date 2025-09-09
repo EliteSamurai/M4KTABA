@@ -1,9 +1,11 @@
 "use client";
 
+import React from "react";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +22,7 @@ import BeautifulArt from "@/public/beautifulart2.jpg";
 import GoogleButton from "@/components/GoogleButton";
 import PasswordInput from "@/components/PasswordInput";
 import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -27,14 +30,14 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+
+  const { register, handleSubmit } = useForm();
 
   const handleLogin = async () => {
     if (!email || !password) {
-      toast({
-        title: "Missing fields",
-        description: "Please fill in both email and password.",
-        variant: "destructive",
-      });
+      setError("Please fill in both email and password.");
       return;
     }
 
@@ -48,20 +51,13 @@ export default function LoginPage() {
       });
 
       if (!result?.ok) {
-        toast({
-          title: "Login failed",
-          description: "Invalid email or password.",
-          variant: "destructive",
-        });
+        setError("Invalid email or password.");
       } else {
-        window.location.href = "/";
+        toast({ title: "Welcome back", description: "You are now signed in." });
+        router.push("/");
       }
     } catch (error) {
-      toast({
-        title: "Something went wrong",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
-      });
+      setError("Please check your input and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -112,19 +108,18 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleLogin();
-              }}
-              className="space-y-4"
-            >
+            <form onSubmit={handleSubmit(handleLogin)} className="space-y-4">
               <div className="relative">
+                <label htmlFor="email" className="sr-only">
+                  Email
+                </label>
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
+                  {...register("email")}
                   type="email"
-                  placeholder="name@example.com"
+                  autoComplete="email"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -133,7 +128,17 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-2">
-                <PasswordInput setPassword={setPassword} disabled={isLoading} />
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
+                <PasswordInput
+                  id="password"
+                  {...register("password")}
+                  setPassword={setPassword}
+                  disabled={isLoading}
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                />
               </div>
 
               {error && (
@@ -143,7 +148,13 @@ export default function LoginPage() {
                 </Alert>
               )}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="button"
+                onClick={handleSubmit(handleLogin)}
+                className="w-full"
+                disabled={isLoading || !email || !password}
+                data-testid="sign-in-button"
+              >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Sign in
               </Button>
