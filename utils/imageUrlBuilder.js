@@ -1,7 +1,13 @@
 import imageUrlBuilder from "@sanity/image-url";
-import { writeClient } from "@/studio-m4ktaba/client"; // Your configured Sanity client
 
-const builder = imageUrlBuilder(writeClient);
+// Build the image URL builder without importing the server Sanity client.
+// Use public env so this file can run in the browser safely.
+const projectId =
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || process.env.SANITY_PROJECT_ID || "32kxkt38";
+const dataset =
+  process.env.NEXT_PUBLIC_SANITY_DATASET || process.env.SANITY_DATASET || "blog-m4ktaba";
+
+const builder = imageUrlBuilder({ projectId, dataset });
 
 export function urlFor(source) {
   if (typeof source === "string") {
