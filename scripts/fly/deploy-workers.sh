@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-OUTBOX_APP="m4ktaba-outbox-worker"
-STRIPE_APP="m4ktaba-stripe-worker"
+OUTBOX_APP="${OUTBOX_APP:-m4ktaba-outbox-worker}"
+STRIPE_APP="${STRIPE_APP:-m4ktaba-stripe-worker}"
+# Optionally set FLY_ORG to your org slug; default to "personal"
+FLY_ORG="${FLY_ORG:-personal}"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -26,9 +28,31 @@ set_if_defined() {
 
 require_cmd fly
 
-echo "Ensuring apps exist..."
-fly apps show "$OUTBOX_APP" >/dev/null 2>&1 || fly apps create "$OUTBOX_APP"
-fly apps show "$STRIPE_APP" >/dev/null 2>&1 || fly apps create "$STRIPE_APP"
+ensure_app() {
+  local VAR_NAME="$1"
+  local BASE_NAME="$2"
+  local APP_VAL
+  # Use existing value or base
+  APP_VAL=$(eval echo "\${$VAR_NAME}")
+  if [ -z "$APP_VAL" ]; then
+    APP_VAL="$BASE_NAME"
+  fi
+  if ! fly apps show "$APP_VAL" >/dev/null 2>&1; then
+    echo "Creating app $APP_VAL in org $FLY_ORG..."
+    if ! fly apps create "$APP_VAL" --org "$FLY_ORG" >/dev/null 2>&1; then
+      local CANDIDATE="${BASE_NAME}-$(date +%s)"
+      echo "Name in use; creating $CANDIDATE instead..."
+      fly apps create "$CANDIDATE" --org "$FLY_ORG"
+      APP_VAL="$CANDIDATE"
+    fi
+  fi
+  eval "$VAR_NAME=$APP_VAL"
+  export "$VAR_NAME"
+}
+
+echo "Ensuring apps exist (org: $FLY_ORG)..."
+ensure_app OUTBOX_APP "m4ktaba-outbox-worker"
+ensure_app STRIPE_APP "m4ktaba-stripe-worker"
 
 echo "Setting secrets from current shell env if present..."
 for APP in "$OUTBOX_APP" "$STRIPE_APP"; do
@@ -40,11 +64,11 @@ for APP in "$OUTBOX_APP" "$STRIPE_APP"; do
   set_if_defined STRIPE_WEBHOOK_SECRET "$APP"
 done
 
-echo "Deploying outbox worker..."
-fly deploy -c fly.outbox.toml
+echo "Deploying outbox worker to $OUTBOX_APP..."
+fly deploy -c fly.outbox.toml -a "$OUTBOX_APP"
 
-echo "Deploying stripe worker..."
-fly deploy -c fly.stripe.toml
+echo "Deploying stripe worker to $STRIPE_APP..."
+fly deploy -c fly.stripe.toml -a "$STRIPE_APP"
 
 echo "Done."
 

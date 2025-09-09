@@ -1,21 +1,4 @@
-import {createClient} from '@sanity/client'
-
-export const readClient = createClient({
-  projectId: '32kxkt38',
-  dataset: 'blog-m4ktaba',
-  apiVersion: '2025-02-19',
-  token: process.env.SANITY_API_TOKEN!,
-  useCdn: true,
-})
-
-export const writeClient = createClient({
-  projectId: '32kxkt38',
-  dataset: 'blog-m4ktaba',
-  apiVersion: '2025-02-19',
-  // Use a server-side token with write permissions (Editor or greater)
-  token: process.env.SANITY_API_TOKEN!,
-  useCdn: false,
-})
+export {readClient, writeClient} from '@/lib/sanity-clients'
 
 export async function getTopSellers() {
   return readClient.fetch(`
