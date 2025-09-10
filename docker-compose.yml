@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    depends_on:
+      - redis
+    networks:
+      - m4ktaba-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - m4ktaba-network
+
+  # Development service
+  dev:
+    build:
+      context: .
+      target: deps
+    command: pnpm dev
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - redis
+    networks:
+      - m4ktaba-network
+
+volumes:
+  redis_data:
+
+networks:
+  m4ktaba-network:
+    driver: bridge

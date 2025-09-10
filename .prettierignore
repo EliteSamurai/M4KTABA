@@ -1,16 +1,16 @@
 # Dependencies
-node_modules
-.pnpm-store
+node_modules/
+.pnpm-store/
 
 # Build outputs
-.next
-out
-dist
-build
+.next/
+out/
+dist/
+build/
 
 # Cache
-.cache
-.parcel-cache
+.cache/
+.parcel-cache/
 
 # Environment files
 .env*
@@ -23,12 +23,12 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Coverage
-coverage
-.nyc_output
+coverage/
+.nyc_output/
 
 # IDE
-.vscode
-.idea
+.vscode/
+.idea/
 
 # OS
 .DS_Store
@@ -36,30 +36,17 @@ Thumbs.db
 
 # Generated files
 *.tsbuildinfo
-.vercel
+.next/
+.vercel/
 
 # Package manager
 package-lock.json
 yarn.lock
+pnpm-lock.yaml
 
 # Test artifacts
-playwright-report
-test-results
-
-# Git
-.git
-.gitignore
-
-# Docker
-Dockerfile
-.dockerignore
-
-# CI/CD
-.github
-
-# Documentation
-README.md
-*.md
+playwright-report/
+test-results/
 
 # Sitemap
 sitemap.xml

@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useState, useEffect, Suspense, useReducer } from "react";
-import { useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
-import * as z from "zod";
-import { Loader2, MapPin } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { useState, useEffect, Suspense, useReducer } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm, useWatch } from 'react-hook-form';
+import * as z from 'zod';
+import { Loader2, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -25,62 +25,60 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import EmptyState from "@/components/EmptyState";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import { track } from "@/lib/analytics";
-import { reportError } from "@/lib/sentry";
-import { useFlag } from "@/lib/flags";
-import { CartSummary } from "./cart-summary";
-import dynamic from "next/dynamic";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import EmptyState from '@/components/EmptyState';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { track } from '@/lib/analytics';
+import { reportError } from '@/lib/sentry';
+import { useFlag } from '@/lib/flags';
+import { CartSummary } from './cart-summary';
+import dynamic from 'next/dynamic';
 const CheckoutForm = dynamic(
-  () => import("./checkout-form").then((m) => m.CheckoutForm),
+  () => import('./checkout-form').then(m => m.CheckoutForm),
   { ssr: false }
 );
-const validateAddressClientDynamic = dynamic(
-  () => import("./address-validator").then((m) => m.validateAddressClient),
-  { ssr: false }
-);
-import type { CartItem } from "@/types/shipping-types";
-import { useRouter } from "next/navigation";
-import { defaults as testDefaults } from "./test-defaults";
-import { checkoutCopy } from "@/copy/checkout";
+// Import the validator function directly
+import { validateAddressClient } from './address-validator';
+import type { CartItem } from '@/types/shipping-types';
+import { useRouter } from 'next/navigation';
+import { defaults as testDefaults } from './test-defaults';
+import { checkoutCopy } from '@/copy/checkout';
 import {
   checkoutReducer,
   initialCheckoutState,
   isBusy,
   canSubmit,
-} from "./checkout.machine";
-import { debounce } from "@/lib/debounce";
+} from './checkout.machine';
+import { debounce } from '@/lib/debounce';
 // (duplicate import removed)
-import { useAddressAutocomplete } from "@/hooks/useAddressAutocomplete";
-import { listSavedAddresses, saveAddress } from "@/lib/savedAddresses";
+import { useAddressAutocomplete } from '@/hooks/useAddressAutocomplete';
+import { listSavedAddresses, saveAddress } from '@/lib/savedAddresses';
 import {
   isOnline,
   subscribeOnlineStatus,
   drainQueue,
   safeFetch,
-} from "@/lib/offlineQueue";
-import { tokens, rhythm } from "@/lib/tokens";
-import { SavedAddressPicker } from "@/components/SavedAddressPicker";
-import { ReservationTimer } from "@/components/ReservationTimer";
-import { announce } from "@/components/A11yLiveRegion";
+} from '@/lib/offlineQueue';
+import { tokens, rhythm } from '@/lib/tokens';
+import { SavedAddressPicker } from '@/components/SavedAddressPicker';
+import { ReservationTimer } from '@/components/ReservationTimer';
+import { announce } from '@/components/A11yLiveRegion';
 
 const SkeletonLoader = () => (
-  <div className="container mx-auto min-h-screen py-8 md:py-12">
-    <div className="mx-auto max-w-5xl">
-      <div className="mb-8">
-        <div className="h-8 w-48 bg-gray-300 rounded animate-pulse"></div>
-        <div className="mt-2 h-4 w-64 bg-gray-200 rounded animate-pulse"></div>
+  <div className='container mx-auto min-h-screen py-8 md:py-12'>
+    <div className='mx-auto max-w-5xl'>
+      <div className='mb-8'>
+        <div className='h-8 w-48 bg-gray-300 rounded animate-pulse'></div>
+        <div className='mt-2 h-4 w-64 bg-gray-200 rounded animate-pulse'></div>
       </div>
-      <div className="grid gap-8 md:grid-cols-2">
-        <div className="h-40 bg-gray-200 rounded animate-pulse"></div>
-        <div className="space-y-6">
-          <div className="h-56 bg-gray-200 rounded animate-pulse"></div>
-          <div className="h-40 bg-gray-200 rounded animate-pulse"></div>
+      <div className='grid gap-8 md:grid-cols-2'>
+        <div className='h-40 bg-gray-200 rounded animate-pulse'></div>
+        <div className='space-y-6'>
+          <div className='h-56 bg-gray-200 rounded animate-pulse'></div>
+          <div className='h-40 bg-gray-200 rounded animate-pulse'></div>
         </div>
       </div>
     </div>
@@ -92,13 +90,13 @@ const stripePromise = loadStripe(
 );
 
 const shippingSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  street1: z.string().min(1, "Street address is required"),
+  name: z.string().min(1, 'Name is required'),
+  street1: z.string().min(1, 'Street address is required'),
   street2: z.string().optional(),
-  city: z.string().min(1, "City is required"),
-  zip: z.string().min(1, "ZIP code is required"),
-  state: z.string().min(1, "State is required"),
-  country: z.string().min(1, "Country is required"),
+  city: z.string().min(1, 'City is required'),
+  zip: z.string().min(1, 'ZIP code is required'),
+  state: z.string().min(1, 'State is required'),
+  country: z.string().min(1, 'Country is required'),
 });
 
 type ShippingFormValues = z.infer<typeof shippingSchema>;
@@ -107,12 +105,12 @@ export function CheckoutContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [clientSecret, setClientSecret] = useState<string>("");
-  const stateMachineEnabled = useFlag("checkout_state_machine");
-  const autocompleteEnabled = useFlag("address_autocomplete");
-  const savedAddressesEnabled = useFlag("saved_addresses");
-  const offlineQueueEnabled = useFlag("offline_queue");
-  const tokensEnabled = useFlag("tokens_rhythm");
+  const [clientSecret, setClientSecret] = useState<string>('');
+  const stateMachineEnabled = useFlag('checkout_state_machine');
+  const autocompleteEnabled = useFlag('address_autocomplete');
+  const savedAddressesEnabled = useFlag('saved_addresses');
+  const offlineQueueEnabled = useFlag('offline_queue');
+  const tokensEnabled = useFlag('tokens_rhythm');
   const [state, dispatch] = useReducer(checkoutReducer, initialCheckoutState);
   const busyRef = React.useRef(false);
   const submitGuardRef = React.useRef(false);
@@ -120,8 +118,8 @@ export function CheckoutContent() {
     null
   );
   const [bgValidationStatus, setBgValidationStatus] = useState<
-    "idle" | "validating" | "success" | "error"
-  >("idle");
+    'idle' | 'validating' | 'success' | 'error'
+  >('idle');
   const [bgValidationValid, setBgValidationValid] = useState<boolean | null>(
     null
   );
@@ -132,7 +130,7 @@ export function CheckoutContent() {
     changes: Array<{
       id: string;
       title?: string;
-      field: "price" | "quantity";
+      field: 'price' | 'quantity';
       oldValue: number;
       newValue: number;
     }>;
@@ -145,12 +143,12 @@ export function CheckoutContent() {
     if (!isBusy(state)) {
       submitGuardRef.current = false;
     }
-    if (state.status === "paymentReady") announce("Moved to Payment step");
+    if (state.status === 'paymentReady') announce('Moved to Payment step');
   }, [state, stateMachineEnabled]);
   const router = useRouter();
-  const preflightEnabled = useFlag("preflight_drift");
+  const preflightEnabled = useFlag('preflight_drift');
   useEffect(() => {
-    track("checkout_view", { cartCount: cart?.length || 0 });
+    track('checkout_view', { cartCount: cart?.length || 0 });
   }, []);
 
   // Offline banner state
@@ -158,7 +156,7 @@ export function CheckoutContent() {
   useEffect(() => {
     if (!offlineQueueEnabled) return;
     setIsOffline(!isOnline());
-    const unsub = subscribeOnlineStatus((online) => setIsOffline(!online));
+    const unsub = subscribeOnlineStatus(online => setIsOffline(!online));
     return () => unsub();
   }, [offlineQueueEnabled]);
 
@@ -168,22 +166,22 @@ export function CheckoutContent() {
     if (didRouteOnce.current) return;
     if (!session) {
       didRouteOnce.current = true;
-      router.push("/login");
+      router.push('/login');
     }
   }, [session, router]);
   if (!session) return null;
 
   const form = useForm<ShippingFormValues>({
     resolver: zodResolver(shippingSchema),
-    mode: "onChange",
+    mode: 'onChange',
     defaultValues: (testDefaults as any) ?? {
-      name: "",
-      street1: "",
-      street2: "",
-      city: "",
-      zip: "",
-      state: "",
-      country: "",
+      name: '',
+      street1: '',
+      street2: '',
+      city: '',
+      zip: '',
+      state: '',
+      country: '',
     },
   });
 
@@ -193,13 +191,13 @@ export function CheckoutContent() {
     if (!session) return;
     const loc = (session?.user && (session as any).user.location) || {};
     const nextValues = {
-      name: (session as any)?.user?.name || "",
-      street1: (loc as any).street || "",
-      street2: "",
-      city: (loc as any).city || "",
-      zip: (loc as any).zip || "",
-      state: (loc as any).state || "",
-      country: (loc as any).country || "",
+      name: (session as any)?.user?.name || '',
+      street1: (loc as any).street || '',
+      street2: '',
+      city: (loc as any).city || '',
+      zip: (loc as any).zip || '',
+      state: (loc as any).state || '',
+      country: (loc as any).country || '',
     };
     const key = JSON.stringify(nextValues);
     if (lastResetKeyRef.current === key) return;
@@ -214,7 +212,7 @@ export function CheckoutContent() {
   // Derive nextCart from search params in a stable way
   const cartParamString = React.useMemo(() => {
     try {
-      return searchParams?.get("cart") ?? null;
+      return searchParams?.get('cart') ?? null;
     } catch (_e) {
       return null;
     }
@@ -226,7 +224,7 @@ export function CheckoutContent() {
       const parsed = JSON.parse(decodeURIComponent(cartParamString));
       return Array.isArray(parsed) ? (parsed as CartItem[]) : [];
     } catch (error) {
-      console.error("Failed to parse cart data:", error);
+      console.error('Failed to parse cart data:', error);
       return [] as CartItem[];
     }
   }, [cartParamString]);
@@ -236,7 +234,7 @@ export function CheckoutContent() {
 
   useEffect(() => {
     if (nextCart == null) return;
-    setCart((prev) => (cartsEqual(prev, nextCart) ? prev : nextCart));
+    setCart(prev => (cartsEqual(prev, nextCart) ? prev : nextCart));
   }, [nextCart]);
 
   const createPaymentIntent = async (
@@ -245,29 +243,29 @@ export function CheckoutContent() {
   ) => {
     try {
       const fetcher = offlineQueueEnabled ? safeFetch : fetch;
-      const response = await fetcher("/api/create-payment-intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetcher('/api/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cart, shippingDetails }),
       });
 
       const data = await response.json();
       if (data.clientSecret) {
         setClientSecret(data.clientSecret);
-        dispatch({ type: "INTENT_OK" });
-        track("intent_created", { items: cart.length });
+        dispatch({ type: 'INTENT_OK' });
+        track('intent_created', { items: cart.length });
         return;
       }
       dispatch({
-        type: "INTENT_ERROR",
-        message: "Failed to prepare payment. Please try again.",
+        type: 'INTENT_ERROR',
+        message: 'Failed to prepare payment. Please try again.',
       });
     } catch (error) {
-      console.error("Error creating payment intent:", error);
-      reportError(error, { stage: "intent_create" });
+      console.error('Error creating payment intent:', error);
+      reportError(error, { stage: 'intent_create' });
       dispatch({
-        type: "INTENT_ERROR",
-        message: "Failed to prepare payment. Please try again.",
+        type: 'INTENT_ERROR',
+        message: 'Failed to prepare payment. Please try again.',
       });
     }
   };
@@ -275,8 +273,8 @@ export function CheckoutContent() {
   const reviewCart = async (cart: CartItem[]) => {
     // Allow disabling preflight in tests unless explicitly enabled
     const disableInTests =
-      typeof process !== "undefined" &&
-      process.env.NODE_ENV === "test" &&
+      typeof process !== 'undefined' &&
+      process.env.NODE_ENV === 'test' &&
       !(process as any).env?.ENABLE_PREFLIGHT_REVIEW;
     if (disableInTests) {
       return { hasDrift: false, reviewed: cart, changes: [] as any[] };
@@ -284,9 +282,9 @@ export function CheckoutContent() {
     const qs = new URLSearchParams({
       cart: JSON.stringify(cart),
       simulate:
-        disableInTests || (process as any).env?.SIMULATE_DRIFT !== "1"
-          ? "0"
-          : "1",
+        disableInTests || (process as any).env?.SIMULATE_DRIFT !== '1'
+          ? '0'
+          : '1',
     }).toString();
     const res = await fetch(`/api/cart/review?${qs}`);
     if (!res.ok)
@@ -296,13 +294,13 @@ export function CheckoutContent() {
 
   const validateAddress = async (shippingData: ShippingFormValues) => {
     try {
-      const mod = await import("./address-validator");
+      const mod = await import('./address-validator');
       const { isValid } = await mod.validateAddressClient(shippingData);
-      if (isValid) track("address_validated");
+      if (isValid) track('address_validated');
       return isValid;
     } catch (error) {
-      console.error("Address validation error:", error);
-      reportError(error, { stage: "address_validate" });
+      console.error('Address validation error:', error);
+      reportError(error, { stage: 'address_validate' });
       return false;
     }
   };
@@ -316,7 +314,7 @@ export function CheckoutContent() {
       ((session as any)?.user?._id ||
         (session as any)?.user?.id ||
         (session as any)?.user?.email ||
-        "anon") as string,
+        'anon') as string,
     [session]
   );
   const [savedAddrs, setSavedAddrs] = useState<any[]>([]);
@@ -330,11 +328,11 @@ export function CheckoutContent() {
   }, [savedAddressesEnabled, userKey]);
 
   // Watch minimal address fields for debounced background validation
-  const watchedStreet1 = useWatch({ control: form.control, name: "street1" });
-  const watchedCity = useWatch({ control: form.control, name: "city" });
-  const watchedState = useWatch({ control: form.control, name: "state" });
-  const watchedZip = useWatch({ control: form.control, name: "zip" });
-  const watchedCountry = useWatch({ control: form.control, name: "country" });
+  const watchedStreet1 = useWatch({ control: form.control, name: 'street1' });
+  const watchedCity = useWatch({ control: form.control, name: 'city' });
+  const watchedState = useWatch({ control: form.control, name: 'state' });
+  const watchedZip = useWatch({ control: form.control, name: 'zip' });
+  const watchedCountry = useWatch({ control: form.control, name: 'country' });
 
   const debouncedBgValidate = React.useMemo(
     () =>
@@ -345,23 +343,23 @@ export function CheckoutContent() {
         }
         const controller = new AbortController();
         addressValidationControllerRef.current = controller;
-        setBgValidationStatus("validating");
+        setBgValidationStatus('validating');
         setBgValidationWarning(null);
         try {
-          const mod = await import("./address-validator");
+          const mod = await import('./address-validator');
           const result = await mod.validateAddressClient(
             shippingData,
             controller.signal
           );
           setBgValidationValid(Boolean(result?.isValid));
-          setBgValidationStatus("success");
+          setBgValidationStatus('success');
         } catch (error: any) {
-          if (error && (error.name === "AbortError" || error.code === 20)) {
+          if (error && (error.name === 'AbortError' || error.code === 20)) {
             // Ignore aborts
             return;
           }
           // Soft warning, do not block submit
-          setBgValidationStatus("error");
+          setBgValidationStatus('error');
           setBgValidationWarning(
             "We couldn't auto-validate your address. You can still continue."
           );
@@ -374,8 +372,8 @@ export function CheckoutContent() {
   useEffect(() => {
     // Skip background validation in test unless explicitly enabled
     if (
-      typeof process !== "undefined" &&
-      process.env.NODE_ENV === "test" &&
+      typeof process !== 'undefined' &&
+      process.env.NODE_ENV === 'test' &&
       !(process as any).env?.ENABLE_BG_VALIDATION
     ) {
       return;
@@ -390,7 +388,7 @@ export function CheckoutContent() {
     const incomplete = !street1 || !city || !st || !zip || !country;
     if (incomplete) {
       debouncedBgValidate.cancel();
-      setBgValidationStatus("idle");
+      setBgValidationStatus('idle');
       setBgValidationValid(null);
       setBgValidationWarning(null);
       if (addressValidationControllerRef.current) {
@@ -421,12 +419,12 @@ export function CheckoutContent() {
     }
     if (stateMachineEnabled) {
       submitGuardRef.current = true;
-      dispatch({ type: "SUBMIT" });
+      dispatch({ type: 'SUBMIT' });
     }
     try {
       const isValidAddress = await validateAddress(data);
       if (isValidAddress) {
-        if (stateMachineEnabled) dispatch({ type: "ADDRESS_OK" });
+        if (stateMachineEnabled) dispatch({ type: 'ADDRESS_OK' });
         // Pre-flight review
         const review = preflightEnabled
           ? await reviewCart(cart)
@@ -444,46 +442,46 @@ export function CheckoutContent() {
       } else {
         if (stateMachineEnabled)
           dispatch({
-            type: "ADDRESS_ERROR",
-            message: "Invalid shipping address. Please check and try again.",
+            type: 'ADDRESS_ERROR',
+            message: 'Invalid shipping address. Please check and try again.',
           });
       }
     } catch (error) {
       if (stateMachineEnabled)
         dispatch({
-          type: "ADDRESS_ERROR",
+          type: 'ADDRESS_ERROR',
           message:
             error instanceof Error
               ? error.message
-              : "Invalid shipping address.",
+              : 'Invalid shipping address.',
         });
-      reportError(error, { stage: "checkout_submit" });
+      reportError(error, { stage: 'checkout_submit' });
     }
   }
 
   return (
-    <div className="container mx-auto min-h-screen py-8 md:py-12">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">
+    <div className='container mx-auto min-h-screen py-8 md:py-12'>
+      <div className='mx-auto max-w-5xl'>
+        <div className='mb-8'>
+          <h1 className='text-3xl font-bold tracking-tight'>
             {checkoutCopy.headings.pageTitle}
           </h1>
-          <p className="mt-2 text-muted-foreground">
+          <p className='mt-2 text-muted-foreground'>
             {checkoutCopy.descriptions.pageSubtitle}
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2">
+        <div className='grid gap-8 md:grid-cols-2'>
           {cart == null ? (
-            <div className="space-y-3">
-              <Skeleton className="h-6 w-40" />
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
+            <div className='space-y-3'>
+              <Skeleton className='h-6 w-40' />
+              <Skeleton className='h-24 w-full' />
+              <Skeleton className='h-24 w-full' />
             </div>
           ) : cart && cart.length > 0 ? (
             <>
               <CartSummary cart={cart} />
-              <div className="mt-2">
+              <div className='mt-2'>
                 <ReservationTimer
                   keyId={(session as any).user._id}
                   seconds={15 * 60}
@@ -497,23 +495,23 @@ export function CheckoutContent() {
               description={checkoutCopy.empty.cartDesc}
               primaryAction={{
                 label: checkoutCopy.empty.browseProducts,
-                onClick: () => router.push("/all"),
+                onClick: () => router.push('/all'),
               }}
             />
           )}
 
-          <div className="space-y-6">
+          <div className='space-y-6'>
             {offlineQueueEnabled && isOffline && (
               <div
-                className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm"
-                data-offline="1"
+                className='rounded-md border border-amber-300 bg-amber-50 p-3 text-sm'
+                data-offline='1'
                 style={tokensEnabled ? { marginBottom: rhythm(1) } : undefined}
               >
                 You are offline. We will queue your changes.
-                <div className="mt-2">
+                <div className='mt-2'>
                   <Button
-                    type="button"
-                    variant="outline"
+                    type='button'
+                    variant='outline'
                     onClick={() => drainQueue()}
                   >
                     Retry now
@@ -522,37 +520,37 @@ export function CheckoutContent() {
               </div>
             )}
             {preflightEnabled && reviewBanner && (
-              <div className="rounded-md border border-amber-300 bg-amber-50 p-4">
-                <div className="mb-2 font-medium">
+              <div className='rounded-md border border-amber-300 bg-amber-50 p-4'>
+                <div className='mb-2 font-medium'>
                   {checkoutCopy.preflight.title}
                 </div>
-                <p className="mb-3 text-sm text-amber-800">
+                <p className='mb-3 text-sm text-amber-800'>
                   {checkoutCopy.preflight.description}
                 </p>
-                <div className="mb-3 space-y-2 text-sm">
+                <div className='mb-3 space-y-2 text-sm'>
                   {reviewBanner.changes.map((c, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between"
+                      className='flex items-center justify-between'
                     >
-                      <span className="truncate">
-                        {c.title || c.id} •{" "}
+                      <span className='truncate'>
+                        {c.title || c.id} •{' '}
                         {checkoutCopy.preflight.changeLabels[c.field]}
                       </span>
                       <span>
-                        {checkoutCopy.preflight.changeLabels.old}: {c.oldValue}{" "}
-                        → {checkoutCopy.preflight.changeLabels.new}:{" "}
+                        {checkoutCopy.preflight.changeLabels.old}: {c.oldValue}{' '}
+                        → {checkoutCopy.preflight.changeLabels.new}:{' '}
                         {c.newValue}
                       </span>
                     </div>
                   ))}
                 </div>
-                <div className="flex gap-2">
+                <div className='flex gap-2'>
                   <Button
-                    type="button"
+                    type='button'
                     onClick={async () => {
                       setCart(reviewBanner.reviewedCart);
-                      setReviewBanner((prev) =>
+                      setReviewBanner(prev =>
                         prev ? { ...prev, accepted: true } : prev
                       );
                       await createPaymentIntent(
@@ -564,8 +562,8 @@ export function CheckoutContent() {
                     {checkoutCopy.preflight.accept}
                   </Button>
                   <Button
-                    type="button"
-                    variant="outline"
+                    type='button'
+                    variant='outline'
                     disabled={!reviewBanner.accepted}
                     onClick={() => setReviewBanner(null)}
                   >
@@ -574,14 +572,14 @@ export function CheckoutContent() {
                 </div>
               </div>
             )}
-            {state.status !== "paymentReady" ? (
+            {state.status !== 'paymentReady' ? (
               <Card>
                 <CardHeader>
                   <CardTitle>{checkoutCopy.headings.shippingDetails}</CardTitle>
                   <CardDescription>
                     {checkoutCopy.descriptions.shippingHelp}
                   </CardDescription>
-                  <div className="text-sm text-muted-foreground">
+                  <div className='text-sm text-muted-foreground'>
                     {checkoutCopy.steps.step1Address}
                   </div>
                 </CardHeader>
@@ -589,28 +587,28 @@ export function CheckoutContent() {
                   <Form {...form}>
                     <form
                       onSubmit={form.handleSubmit(onSubmit)}
-                      className="space-y-4"
+                      className='space-y-4'
                     >
                       {savedAddressesEnabled && savedAddrs.length > 0 && (
                         <SavedAddressPicker
-                          addresses={savedAddrs.map((a) => ({
+                          addresses={savedAddrs.map(a => ({
                             id: a.id || a._id || a.street1,
                             ...a,
                           }))}
-                          onUse={(addr) => {
-                            form.setValue("name", addr.name || "");
-                            form.setValue("street1", addr.street1 || "");
-                            form.setValue("street2", addr.street2 || "");
-                            form.setValue("city", addr.city || "");
-                            form.setValue("state", addr.state || "");
-                            form.setValue("zip", addr.zip || "");
-                            form.setValue("country", addr.country || "");
+                          onUse={addr => {
+                            form.setValue('name', addr.name || '');
+                            form.setValue('street1', addr.street1 || '');
+                            form.setValue('street2', addr.street2 || '');
+                            form.setValue('city', addr.city || '');
+                            form.setValue('state', addr.state || '');
+                            form.setValue('zip', addr.zip || '');
+                            form.setValue('country', addr.country || '');
                           }}
                         />
                       )}
                       <FormField
                         control={form.control}
-                        name="name"
+                        name='name'
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
@@ -631,48 +629,48 @@ export function CheckoutContent() {
 
                       <FormField
                         control={form.control}
-                        name="street1"
+                        name='street1'
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel htmlFor="street1">
+                            <FormLabel htmlFor='street1'>
                               {checkoutCopy.fields.street1.label}
                             </FormLabel>
                             <FormControl>
-                              <div className="relative">
+                              <div className='relative'>
                                 <Input
-                                  id="street1"
+                                  id='street1'
                                   placeholder={
                                     checkoutCopy.fields.street1.placeholder
                                   }
                                   {...field}
-                                  onChange={(e) => {
+                                  onChange={e => {
                                     field.onChange(e);
                                     if (autocompleteEnabled)
                                       ac.setQuery(e.target.value);
                                   }}
                                   data-autocomplete={
-                                    autocompleteEnabled ? "1" : undefined
+                                    autocompleteEnabled ? '1' : undefined
                                   }
                                 />
                                 {autocompleteEnabled &&
-                                  ac.status !== "idle" &&
+                                  ac.status !== 'idle' &&
                                   ac.suggestions.length > 0 && (
                                     <div
-                                      className="absolute z-10 mt-1 w-full rounded border bg-white shadow"
-                                      data-role="suggestions"
+                                      className='absolute z-10 mt-1 w-full rounded border bg-white shadow'
+                                      data-role='suggestions'
                                     >
-                                      {ac.suggestions.map((s) => (
+                                      {ac.suggestions.map(s => (
                                         <button
-                                          type="button"
+                                          type='button'
                                           key={s.id}
-                                          className="block w-full px-3 py-2 text-left hover:bg-slate-50"
+                                          className='block w-full px-3 py-2 text-left hover:bg-slate-50'
                                           onClick={() => {
                                             const patch = ac.apply(s);
                                             form.setValue(
-                                              "street1",
-                                              patch.street1 || ""
+                                              'street1',
+                                              patch.street1 || ''
                                             );
-                                            ac.setQuery("");
+                                            ac.setQuery('');
                                           }}
                                         >
                                           {s.text}
@@ -689,7 +687,7 @@ export function CheckoutContent() {
 
                       <FormField
                         control={form.control}
-                        name="street2"
+                        name='street2'
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
@@ -708,10 +706,10 @@ export function CheckoutContent() {
                         )}
                       />
 
-                      <div className="grid gap-4 sm:grid-cols-2">
+                      <div className='grid gap-4 sm:grid-cols-2'>
                         <FormField
                           control={form.control}
-                          name="city"
+                          name='city'
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>
@@ -732,7 +730,7 @@ export function CheckoutContent() {
 
                         <FormField
                           control={form.control}
-                          name="state"
+                          name='state'
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>
@@ -752,10 +750,10 @@ export function CheckoutContent() {
                         />
                       </div>
 
-                      <div className="grid gap-4 sm:grid-cols-2">
+                      <div className='grid gap-4 sm:grid-cols-2'>
                         <FormField
                           control={form.control}
-                          name="zip"
+                          name='zip'
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>
@@ -766,13 +764,13 @@ export function CheckoutContent() {
                                   placeholder={
                                     checkoutCopy.fields.zip.placeholder
                                   }
-                                  aria-describedby="zip-help"
+                                  aria-describedby='zip-help'
                                   {...field}
                                 />
                               </FormControl>
                               <p
-                                id="zip-help"
-                                className="text-xs text-muted-foreground"
+                                id='zip-help'
+                                className='text-xs text-muted-foreground'
                               >
                                 {checkoutCopy.fields.zip.help}
                               </p>
@@ -783,7 +781,7 @@ export function CheckoutContent() {
 
                         <FormField
                           control={form.control}
-                          name="country"
+                          name='country'
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>
@@ -803,22 +801,22 @@ export function CheckoutContent() {
                         />
                       </div>
 
-                      {(state.status === "addressError" ||
-                        state.status === "paymentError") && (
-                        <Alert variant="destructive">
+                      {(state.status === 'addressError' ||
+                        state.status === 'paymentError') && (
+                        <Alert variant='destructive'>
                           <AlertTitle>Error</AlertTitle>
                           <AlertDescription>
-                            {state.status === "addressError"
+                            {state.status === 'addressError'
                               ? state.message
-                              : state.status === "paymentError"
-                              ? state.message
-                              : null}
+                              : state.status === 'paymentError'
+                                ? state.message
+                                : null}
                           </AlertDescription>
-                          <div className="mt-2">
+                          <div className='mt-2'>
                             <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => dispatch({ type: "RESET" })}
+                              type='button'
+                              variant='outline'
+                              onClick={() => dispatch({ type: 'RESET' })}
                             >
                               Try again
                             </Button>
@@ -826,40 +824,40 @@ export function CheckoutContent() {
                         </Alert>
                       )}
 
-                      {bgValidationStatus === "validating" && (
-                        <div className="text-sm text-muted-foreground">
+                      {bgValidationStatus === 'validating' && (
+                        <div className='text-sm text-muted-foreground'>
                           …validating address
                         </div>
                       )}
                       {bgValidationWarning && (
-                        <div className="text-sm text-amber-600">
+                        <div className='text-sm text-amber-600'>
                           {bgValidationWarning}
                         </div>
                       )}
 
                       <Button
-                        type="button"
+                        type='button'
                         onClick={form.handleSubmit(onSubmit)}
-                        className="w-full"
+                        className='w-full'
                         disabled={
                           isBusy(state) ||
                           !form.formState.isValid ||
                           bgValidationValid === false
                         }
                       >
-                        {state.status === "validatingAddress" ? (
+                        {state.status === 'validatingAddress' ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                             {checkoutCopy.cta.validatingAddress}
                           </>
-                        ) : state.status === "creatingIntent" ? (
+                        ) : state.status === 'creatingIntent' ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                             {checkoutCopy.cta.preparingPayment}
                           </>
                         ) : (
                           <>
-                            <MapPin className="mr-2 h-4 w-4" />
+                            <MapPin className='mr-2 h-4 w-4' />
                             {checkoutCopy.cta.validateAndContinue}
                           </>
                         )}
@@ -875,7 +873,7 @@ export function CheckoutContent() {
                   <CardDescription>
                     {checkoutCopy.descriptions.paymentHelp}
                   </CardDescription>
-                  <div className="text-sm text-muted-foreground">
+                  <div className='text-sm text-muted-foreground'>
                     {checkoutCopy.steps.step2Payment}
                   </div>
                 </CardHeader>
@@ -889,9 +887,9 @@ export function CheckoutContent() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-3">
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-40 w-full" />
+              <div className='space-y-3'>
+                <Skeleton className='h-6 w-32' />
+                <Skeleton className='h-40 w-full' />
               </div>
             )}
           </div>

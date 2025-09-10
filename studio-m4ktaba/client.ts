@@ -1,4 +1,6 @@
-export {readClient, writeClient} from '@/lib/sanity-clients'
+import {readClient, writeClient} from '@/lib/sanity-clients'
+
+export {readClient, writeClient}
 
 export async function getTopSellers() {
   return readClient.fetch(`
