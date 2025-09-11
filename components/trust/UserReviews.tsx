@@ -29,63 +29,8 @@ interface UserReviewsProps {
   className?: string;
 }
 
-const mockReviews: Review[] = [
-  {
-    id: '1',
-    user: {
-      name: 'Ahmad Al-Rashid',
-      avatar: '/avatars/ahmad.jpg',
-      verified: true,
-    },
-    rating: 5,
-    comment:
-      "Excellent platform! Found rare Islamic books that I couldn't find anywhere else. The seller was very helpful and shipping was fast.",
-    date: '2024-01-15',
-    helpful: 12,
-    verified: true,
-  },
-  {
-    id: '2',
-    user: {
-      name: 'Fatima Hassan',
-      avatar: '/avatars/fatima.jpg',
-      verified: true,
-    },
-    rating: 5,
-    comment:
-      'Great experience selling my books. The process was simple and I received payment quickly. Highly recommended!',
-    date: '2024-01-10',
-    helpful: 8,
-    verified: true,
-  },
-  {
-    id: '3',
-    user: {
-      name: 'Omar Khalil',
-      verified: false,
-    },
-    rating: 4,
-    comment:
-      'Good selection of books and fair prices. The only issue was slow shipping, but the book arrived in perfect condition.',
-    date: '2024-01-08',
-    helpful: 5,
-    verified: false,
-  },
-  {
-    id: '4',
-    user: {
-      name: 'Aisha Mohammed',
-      avatar: '/avatars/aisha.jpg',
-      verified: true,
-    },
-    rating: 5,
-    comment:
-      'Amazing collection of Islamic literature! The search function works great and I found exactly what I was looking for.',
-    date: '2024-01-05',
-    helpful: 15,
-    verified: true,
-  },
-];
+// No mock reviews - only show real reviews from users
+const mockReviews: Review[] = [];
 
 const StarRating: React.FC<{ rating: number; size?: 'sm' | 'md' | 'lg' }> = ({
   rating,
@@ -206,9 +151,15 @@ export function UserReviews({
   className,
 }: UserReviewsProps) {
   const displayReviews = reviews.slice(0, maxReviews);
-  const averageRating =
-    reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+  const averageRating = reviews.length > 0 
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+    : 0;
   const verifiedReviews = reviews.filter(review => review.verified).length;
+
+  // Don't show reviews section if there are no reviews
+  if (reviews.length === 0) {
+    return null;
+  }
 
   if (variant === 'grid') {
     return (
@@ -301,10 +252,20 @@ export function ReviewSummary({
   reviews = mockReviews,
   className,
 }: ReviewSummaryProps) {
-  const averageRating =
-    reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+  const averageRating = reviews.length > 0 
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+    : 0;
   const totalReviews = reviews.length;
-  // const verifiedReviews = reviews.filter(review => review.verified).length;
+
+  // Don't show review summary if there are no reviews
+  if (reviews.length === 0) {
+    return (
+      <div className={cn('text-center text-muted-foreground', className)}>
+        <p className="text-sm">No reviews yet</p>
+        <p className="text-xs">Be the first to review this item</p>
+      </div>
+    );
+  }
 
   return (
     <div className={cn('flex items-center gap-4', className)}>

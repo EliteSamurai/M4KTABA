@@ -94,16 +94,7 @@ export const DEFAULT_TRUST_SIGNALS: TrustSignal[] = [
     priority: 5,
     visible: true,
   },
-  {
-    id: 'user_rating',
-    type: 'social_proof',
-    title: '4.8/5 Rating',
-    description: 'From 500+ users',
-    icon: 'Star',
-    verified: true,
-    priority: 6,
-    visible: true,
-  },
+  // Removed fake user rating - only show real ratings when available
 ];
 
 export class TrustSignalsManager {
@@ -119,14 +110,14 @@ export class TrustSignalsManager {
 
   private getDefaultMetrics(): TrustMetrics {
     return {
-      totalUsers: 1250,
-      totalBooks: 3500,
-      totalSales: 12500,
-      averageRating: 4.8,
-      totalReviews: 500,
-      verifiedSellers: 150,
-      successRate: 98.5,
-      responseTime: '< 2 hours',
+      totalUsers: 0,
+      totalBooks: 0,
+      totalSales: 0,
+      averageRating: 0,
+      totalReviews: 0,
+      verifiedSellers: 0,
+      successRate: 0,
+      responseTime: 'N/A',
     };
   }
 
@@ -244,14 +235,8 @@ export class TrustSignalsManager {
   }
 
   generateTestimonial(): string {
-    const testimonials = [
-      'M4ktaba has been a game-changer for finding rare Islamic books. The platform is easy to use and the sellers are trustworthy.',
-      "I've sold over 50 books on M4ktaba. The process is simple and I always get paid quickly. Highly recommended!",
-      "The best platform for Islamic literature. I found books here that I couldn't find anywhere else.",
-      'Great experience buying and selling. The community is helpful and the platform is secure.',
-      'M4ktaba made it easy to declutter my bookshelf while helping others find great reads.',
-    ];
-    return testimonials[Math.floor(Math.random() * testimonials.length)];
+    // No fake testimonials - only return real user testimonials
+    return '';
   }
 
   getRecentActivity(): Array<{
@@ -259,28 +244,8 @@ export class TrustSignalsManager {
     message: string;
     timestamp: string;
   }> {
-    return [
-      {
-        type: 'sale',
-        message: "Ahmad just sold 'The Sealed Nectar' for $25",
-        timestamp: '2 minutes ago',
-      },
-      {
-        type: 'review',
-        message: 'Fatima left a 5-star review',
-        timestamp: '5 minutes ago',
-      },
-      {
-        type: 'signup',
-        message: 'Omar joined the community',
-        timestamp: '10 minutes ago',
-      },
-      {
-        type: 'listing',
-        message: "Aisha listed 'The Noble Quran'",
-        timestamp: '15 minutes ago',
-      },
-    ];
+    // No fake activity - only return real user activity
+    return [];
   }
 }
 

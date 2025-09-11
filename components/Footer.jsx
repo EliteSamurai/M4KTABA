@@ -37,17 +37,17 @@ const footerLinks = [
 const socialLinks = [
   {
     name: "Facebook",
-    href: "#",
+    href: "https://facebook.com/m4ktaba",
     icon: Facebook,
   },
   {
     name: "Instagram",
-    href: "#",
+    href: "https://instagram.com/m4ktaba",
     icon: Instagram,
   },
   {
     name: "Twitter",
-    href: "#",
+    href: "https://x.com/M4KTABA",
     icon: Twitter,
   },
 ]
