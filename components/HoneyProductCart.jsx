@@ -60,13 +60,13 @@ export default function HoneyProductCard() {
     <Card className="group overflow-hidden">
       <Link href="/honey/sidrhoney" className="block">
         <CardHeader className="border-b p-0">
-          <div className="flex items-center justify-center aspect-square w-full mx-auto h-96 overflow-hidden">
+          <div className="relative aspect-square w-full h-96 overflow-hidden">
             <Image
               src={product.image}
               alt={product.title}
+              fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-              width={200}
               priority
             />
           </div>
