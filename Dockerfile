@@ -27,6 +27,7 @@ ENV SANITY_PROJECT_ID=dummy
 ENV SANITY_DATASET=dummy
 ENV SANITY_API_VERSION=2023-10-01
 ENV STRIPE_SECRET_KEY=sk_test_dummy_key_for_build
+ENV RESEND_API_KEY=re_123
 
 RUN corepack enable pnpm && pnpm run build
 
