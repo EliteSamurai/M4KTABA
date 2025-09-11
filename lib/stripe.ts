@@ -1,9 +1,32 @@
 import Stripe from "stripe";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2025-02-24.acacia",
-  typescript: true,
-});
+// Create a build-safe Stripe client
+function createStripeClient() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  
+  if (!secretKey) {
+    // Return a mock client during build time
+    return {
+      paymentIntents: {
+        create: async () => {
+          throw new Error("Stripe not configured - missing STRIPE_SECRET_KEY");
+        }
+      },
+      charges: {
+        list: async () => {
+          throw new Error("Stripe not configured - missing STRIPE_SECRET_KEY");
+        }
+      }
+    } as any;
+  }
+  
+  return new Stripe(secretKey, {
+    apiVersion: "2025-02-24.acacia",
+    typescript: true,
+  });
+}
+
+export const stripe = createStripeClient();
 
 export const config = {
   api: {
@@ -88,5 +111,5 @@ export async function getTransactions(timeframe: "week" | "month" | "year") {
 
 export async function getRevenue(timeframe: "week" | "month" | "year") {
   const transactions = await getTransactions(timeframe);
-  return transactions.reduce((acc, charge) => acc + charge.amount, 0) / 100;
+  return transactions.reduce((acc: number, charge: any) => acc + charge.amount, 0) / 100;
 }

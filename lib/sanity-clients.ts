@@ -20,22 +20,48 @@ if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
   invariant(dataset, missing("SANITY_DATASET"));
 }
 
-export const readClient = createClient({
-  projectId: projectId || "dummy",
-  dataset: dataset || "dummy",
-  apiVersion,
-  useCdn: true,
-  perspective: "published",
-});
+// Create build-safe clients
+function createBuildSafeClient() {
+  if (!projectId || !dataset || projectId === "dummy" || dataset === "dummy") {
+    // Return mock client during build time
+    return {
+      fetch: async () => [],
+      create: async () => ({ _id: "mock" }),
+      delete: async () => ({ _id: "mock" }),
+    } as any;
+  }
+  
+  return createClient({
+    projectId,
+    dataset,
+    apiVersion,
+    useCdn: true,
+    perspective: "published",
+  });
+}
 
-export const writeClient = createClient({
-  projectId: projectId || "dummy",
-  dataset: dataset || "dummy",
-  apiVersion,
-  token,
-  useCdn: false,
-  perspective: "published",
-});
+function createBuildSafeWriteClient() {
+  if (!projectId || !dataset || projectId === "dummy" || dataset === "dummy") {
+    // Return mock client during build time
+    return {
+      fetch: async () => [],
+      create: async () => ({ _id: "mock" }),
+      delete: async () => ({ _id: "mock" }),
+    } as any;
+  }
+  
+  return createClient({
+    projectId,
+    dataset,
+    apiVersion,
+    token,
+    useCdn: false,
+    perspective: "published",
+  });
+}
+
+export const readClient = createBuildSafeClient();
+export const writeClient = createBuildSafeWriteClient();
 
 export async function assertWritePermissions() {
   if (!token) {

@@ -25,6 +25,11 @@ const getLastModified = (date?: string) => {
 // Example function to fetch all blog posts
 // Replace this with your actual data fetching logic
 async function getAllBlogPosts(): Promise<BlogPost[]> {
+  // Check if Sanity is configured
+  if (!process.env.SANITY_PROJECT_ID || !process.env.SANITY_DATASET) {
+    return [];
+  }
+
   try {
     const posts = await readClient.fetch(`
       *[_type == "post" && publishedAt != null] {

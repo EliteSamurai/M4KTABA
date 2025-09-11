@@ -12,6 +12,14 @@ import {
 import { withLatency } from "@/lib/metrics";
 
 export async function POST(req: Request) {
+  // Check if Stripe is configured
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json(
+      { error: "Service temporarily unavailable" },
+      { status: 503 }
+    );
+  }
+
   const session = await getServerSession(authOptions);
   if (!session?.user?._id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -39,7 +47,7 @@ export async function POST(req: Request) {
       {},
       { idempotencyKey: idemKey }
     )
-  );
+  ) as any;
   await commit(storeKey, { status: pi.status });
   return NextResponse.json({ status: pi.status });
 }
