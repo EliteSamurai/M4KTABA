@@ -126,7 +126,7 @@ export function TrustBadges({
 
   // Compact variant
   return (
-    <div className={cn('flex flex-wrap gap-2', className)}>
+    <div className={cn('flex flex-wrap justify-center gap-2', className)}>
       {badgesToShow.map((badge, index) => (
         <Badge
           key={index}
