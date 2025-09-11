@@ -67,6 +67,7 @@
     "@sanity/client": "^6.22.5",
     "@sanity/icons": "^3.4.0",
     "@sanity/image-url": "^1.1.0",
+    "@sanity/vision": "^4.8.1",
     "@stripe/react-stripe-js": "^3.0.0",
     "@stripe/stripe-js": "^5.2.0",
     "@vercel/analytics": "^1.4.1",
