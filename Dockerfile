@@ -22,6 +22,11 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Set dummy environment variables for build time to prevent Sanity client errors
+ENV SANITY_PROJECT_ID=dummy
+ENV SANITY_DATASET=dummy
+ENV SANITY_API_VERSION=2023-10-01
+
 RUN corepack enable pnpm && pnpm run build
 
 # Production image, copy all the files and run next

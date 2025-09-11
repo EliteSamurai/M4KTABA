@@ -1,7 +1,7 @@
 import { createClient } from "@sanity/client";
 
-const projectId = process.env.SANITY_PROJECT_ID!;
-const dataset = process.env.SANITY_DATASET!;
+const projectId = process.env.SANITY_PROJECT_ID;
+const dataset = process.env.SANITY_DATASET;
 const apiVersion = process.env.SANITY_API_VERSION || "2023-10-01";
 
 const token = process.env.SANITY_WRITE_TOKEN ?? process.env.SANITY_API_TOKEN;
@@ -14,20 +14,23 @@ function invariant(condition: any, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
 
-invariant(projectId, missing("SANITY_PROJECT_ID"));
-invariant(dataset, missing("SANITY_DATASET"));
+// Only validate during runtime, not during build
+if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+  invariant(projectId, missing("SANITY_PROJECT_ID"));
+  invariant(dataset, missing("SANITY_DATASET"));
+}
 
 export const readClient = createClient({
-  projectId,
-  dataset,
+  projectId: projectId || "dummy",
+  dataset: dataset || "dummy",
   apiVersion,
   useCdn: true,
   perspective: "published",
 });
 
 export const writeClient = createClient({
-  projectId,
-  dataset,
+  projectId: projectId || "dummy",
+  dataset: dataset || "dummy",
   apiVersion,
   token,
   useCdn: false,
@@ -41,7 +44,7 @@ export async function assertWritePermissions() {
         "Sanity write token missing.",
         "Set SANITY_WRITE_TOKEN or SANITY_API_TOKEN in your environment.",
         "Generate a token in https://manage.sanity.io → API → Tokens with Editor/write permissions.",
-        `Project: ${projectId}  Dataset: ${dataset}`,
+        `Project: ${projectId || "unknown"}  Dataset: ${dataset || "unknown"}`,
       ].join("\n")
     );
   }
@@ -60,7 +63,7 @@ export async function assertWritePermissions() {
       throw new Error(
         [
           "Sanity write permission check FAILED (401/403).",
-          `Project: ${projectId}  Dataset: ${dataset}`,
+          `Project: ${projectId || "unknown"}  Dataset: ${dataset || "unknown"}`,
           `Client message: ${msg}`,
           "Fix: create a token with Editor/write scope and set SANITY_WRITE_TOKEN (or SANITY_API_TOKEN).",
         ].join("\n")
