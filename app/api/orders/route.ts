@@ -6,7 +6,7 @@ import { verifyCsrf } from "@/lib/csrf";
 import { OrderCreateSchema } from "@/lib/validation";
 
 export async function POST(req: Request) {
-  const csrf = verifyCsrf(req);
+  const csrf = await verifyCsrf();
   if (csrf) return csrf;
   try {
     const body = await req.json();

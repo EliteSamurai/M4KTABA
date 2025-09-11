@@ -6,7 +6,7 @@ import { verifyCsrf } from "@/lib/csrf";
 import { CartMutationSchema } from "@/lib/validation";
 
 export async function POST(req: Request) {
-  const csrf = verifyCsrf(req);
+  const csrf = await verifyCsrf();
   if (csrf) return csrf;
   const session = await getServerSession(authOptions);
 

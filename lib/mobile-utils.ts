@@ -227,7 +227,6 @@ export class MobileUtils {
       return;
     }
 
-    // @ts-expect-error - vibrate is not in standard navigator type
     if (navigator.vibrate) {
       const patterns = {
         light: [10],

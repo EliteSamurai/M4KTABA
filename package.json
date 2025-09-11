@@ -38,7 +38,10 @@
     "clean": "rm -rf .next out dist coverage",
     "prepare": "husky",
     "validate:env": "tsx scripts/deploy/validate-env.ts",
-    "validate:env:strict": "tsx scripts/deploy/validate-env.ts --throw"
+    "validate:env:strict": "tsx scripts/deploy/validate-env.ts --throw",
+    "validate:production": "tsx scripts/deploy/validate-production.ts",
+    "validate:vercel": "tsx scripts/deploy/validate-production.ts vercel",
+    "validate:fly": "tsx scripts/deploy/validate-production.ts fly"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",

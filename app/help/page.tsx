@@ -18,11 +18,12 @@ import {
   searchHelp,
   getFrequentlyAskedQuestions,
   getQuickStartGuide,
+  type HelpSearchResult,
 } from '@/lib/help-system';
 
 export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<unknown[]>([]);
+  const [searchResults, setSearchResults] = useState<HelpSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   const handleSearch = (query: string) => {

@@ -6,7 +6,7 @@ import { verifyCsrf } from "@/lib/csrf";
 import { ProfileUpdateSchema } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
-  const csrf = verifyCsrf(req);
+  const csrf = await verifyCsrf();
   if (csrf) return csrf as unknown as NextResponse;
   const apiKey = process.env.EASYPOST_API_KEY;
   if (!apiKey) {

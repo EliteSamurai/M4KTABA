@@ -6,7 +6,7 @@ import { getOrCreateStripeAccount } from "@/lib/account";
 import { verifyCsrf } from "@/lib/csrf";
 
 export async function POST(req: Request) {
-  const csrf = verifyCsrf(req);
+  const csrf = await verifyCsrf();
   if (csrf) return csrf;
 
   const session = await getServerSession(authOptions);
