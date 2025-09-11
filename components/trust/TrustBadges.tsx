@@ -71,12 +71,6 @@ const trustData = [
     variant: 'default' as const,
   },
   {
-    icon: Star,
-    title: '4.8/5 Rating',
-    description: 'From 500+ users',
-    variant: 'success' as const,
-  },
-  {
     icon: Award,
     title: 'Verified Sellers',
     description: 'Identity verified',
