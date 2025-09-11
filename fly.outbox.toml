@@ -1,0 +1,13 @@
+app = "m4ktaba-outbox-worker"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile.worker"
+
+[env]
+  NODE_ENV = "production"
+
+[deploy]
+  command = "pnpm tsx jobs/outbox-consumer.ts"
+
+

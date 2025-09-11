@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,8 +15,64 @@ import { useState, useEffect } from "react";
 import CheckoutButton from "./CheckoutButton";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
+import { useOptimisticQty } from "@/hooks/useOptimisticQty";
+import { useFlag } from "@/lib/flags";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+
+function CartItemRow({
+  item,
+}: {
+  item: ReturnType<typeof useCart>["cart"][number];
+}) {
+  const { removeFromCart, updateItemQuantity } = useCart();
+  const optimisticEnabled = useFlag("optimistic_qty");
+  const { applyQty } = useOptimisticQty(item.id, item.quantity);
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div className="space-y-1">
+        <h4 className="font-medium leading-none">{item.title}</h4>
+        <p className="text-sm text-muted-foreground">
+          ${item.price} × {item.quantity}
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          className="h-8 w-8 rounded border text-sm"
+          aria-label="Decrease quantity"
+          onClick={() =>
+            optimisticEnabled
+              ? applyQty(Math.max(1, item.quantity - 1))
+              : updateItemQuantity(item.id, item.quantity - 1)
+          }
+          disabled={item.quantity <= 1}
+        >
+          −
+        </button>
+        <span className="min-w-[2ch] text-center">{item.quantity}</span>
+        <button
+          className="h-8 w-8 rounded border text-sm"
+          aria-label="Increase quantity"
+          onClick={() =>
+            optimisticEnabled
+              ? applyQty(item.quantity + 1)
+              : updateItemQuantity(item.id, item.quantity + 1)
+          }
+        >
+          +
+        </button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 hover:bg-destructive hover:text-destructive-foreground"
+          onClick={() => removeFromCart(item.id)}
+        >
+          Remove
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export function CartSheet() {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,6 +90,7 @@ export function CartSheet() {
           variant="outline"
           size="icon"
           className="relative w-9 h-9 transition-colors hover:bg-muted"
+          aria-label="Open cart"
         >
           <ShoppingCart className="h-5 w-5" />
           {getCartCount() > 0 && (
@@ -56,25 +114,7 @@ export function CartSheet() {
         <ScrollArea className="flex-1 -mx-6 px-6">
           <div className="mt-6 space-y-6">
             {cart.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-start justify-between gap-4"
-              >
-                <div className="space-y-1">
-                  <h4 className="font-medium leading-none">{item.title}</h4>
-                  <p className="text-sm text-muted-foreground">
-                    ${item.price} × {item.quantity}
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 hover:bg-destructive hover:text-destructive-foreground"
-                  onClick={() => removeFromCart(item.id)}
-                >
-                  Remove
-                </Button>
-              </div>
+              <CartItemRow key={item.id} item={item} />
             ))}
           </div>
         </ScrollArea>

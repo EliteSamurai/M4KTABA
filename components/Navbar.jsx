@@ -1,5 +1,6 @@
 "use client";
 
+import React from 'react';
 import Link from "next/link";
 import LoginButton from "@/components/LoginButton";
 import { Button } from "./ui/button";

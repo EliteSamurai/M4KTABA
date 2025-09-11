@@ -32,9 +32,15 @@ const POSTS_QUERY = `*[
 
 const options = { next: { revalidate: 30 } };
 
-// Memoized image URL builder
+// Build-safe image URL builder
 const urlFor = (source: SanityImageSource) => {
-  return ImageUrlBuilder(writeClient).image(source);
+  const projectId = process.env.SANITY_PROJECT_ID;
+  const dataset = process.env.SANITY_DATASET;
+  
+  if (projectId && dataset && projectId !== "dummy" && dataset !== "dummy") {
+    return ImageUrlBuilder({ projectId, dataset }).image(source);
+  }
+  return null;
 };
 
 // Helper function for date formatting
@@ -58,7 +64,21 @@ type Post = {
 };
 
 const Blog = async () => {
-  const posts = await readClient.fetch<Post[]>(POSTS_QUERY, {}, options);
+  // Check if Sanity is configured
+  if (!process.env.SANITY_PROJECT_ID || !process.env.SANITY_DATASET) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b">
+        <div className="mx-auto max-w-5xl px-4 py-24 text-center sm:px-6 lg:px-8">
+          <h1 className="text-4xl font-bold">Blog</h1>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Blog content will be available once the system is fully configured.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  const posts = await readClient.fetch(POSTS_QUERY, {}, options) as Post[];
 
   return (
     <main className="min-h-screen bg-gradient-to-b">
@@ -146,10 +166,10 @@ const Blog = async () => {
                         {post.title}
                       </CardTitle>
                     </div>
-                    {post.mainImage && (
+                    {post.mainImage && urlFor(post.mainImage) && (
                       <div className="relative h-16 w-16 overflow-hidden rounded-lg border">
                         <Image
-                          src={urlFor(post.mainImage).width(200).url() ?? ""}
+                          src={urlFor(post.mainImage)?.width(200).url() ?? ""}
                           alt={post.title}
                           className="object-cover transition-transform group-hover:scale-110"
                           fill

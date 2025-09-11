@@ -20,6 +20,14 @@ export async function GET(
       );
     }
 
+    // Check if Sanity is configured
+    if (!process.env.SANITY_PROJECT_ID || !process.env.SANITY_DATASET) {
+      return NextResponse.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 }
+      );
+    }
+
     // Fetch the product from Sanity
     const book: Book | null = await readClient.fetch(
       `*[_type == "book" && _id == $id][0]{

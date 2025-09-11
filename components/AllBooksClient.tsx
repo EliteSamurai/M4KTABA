@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import EmptyState from "@/components/EmptyState";
 import BookProductCard from "./ProductCard";
 import { urlFor } from "@/utils/imageUrlBuilder";
 
@@ -61,22 +62,30 @@ export default function AllBooksClient({
       <Separator />
 
       {/* Books Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-        {books.map((book) => (
-          <BookProductCard
-            key={book._id}
-            id={book._id}
-            title={book.title}
-            user={book.user || "Unknown"}
-            price={book.price}
-            image={urlFor(book.image)}
-          />
-        ))}
-        {loading &&
-          Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-[3/4] w-full" />
+      {books.length === 0 && !loading ? (
+        <EmptyState
+          title="No results"
+          description="We couldn't find any books matching your criteria. Try adjusting your filters."
+          secondaryAction={{ label: "Clear search", onClick: () => setSearchQuery("") }}
+        />
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+          {books.map((book) => (
+            <BookProductCard
+              key={book._id}
+              id={book._id}
+              title={book.title}
+              user={book.user || "Unknown"}
+              price={book.price}
+              image={urlFor(book.image)}
+            />
           ))}
-      </div>
+          {loading &&
+            Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-[3/4] w-full" />
+            ))}
+        </div>
+      )}
 
       {/* Load More Button */}
       {books.length < totalBooks && (

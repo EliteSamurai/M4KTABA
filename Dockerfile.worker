@@ -1,0 +1,20 @@
+FROM node:20-slim
+
+ENV NODE_ENV=production
+WORKDIR /app
+
+# Enable pnpm via corepack
+RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
+
+# Install CA certificates and minimal deps
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+COPY . .
+
+# Default command prints versions; overridden by Fly deploy command
+CMD ["bash", "-lc", "node -v && pnpm -v"]
+
+

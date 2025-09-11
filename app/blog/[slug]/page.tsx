@@ -25,11 +25,16 @@ const POST_QUERY = `
 }
 `;
 
-const { projectId, dataset } = readClient.config();
-const urlFor = (source: SanityImageSource) =>
-  projectId && dataset
-    ? imageUrlBuilder({ projectId, dataset }).image(source)
-    : null;
+// Build-safe image URL builder
+const urlFor = (source: SanityImageSource) => {
+  const projectId = process.env.SANITY_PROJECT_ID;
+  const dataset = process.env.SANITY_DATASET;
+  
+  if (projectId && dataset && projectId !== "dummy" && dataset !== "dummy") {
+    return imageUrlBuilder({ projectId, dataset }).image(source);
+  }
+  return null;
+};
 
 const options = { next: { revalidate: 30 } };
 
@@ -73,11 +78,11 @@ export default async function PostPage({
   const { slug } = await asyncParams;
 
   // Fetch Post Data
-  const post = await readClient.fetch<SanityDocument>(
+  const post = await readClient.fetch(
     POST_QUERY,
     { slug },
     options
-  );
+  ) as SanityDocument;
 
   // Guard Clause for Missing Post
   if (!post) {

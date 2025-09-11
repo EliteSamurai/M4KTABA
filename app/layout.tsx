@@ -10,6 +10,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SupportProvider } from "@/contexts/support-context";
 import { Analytics } from "@vercel/analytics/react";
 import Script from "next/script";
+import { A11yLiveRegion } from "@/components/A11yLiveRegion";
+import VitalsClient from "./vitals-client";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -132,6 +134,10 @@ export default function RootLayout({
           <SupportProvider>
             <CartProvider>
               <Navbar />
+              <A11yLiveRegion />
+              {process.env.NEXT_PUBLIC_DISABLE_VITALS !== "true" ? (
+                <VitalsClient />
+              ) : null}
               {children}
               <Footer />
               <SupportWidget />

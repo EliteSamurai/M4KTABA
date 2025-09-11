@@ -1,6 +1,24 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Create a build-safe Resend client
+function createResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  
+  if (!apiKey || apiKey === "re_123") {
+    // Return a mock client during build time
+    return {
+      emails: {
+        send: async () => {
+          throw new Error("Resend not configured - missing RESEND_API_KEY");
+        }
+      }
+    } as any;
+  }
+  
+  return new Resend(apiKey);
+}
+
+const resend = createResendClient();
 
 interface EmailOptions {
   to: string;

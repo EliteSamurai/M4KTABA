@@ -4,6 +4,9 @@ import type { Stripe } from "stripe";
 import { createTransport } from "nodemailer";
 import { CartItem, User } from "@/types/shipping-types";
 import { readClient } from "@/studio-m4ktaba/client";
+import { begin as idemBegin, commit as idemCommit } from "@/lib/idempotency";
+import { reportError } from "@/lib/sentry";
+import { counter, withLatency } from "@/lib/metrics";
 
 export const config = {
   api: {
@@ -228,18 +231,30 @@ export async function POST(req: Request) {
   }
 
   try {
+    // Dedupe webhook by event.id (idempotent processing)
+    const start = await idemBegin(`stripe:webhook:${event.id}`, 60 * 60 * 1000);
+    if (start && start.status === "committed") {
+      return NextResponse.json(
+        { received: true, deduped: true },
+        { status: 200 }
+      );
+    }
     switch (event.type) {
       case "payment_intent.succeeded":
-        await handlePaymentIntentSucceeded(
-          req,
-          event.data.object as Stripe.PaymentIntent
+        await withLatency("/api/webhooks/stripe-webhook:pi_succeeded", () =>
+          handlePaymentIntentSucceeded(
+            req,
+            event.data.object as Stripe.PaymentIntent
+          )
         );
+        counter("webhook_processed").inc({ event: event.type });
         break;
 
       case "payment_intent.payment_failed":
-        await handlePaymentIntentFailed(
-          event.data.object as Stripe.PaymentIntent
+        await withLatency("/api/webhooks/stripe-webhook:pi_failed", () =>
+          handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent)
         );
+        counter("webhook_processed").inc({ event: event.type });
         break;
 
       case "charge.dispute.created":
@@ -529,10 +544,16 @@ export async function POST(req: Request) {
         console.log(`Unhandled event type: ${event.type}`);
     }
 
+    await idemCommit(
+      `stripe:webhook:${event.id}`,
+      { ok: true },
+      60 * 60 * 1000
+    );
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {
       console.error("Error handling webhook event:", error.message);
+      reportError(error, { where: "stripe-webhook" });
     }
     return NextResponse.json(
       { error: "Webhook handler error." },
