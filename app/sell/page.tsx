@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "../api/auth/[...nextauth]/options"
 import { redirect } from "next/navigation"
 import { BookOpen, DollarSign, Camera, CheckCircle } from 'lucide-react'
-import ImprovedSellingProcess from "@/components/ImprovedSellingProcess"
+import SellingProcessWrapper from "@/components/SellingProcessWrapper"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
@@ -70,7 +70,7 @@ export default async function SellPage() {
         </div>
 
         {/* Selling Process */}
-        <ImprovedSellingProcess />
+        <SellingProcessWrapper />
       </div>
     </div>
   )

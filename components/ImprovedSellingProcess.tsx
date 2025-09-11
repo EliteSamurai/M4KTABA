@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -87,6 +87,7 @@ export default function ImprovedSellingProcess({
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(listingSchema),
@@ -400,6 +401,7 @@ export default function ImprovedSellingProcess({
                     Drag and drop images here, or click to select
                   </p>
                   <input
+                    ref={fileInputRef}
                     type="file"
                     multiple
                     accept="image/*"
@@ -410,7 +412,7 @@ export default function ImprovedSellingProcess({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => document.getElementById('image-upload')?.click()}
+                    onClick={() => fileInputRef.current?.click()}
                   >
                     Choose Images
                   </Button>
