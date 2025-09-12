@@ -30,7 +30,14 @@ export default function AllBooksClient({
     try {
       const res = await fetch(`/api/get-all-books?offset=${offset}&limit=10`);
       const { books } = await res.json();
-      setBooks((prev) => [...prev, ...books]);
+      
+      // Filter out any books that already exist to prevent duplicates
+      setBooks((prev) => {
+        const existingIds = new Set(prev.map(book => book._id));
+        const newBooks = books.filter((book: any) => !existingIds.has(book._id));
+        return [...prev, ...newBooks];
+      });
+      
       setOffset((prev) => prev + books.length);
     } catch (err) {
       console.error("Failed to load more books", err);
@@ -70,9 +77,9 @@ export default function AllBooksClient({
         />
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-          {books.map((book) => (
+          {books.map((book, index) => (
             <BookProductCard
-              key={book._id}
+              key={`${book._id}-${index}`}
               id={book._id}
               title={book.title}
               user={book.user || "Unknown"}
