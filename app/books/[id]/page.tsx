@@ -32,7 +32,10 @@ export default async function ProductPage({
         _id,
         name,
         email,
-        "avatar": avatar.asset->url
+        "image": avatar.asset->{
+          _ref,
+          url
+        }
       },
       "selectedCategory": selectedCategory->{
         _id,

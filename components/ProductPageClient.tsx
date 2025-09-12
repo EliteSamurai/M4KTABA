@@ -195,8 +195,8 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                 {title || "Untitled Book"}
               </h1>
               <SellerInfo
-                image={user?.image || "/placeholder-user.jpg"}
-                email={user?.email.split("@")[0] || "Anonymous"}
+                image={user?.image || null}
+                email={user?.email?.split("@")[0] || "Anonymous"}
                 rating={Number(averageRating)}
               />
             </div>
