@@ -14,8 +14,9 @@ jobs:
         with:
           node-version: "20"
       - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: SYNTH_BASE_URL=${{ secrets.SYNTH_BASE_URL }} node scripts/synth/checkout-smoke.ts
+      - run: pnpm install --no-frozen-lockfile
+      - run: npx playwright install chromium
+      - run: SYNTH_BASE_URL=${{ secrets.SYNTH_BASE_URL }} node scripts/synth/checkout-smoke.js
 
   lighthouse:
     runs-on: ubuntu-latest
