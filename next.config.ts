@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
               "img-src 'self' https: data: https://cdn.sanity.io;",
               "font-src 'self' https://fonts.gstatic.com;",
-              "connect-src 'self' https://api.stripe.com https://api.easypost.com https://www.facebook.com https://www.google-analytics.com;",
+              "connect-src 'self' https://api.stripe.com https://api.easypost.com https://www.facebook.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com;",
               "frame-src 'self' https://js.stripe.com;",
               "worker-src 'self' blob:;",
               "object-src 'none';",

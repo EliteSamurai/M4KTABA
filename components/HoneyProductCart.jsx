@@ -65,7 +65,7 @@ export default function HoneyProductCard() {
               src={product.image}
               alt={product.title}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              className="object-contain transition-transform duration-300 group-hover:scale-105"
               sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
               priority
             />

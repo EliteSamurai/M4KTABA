@@ -227,38 +227,6 @@ export default function PrivacyPage() {
             </div>
           </section>
 
-          {/* Cookies */}
-          <section>
-            <h2 className="text-2xl font-semibold mb-6">Cookies and Tracking</h2>
-            <Card>
-              <CardHeader>
-                <CardTitle>How We Use Cookies</CardTitle>
-                <CardDescription>We use cookies to improve your experience on our platform</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Essential Cookies</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Required for basic platform functionality, such as keeping you logged in and remembering your cart.
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Analytics Cookies</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Help us understand how you use our platform so we can improve it. We use Google Analytics with anonymized data.
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Marketing Cookies</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Used to show you relevant ads and measure ad effectiveness. You can opt out of these.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </section>
 
           {/* Third-Party Services */}
           <section>
@@ -327,9 +295,9 @@ export default function PrivacyPage() {
               If you have questions about this privacy policy or want to exercise your privacy rights, please contact us.
             </p>
             <div className="space-y-2 text-sm">
-              <p><strong>Email:</strong> privacy@m4ktaba.com</p>
+              <p><strong>Email:</strong> contact@m4ktaba.com</p>
               <p><strong>Address:</strong> M4KTABA Privacy Team</p>
-              <p><strong>Response Time:</strong> We'll respond within 30 days</p>
+              <p><strong>Response Time:</strong> We'll respond within 8 hours</p>
             </div>
           </section>
         </div>

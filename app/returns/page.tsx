@@ -43,11 +43,11 @@ export default function ReturnsPage() {
           <Card>
             <CardHeader className="text-center">
               <Shield className="h-8 w-8 mx-auto text-green-600 mb-2" />
-              <CardTitle className="text-lg">Free Returns</CardTitle>
+              <CardTitle className="text-lg">Easy Returns</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground text-center">
-                We cover return shipping costs for all returns
+                Simple return process with clear instructions
               </p>
             </CardContent>
           </Card>
@@ -93,9 +93,9 @@ export default function ReturnsPage() {
               <div className="flex items-start space-x-4">
                 <Badge variant="outline" className="mt-1">3</Badge>
                 <div>
-                  <h3 className="font-medium">Print Return Label</h3>
+                  <h3 className="font-medium">Package Your Return</h3>
                   <p className="text-muted-foreground">
-                    We'll email you a prepaid return shipping label. Print it and attach it to your package.
+                    Package your item securely. You'll need to arrange your own return shipping and cover the costs.
                   </p>
                 </div>
               </div>
@@ -105,7 +105,7 @@ export default function ReturnsPage() {
                 <div>
                   <h3 className="font-medium">Ship Your Return</h3>
                   <p className="text-muted-foreground">
-                    Drop off your package at any authorized shipping location. You can track your return online.
+                    Ship your package to our return address. Make sure to include your return authorization number.
                   </p>
                 </div>
               </div>
@@ -132,7 +132,7 @@ export default function ReturnsPage() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 text-sm">
-                    <li>• Books in original condition</li>
+                    <li>• Books in any condition (including with writing/highlighting)</li>
                     <li>• Items within 30 days of delivery</li>
                     <li>• Original packaging (if available)</li>
                     <li>• Honey products (unopened)</li>
@@ -149,7 +149,6 @@ export default function ReturnsPage() {
                 <CardContent>
                   <ul className="space-y-2 text-sm">
                     <li>• Items damaged by misuse</li>
-                    <li>• Books with writing or highlighting</li>
                     <li>• Opened honey products</li>
                     <li>• Items returned after 30 days</li>
                     <li>• Personalized or custom items</li>
