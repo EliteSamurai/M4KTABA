@@ -10,10 +10,20 @@ const dataset =
 const builder = imageUrlBuilder({ projectId, dataset });
 
 export function urlFor(source) {
+  // Return null for invalid sources to make it easier to check
+  if (!source) {
+    return null;
+  }
+
   if (typeof source === "string") {
     // Handle direct Sanity image references
     if (source.startsWith("image-")) {
-      return builder.image({ asset: { _ref: source } }).url();
+      try {
+        return builder.image({ asset: { _ref: source } }).url();
+      } catch (error) {
+        console.warn("Failed to build image URL for Sanity reference:", source, error);
+        return null;
+      }
     }
     // Handle external URLs
     if (source.startsWith("http")) {
@@ -23,8 +33,13 @@ export function urlFor(source) {
 
   if (source?.asset?._ref) {
     // Handle Sanity image references
-    return builder.image(source).url();
+    try {
+      return builder.image(source).url();
+    } catch (error) {
+      console.warn("Failed to build image URL for Sanity asset:", source, error);
+      return null;
+    }
   }
 
-  return ""; // Replace with your default image
+  return null; // Return null instead of empty string for easier checking
 }

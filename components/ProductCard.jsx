@@ -33,7 +33,8 @@ export default function BookProductCard({
 }) {
   const { addToCart, isInCart } = useCart();
 
-  const imageUrl = image ? urlFor(image) : image;
+  const imageUrl = urlFor(image);
+  const validImageUrl = imageUrl || "/placeholder.jpg";
   
 //   const builder = imageUrlBuilder(client);
 
@@ -66,7 +67,7 @@ export default function BookProductCard({
         <CardContent className="relative p-0 flex-grow">
           <div className="relative aspect-[3/4] overflow-hidden">
             <Image
-              src={imageUrl}
+              src={validImageUrl}
               alt={title}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-110"

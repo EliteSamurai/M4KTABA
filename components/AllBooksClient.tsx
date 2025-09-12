@@ -84,7 +84,7 @@ export default function AllBooksClient({
               title={book.title}
               user={book.user || "Unknown"}
               price={book.price}
-              image={urlFor(book.image)}
+              image={urlFor(book.image) || "/placeholder.jpg"}
             />
           ))}
           {loading &&

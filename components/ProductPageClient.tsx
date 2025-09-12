@@ -288,9 +288,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                   <CardContent className="p-0">
                     <div className="aspect-[4/5] overflow-hidden">
                       <Image
-                        src={
-                          urlFor(relatedBook.photos) || "/placeholder.jpg"
-                        }
+                        src={urlFor(relatedBook.photos) || "/placeholder.jpg"}
                         alt={relatedBook.title || "Related product"}
                         className="h-full w-full object-cover"
                         width={300}
