@@ -15,7 +15,7 @@ export function SellerInfo({ email, rating, image }: SellerInfoProps) {
   return (
     <div className="flex items-center justify-between pt-5">
       <span className="flex items-center gap-2 text-sm font-medium">
-        <img className="rounded-full w-8 h-8 object-cover object-top" src={sellerImg} alt="sellers image"/>
+        <img className="rounded-full w-8 h-8 object-cover object-top" src={sellerImg || "/placeholder.jpg"} alt="sellers image"/>
         {email.split("@")[0]}
       </span>
       <div className="flex items-center">
