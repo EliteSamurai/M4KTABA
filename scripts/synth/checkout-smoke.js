@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { chromium } = require('@playwright/test');
 
 (async () => {
   const baseUrl = process.env.SYNTH_BASE_URL || 'https://m4ktaba.com';
