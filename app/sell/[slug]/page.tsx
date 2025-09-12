@@ -1,10 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import dynamic from "next/dynamic"
+
+export const dynamic = 'force-dynamic'
 import { useParams } from "next/navigation"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle } from 'lucide-react'
-import ItemListingForm from "@/components/itemListingForm"
+const ItemListingForm = dynamic(() => import("@/components/itemListingForm"), {
+  ssr: false,
+  loading: () => <div>Loading form...</div>
+})
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
