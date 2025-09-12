@@ -11,6 +11,9 @@ export async function GET(req: NextRequest) {
   const limit = toNumber(searchParams.get("limit"), 10);
   const offset = toNumber(searchParams.get("offset"), 0);
   const page = toNumber(searchParams.get("page"), 1);
+  
+  // Calculate start position - use offset if provided, otherwise use page
+  const start = offset > 0 ? offset : (page - 1) * limit;
   const q = (searchParams.get("q") || "").trim();
   const author = (searchParams.get("author") || "").trim();
   const language = (searchParams.get("language") || "").trim();
@@ -19,7 +22,6 @@ export async function GET(req: NextRequest) {
   const priceMax = toNumber(searchParams.get("price_max"), 0);
   const sort = (searchParams.get("sort") || "new").trim();
 
-  const start = (page - 1) * limit;
   const end = start + limit;
 
   try {
@@ -71,7 +73,13 @@ export async function GET(req: NextRequest) {
     );
 
     const total = await readClient.fetch(`count(*[${where}])`, params);
-    return NextResponse.json({ books, total, page, limit });
+    return NextResponse.json({ 
+      books, 
+      total, 
+      page: offset > 0 ? Math.floor(offset / limit) + 1 : page, 
+      limit,
+      offset: start
+    });
   } catch (error) {
     console.error("Error fetching books:", error);
     return NextResponse.json(
