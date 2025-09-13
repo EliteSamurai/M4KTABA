@@ -1,0 +1,49 @@
+name: Test Local Changes
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of test to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - lint
+        - build
+        - test
+        - e2e
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: corepack enable
+      - run: pnpm install --no-frozen-lockfile
+      
+      - name: Run Lint
+        if: ${{ inputs.test_type == 'all' || inputs.test_type == 'lint' }}
+        run: pnpm run lint
+        
+      - name: Run Type Check
+        if: ${{ inputs.test_type == 'all' || inputs.test_type == 'build' }}
+        run: pnpm run type-check
+        
+      - name: Run Build
+        if: ${{ inputs.test_type == 'all' || inputs.test_type == 'build' }}
+        run: pnpm run build
+        
+      - name: Run Tests
+        if: ${{ inputs.test_type == 'all' || inputs.test_type == 'test' }}
+        run: pnpm run test:ci
+        
+      - name: Run E2E Tests
+        if: ${{ inputs.test_type == 'all' || inputs.test_type == 'e2e' }}
+        run: |
+          npx playwright install chromium
+          pnpm run test:e2e
