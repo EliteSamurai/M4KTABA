@@ -1,0 +1,159 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - navigation [ref=e3]:
+      - link "M4KTABA" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - list [ref=e5]:
+        - listitem [ref=e6]:
+          - link "All Books" [ref=e7] [cursor=pointer]:
+            - /url: /all
+        - listitem [ref=e8]:
+          - link "Honey" [ref=e9] [cursor=pointer]:
+            - /url: /honey
+        - listitem [ref=e10]:
+          - link "Blog" [ref=e11] [cursor=pointer]:
+            - /url: /blog
+      - generic [ref=e12]:
+        - link "Login" [ref=e13] [cursor=pointer]:
+          - /url: /login
+          - button "Login" [ref=e14] [cursor=pointer]
+        - link "Sell" [ref=e16] [cursor=pointer]:
+          - /url: /sell
+          - button "Sell" [ref=e17] [cursor=pointer]
+        - button "Open cart" [ref=e18] [cursor=pointer]:
+          - img
+  - generic [ref=e20]:
+    - generic [ref=e21]:
+      - img "Authentication background" [ref=e23]
+      - blockquote [ref=e26]:
+        - paragraph [ref=e27]: "\"He who seeks knowledge, he has gained a treasure that is more valuable than gold or silver.\""
+        - contentinfo [ref=e28]: Imam as-Suyuti
+    - generic [ref=e30]:
+      - generic [ref=e31]:
+        - generic [ref=e32]: Welcome back
+        - generic [ref=e33]: Enter your credentials to continue
+      - generic [ref=e34]:
+        - button "Sign in with Google" [ref=e35] [cursor=pointer]:
+          - img
+          - generic [ref=e36] [cursor=pointer]: Sign in with Google
+        - generic [ref=e41]: or continue with
+        - generic [ref=e42]:
+          - generic [ref=e43]:
+            - generic [ref=e44]: Email
+            - img [ref=e45]
+            - textbox "Email" [ref=e48]
+          - generic [ref=e49]:
+            - generic [ref=e50]: Password
+            - generic [ref=e52]:
+              - img [ref=e54]
+              - textbox "Password" [ref=e57]
+              - button "Show password" [ref=e58] [cursor=pointer]:
+                - img
+                - generic [ref=e59] [cursor=pointer]: Show password
+          - button "Sign in" [disabled]
+      - paragraph [ref=e61]:
+        - text: Don't have an account?
+        - link "Sign up" [ref=e62] [cursor=pointer]:
+          - /url: /signup
+  - contentinfo [ref=e63]:
+    - generic [ref=e65]:
+      - heading "Join our newsletter" [level=2] [ref=e66]
+      - paragraph [ref=e67]: Stay up to date with the latest products, announcements, and blog posts.
+      - generic [ref=e69]:
+        - textbox "Enter your email" [ref=e70]
+        - button "Subscribe" [ref=e71] [cursor=pointer]
+    - generic [ref=e73]:
+      - generic [ref=e74]:
+        - link "M4KTABA" [ref=e75] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=e76]: Find great Islamic books quickly and easily, all in one place.
+        - generic [ref=e77]:
+          - link "Facebook" [ref=e78] [cursor=pointer]:
+            - /url: https://facebook.com/m4ktaba
+            - img
+            - generic [ref=e79] [cursor=pointer]: Facebook
+          - link "Instagram" [ref=e80] [cursor=pointer]:
+            - /url: https://instagram.com/m4ktaba
+            - img
+            - generic [ref=e81] [cursor=pointer]: Instagram
+          - link "Twitter" [ref=e82] [cursor=pointer]:
+            - /url: https://x.com/M4KTABA
+            - img
+            - generic [ref=e83] [cursor=pointer]: Twitter
+      - generic [ref=e84]:
+        - heading "Product" [level=3] [ref=e85]
+        - list [ref=e86]:
+          - listitem [ref=e87]:
+            - link "All Books" [ref=e88] [cursor=pointer]:
+              - /url: /all
+          - listitem [ref=e89]:
+            - link "Honey" [ref=e90] [cursor=pointer]:
+              - /url: /honey
+          - listitem [ref=e91]:
+            - link "Blog" [ref=e92] [cursor=pointer]:
+              - /url: /blog
+          - listitem [ref=e93]:
+            - link "Sell" [ref=e94] [cursor=pointer]:
+              - /url: /sell
+      - generic [ref=e95]:
+        - heading "Company" [level=3] [ref=e96]
+        - list [ref=e97]:
+          - listitem [ref=e98]:
+            - link "About" [ref=e99] [cursor=pointer]:
+              - /url: /about
+          - listitem [ref=e100]:
+            - link "Contact" [ref=e101] [cursor=pointer]:
+              - /url: /contact
+          - listitem [ref=e102]:
+            - link "Terms" [ref=e103] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e104]:
+            - link "Privacy" [ref=e105] [cursor=pointer]:
+              - /url: /privacy
+      - generic [ref=e106]:
+        - heading "Support" [level=3] [ref=e107]
+        - list [ref=e108]:
+          - listitem [ref=e109]:
+            - link "FAQ" [ref=e110] [cursor=pointer]:
+              - /url: /faq
+          - listitem [ref=e111]:
+            - link "Shipping" [ref=e112] [cursor=pointer]:
+              - /url: /shipping
+          - listitem [ref=e113]:
+            - link "Returns" [ref=e114] [cursor=pointer]:
+              - /url: /returns
+          - listitem [ref=e115]:
+            - link "Track Order" [ref=e116] [cursor=pointer]:
+              - /url: /track
+    - generic [ref=e118]:
+      - paragraph [ref=e119]: © 2025 M4KTABA. All rights reserved.
+      - generic [ref=e120]:
+        - link "Terms" [ref=e121] [cursor=pointer]:
+          - /url: /terms
+        - link "Privacy" [ref=e122] [cursor=pointer]:
+          - /url: /privacy
+        - link "Cookies" [ref=e123] [cursor=pointer]:
+          - /url: /cookies
+  - button "Support Open support" [ref=e124] [cursor=pointer]:
+    - paragraph [ref=e125] [cursor=pointer]: Support
+    - generic [ref=e126] [cursor=pointer]: Open support
+  - region "Notifications (F8)":
+    - list
+  - generic:
+    - generic [ref=e129] [cursor=pointer]:
+      - img [ref=e130] [cursor=pointer]
+      - generic [ref=e134] [cursor=pointer]: 1 error
+      - button "Hide Errors" [ref=e135] [cursor=pointer]:
+        - img [ref=e136] [cursor=pointer]
+    - status [ref=e139]:
+      - generic [ref=e140]:
+        - img [ref=e142]
+        - generic [ref=e144]:
+          - text: Static route
+          - button "Hide static indicator" [ref=e145] [cursor=pointer]:
+            - img [ref=e146] [cursor=pointer]
+  - alert [ref=e149]
+```

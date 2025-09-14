@@ -1,0 +1,255 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - navigation [ref=e3]:
+      - link "M4KTABA" [ref=e4]:
+        - /url: /
+      - list [ref=e5]:
+        - listitem [ref=e6]:
+          - link "All Books" [ref=e7]:
+            - /url: /all
+        - listitem [ref=e8]:
+          - link "Honey" [ref=e9]:
+            - /url: /honey
+        - listitem [ref=e10]:
+          - link "Blog" [ref=e11]:
+            - /url: /blog
+      - generic [ref=e12]:
+        - button [disabled]:
+          - img
+        - link "Sell" [ref=e14]:
+          - /url: /sell
+          - button "Sell" [ref=e15] [cursor=pointer]
+        - button "Open cart" [ref=e16] [cursor=pointer]:
+          - img
+  - generic [ref=e18]:
+    - generic [ref=e19]:
+      - img "Buying & Selling Books" [ref=e20]
+      - generic [ref=e21]:
+        - heading "The eBay for Arabic-Islamic Books" [level=1] [ref=e22]
+        - paragraph [ref=e23]: Discover, buy, and sell your favorite Islamic literature in Arabic.
+        - generic [ref=e24]:
+          - link "Browse Collection" [ref=e25]:
+            - /url: /all
+            - text: Browse Collection
+            - img
+          - link "Start Selling" [ref=e26]:
+            - /url: /sell
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - img [ref=e30]
+            - text: SSL Secured
+          - generic [ref=e32]:
+            - img [ref=e33]
+            - text: Secure Payments
+          - generic [ref=e36]:
+            - img [ref=e37]
+            - text: Free Shipping
+          - generic [ref=e42]:
+            - img [ref=e43]
+            - text: Verified Sellers
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - img [ref=e53]
+          - generic [ref=e56]: Affordable Books
+        - generic [ref=e58]: Find lots of books at prices that are easy to afford.
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - img [ref=e62]
+          - generic [ref=e67]: Fast & Free Shipping
+        - generic [ref=e69]: Get your books delivered fast, with free shipping every time.
+      - generic [ref=e70]:
+        - generic [ref=e71]:
+          - img [ref=e73]
+          - generic [ref=e75]: Wide Variety of Books
+        - generic [ref=e77]: Explore many Islamic books in Arabic on many different topics.
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - img [ref=e81]
+          - generic [ref=e83]: Sell Your Old Books
+        - generic [ref=e85]: Sell the books you no longer need and let others enjoy them.
+    - generic [ref=e87]:
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - heading "Latest Books" [level=2] [ref=e90]
+          - paragraph [ref=e91]: Discover our most recent additions to the collection
+        - link "View all" [ref=e92]:
+          - /url: /all
+          - text: View all
+          - img
+      - generic [ref=e93]:
+        - generic [ref=e94]:
+          - link "شرح العقيدة الواسطية لابن تيمية ـ الشيخ العثيمين | Sharh al Aqidatu al Wasitiyyah of Shaykh Ibn Al-'Uthaymin $18.00" [ref=e95]:
+            - /url: /all/q0WVlh4NLktpliaBYsV4YI
+            - generic [ref=e96]:
+              - img "شرح العقيدة الواسطية لابن تيمية ـ الشيخ العثيمين | Sharh al Aqidatu al Wasitiyyah of Shaykh Ibn Al-'Uthaymin" [ref=e98]
+              - generic [ref=e99]: $18.00
+          - generic [ref=e100]:
+            - generic [ref=e101]: شرح العقيدة الواسطية لابن تيمية ـ الشيخ العثيمين | Sharh al Aqidatu al Wasitiyyah of Shaykh Ibn Al-'Uthaymin
+            - paragraph [ref=e102]: Sold by scholarlylibraryco
+          - button "Add to Cart" [ref=e104] [cursor=pointer]:
+            - img
+            - text: Add to Cart
+        - generic [ref=e105]:
+          - link "سلسلة شرح الرسائل - ٨ رسائل للإمام محمد بن عبد الوهاب بشرح الشيخ الفوزان | Silsila Sharh ar-Rasaail - 8 Risala explained by Shaykh Al-Fawzan $19.00" [ref=e106]:
+            - /url: /all/q0WVlh4NLktpliaBYsUoZc
+            - generic [ref=e107]:
+              - img "سلسلة شرح الرسائل - ٨ رسائل للإمام محمد بن عبد الوهاب بشرح الشيخ الفوزان | Silsila Sharh ar-Rasaail - 8 Risala explained by Shaykh Al-Fawzan" [ref=e109]
+              - generic [ref=e110]: $19.00
+          - generic [ref=e111]:
+            - generic [ref=e112]: سلسلة شرح الرسائل - ٨ رسائل للإمام محمد بن عبد الوهاب بشرح الشيخ الفوزان | Silsila Sharh ar-Rasaail - 8 Risala explained by Shaykh Al-Fawzan
+            - paragraph [ref=e113]: Sold by scholarlylibraryco
+          - button "Add to Cart" [ref=e115] [cursor=pointer]:
+            - img
+            - text: Add to Cart
+        - generic [ref=e116]:
+          - link "شرح عمدة الفقه - الشيخ صالح بن محمد اللحيدان | Sharh 'Umdat al-Fiqh - 2 Volumes $62.00" [ref=e117]:
+            - /url: /all/hH4QQrfGgJ89naOOJKueDb
+            - generic [ref=e118]:
+              - img "شرح عمدة الفقه - الشيخ صالح بن محمد اللحيدان | Sharh 'Umdat al-Fiqh - 2 Volumes" [ref=e120]
+              - generic [ref=e121]: $62.00
+          - generic [ref=e122]:
+            - generic [ref=e123]: شرح عمدة الفقه - الشيخ صالح بن محمد اللحيدان | Sharh 'Umdat al-Fiqh - 2 Volumes
+            - paragraph [ref=e124]: Sold by scholarlylibraryco
+          - button "Add to Cart" [ref=e126] [cursor=pointer]:
+            - img
+            - text: Add to Cart
+        - generic [ref=e127]:
+          - link "زبدة الفقه الشافعي - ماجد الحموي | Zubdah al-Fiqh ash-Shafi'i $25.00" [ref=e128]:
+            - /url: /all/q0WVlh4NLktpliaBYsS6Y4
+            - generic [ref=e129]:
+              - img "زبدة الفقه الشافعي - ماجد الحموي | Zubdah al-Fiqh ash-Shafi'i" [ref=e131]
+              - generic [ref=e132]: $25.00
+          - generic [ref=e133]:
+            - generic [ref=e134]: زبدة الفقه الشافعي - ماجد الحموي | Zubdah al-Fiqh ash-Shafi'i
+            - paragraph [ref=e135]: Sold by scholarlylibraryco
+          - button "Add to Cart" [ref=e137] [cursor=pointer]:
+            - img
+            - text: Add to Cart
+        - generic [ref=e138]:
+          - link "دروس في شرح نواقض الإسلام ـ الشيخ الفوزان | Duroos fi Sharh Nawaaqid al-Islaam $19.00" [ref=e139]:
+            - /url: /all/hH4QQrfGgJ89naOOJKtr0N
+            - generic [ref=e140]:
+              - img "دروس في شرح نواقض الإسلام ـ الشيخ الفوزان | Duroos fi Sharh Nawaaqid al-Islaam" [ref=e142]
+              - generic [ref=e143]: $19.00
+          - generic [ref=e144]:
+            - generic [ref=e145]: دروس في شرح نواقض الإسلام ـ الشيخ الفوزان | Duroos fi Sharh Nawaaqid al-Islaam
+            - paragraph [ref=e146]: Sold by scholarlylibraryco
+          - button "Add to Cart" [ref=e148] [cursor=pointer]:
+            - img
+            - text: Add to Cart
+    - generic [ref=e151]:
+      - generic [ref=e152]:
+        - heading "Why Trust M4ktaba?" [level=2] [ref=e153]
+        - generic [ref=e154]:
+          - heading "Why Trust M4ktaba?" [level=3] [ref=e155]
+          - generic [ref=e156]:
+            - generic [ref=e159]:
+              - img [ref=e160]
+              - generic [ref=e162]:
+                - paragraph [ref=e163]: SSL Secured
+                - paragraph [ref=e164]: 256-bit encryption
+            - generic [ref=e167]:
+              - img [ref=e168]
+              - generic [ref=e171]:
+                - paragraph [ref=e172]: Secure Payments
+                - paragraph [ref=e173]: Stripe powered
+            - generic [ref=e176]:
+              - img [ref=e177]
+              - generic [ref=e182]:
+                - paragraph [ref=e183]: Free Shipping
+                - paragraph [ref=e184]: On all orders
+            - generic [ref=e187]:
+              - img [ref=e188]
+              - generic [ref=e191]:
+                - paragraph [ref=e192]: Verified Sellers
+                - paragraph [ref=e193]: Identity verified
+      - heading "What Our Users Say" [level=2] [ref=e195]
+  - contentinfo [ref=e196]:
+    - generic [ref=e198]:
+      - heading "Join our newsletter" [level=2] [ref=e199]
+      - paragraph [ref=e200]: Stay up to date with the latest products, announcements, and blog posts.
+      - generic [ref=e202]:
+        - textbox "Enter your email" [ref=e203]
+        - button "Subscribe" [ref=e204] [cursor=pointer]
+    - generic [ref=e206]:
+      - generic [ref=e207]:
+        - link "M4KTABA" [ref=e208]:
+          - /url: /
+        - paragraph [ref=e209]: Find great Islamic books quickly and easily, all in one place.
+        - generic [ref=e210]:
+          - link "Facebook" [ref=e211]:
+            - /url: https://facebook.com/m4ktaba
+            - img
+            - generic [ref=e212]: Facebook
+          - link "Instagram" [ref=e213]:
+            - /url: https://instagram.com/m4ktaba
+            - img
+            - generic [ref=e214]: Instagram
+          - link "Twitter" [ref=e215]:
+            - /url: https://x.com/M4KTABA
+            - img
+            - generic [ref=e216]: Twitter
+      - generic [ref=e217]:
+        - heading "Product" [level=3] [ref=e218]
+        - list [ref=e219]:
+          - listitem [ref=e220]:
+            - link "All Books" [ref=e221]:
+              - /url: /all
+          - listitem [ref=e222]:
+            - link "Honey" [ref=e223]:
+              - /url: /honey
+          - listitem [ref=e224]:
+            - link "Blog" [ref=e225]:
+              - /url: /blog
+          - listitem [ref=e226]:
+            - link "Sell" [ref=e227]:
+              - /url: /sell
+      - generic [ref=e228]:
+        - heading "Company" [level=3] [ref=e229]
+        - list [ref=e230]:
+          - listitem [ref=e231]:
+            - link "About" [ref=e232]:
+              - /url: /about
+          - listitem [ref=e233]:
+            - link "Contact" [ref=e234]:
+              - /url: /contact
+          - listitem [ref=e235]:
+            - link "Terms" [ref=e236]:
+              - /url: /terms
+          - listitem [ref=e237]:
+            - link "Privacy" [ref=e238]:
+              - /url: /privacy
+      - generic [ref=e239]:
+        - heading "Support" [level=3] [ref=e240]
+        - list [ref=e241]:
+          - listitem [ref=e242]:
+            - link "FAQ" [ref=e243]:
+              - /url: /faq
+          - listitem [ref=e244]:
+            - link "Shipping" [ref=e245]:
+              - /url: /shipping
+          - listitem [ref=e246]:
+            - link "Returns" [ref=e247]:
+              - /url: /returns
+          - listitem [ref=e248]:
+            - link "Track Order" [ref=e249]:
+              - /url: /track
+    - generic [ref=e251]:
+      - paragraph [ref=e252]: © 2025 M4KTABA. All rights reserved.
+      - generic [ref=e253]:
+        - link "Terms" [ref=e254]:
+          - /url: /terms
+        - link "Privacy" [ref=e255]:
+          - /url: /privacy
+        - link "Cookies" [ref=e256]:
+          - /url: /cookies
+  - button "Support Open support" [ref=e257] [cursor=pointer]:
+    - paragraph [ref=e258] [cursor=pointer]: Support
+    - generic [ref=e259] [cursor=pointer]: Open support
+  - region "Notifications (F8)":
+    - list
+```

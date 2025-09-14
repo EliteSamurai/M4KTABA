@@ -44,7 +44,7 @@ module.exports = {
 
   transform: {
     '^.+\\.tsx?$': ['@swc/jest'],
-    '^.+\\.jsx?$': ['babel-jest'],
+    '^.+\\.jsx?$': ['babel-jest', { configFile: './babel.config.jest.js' }],
   },
   transformIgnorePatterns: ['/node_modules/'],
   // Skip Playwright a11y test in Jest

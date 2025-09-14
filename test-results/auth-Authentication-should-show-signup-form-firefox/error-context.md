@@ -1,0 +1,172 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - navigation [ref=e3]:
+      - link "M4KTABA" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - list [ref=e5]:
+        - listitem [ref=e6]:
+          - link "All Books" [ref=e7] [cursor=pointer]:
+            - /url: /all
+        - listitem [ref=e8]:
+          - link "Honey" [ref=e9] [cursor=pointer]:
+            - /url: /honey
+        - listitem [ref=e10]:
+          - link "Blog" [ref=e11] [cursor=pointer]:
+            - /url: /blog
+      - generic [ref=e12]:
+        - button [disabled]:
+          - img
+        - link "Sell" [ref=e14] [cursor=pointer]:
+          - /url: /sell
+          - button "Sell" [ref=e15] [cursor=pointer]
+        - button "Open cart" [ref=e16] [cursor=pointer]:
+          - img
+  - generic [ref=e18]:
+    - generic [ref=e19]:
+      - img "Authentication background" [ref=e21]
+      - blockquote [ref=e24]:
+        - paragraph [ref=e25]: Sign up to join the community of those who seek knowledge.
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - generic [ref=e30]: Create an account
+        - generic [ref=e31]: Sign up to access all features
+        - generic [ref=e33]:
+          - img [ref=e34]
+          - generic [ref=e38]:
+            - heading "Creating Your Account" [level=4] [ref=e39]
+            - paragraph [ref=e40]: Sign up with your email or Google account. You'll need to complete your profile after signing up to start selling books.
+      - generic [ref=e41]:
+        - button "Sign in with Google" [ref=e42] [cursor=pointer]:
+          - img
+          - generic [ref=e43] [cursor=pointer]: Sign in with Google
+        - generic [ref=e48]: or continue with
+        - generic [ref=e49]:
+          - generic [ref=e51]:
+            - img [ref=e52]
+            - generic [ref=e55]: Email
+            - textbox "Email" [ref=e56]
+          - generic [ref=e57]: Password
+          - generic [ref=e59]:
+            - img [ref=e61]
+            - textbox "Password" [ref=e64]
+            - button "Show password" [ref=e65] [cursor=pointer]:
+              - img
+              - generic [ref=e66] [cursor=pointer]: Show password
+        - generic [ref=e67]:
+          - checkbox "I agree to the terms of service and privacy policy" [ref=e68] [cursor=pointer]
+          - checkbox
+          - generic [ref=e69]:
+            - text: I agree to the
+            - link "terms of service" [ref=e70] [cursor=pointer]:
+              - /url: /terms
+            - text: and
+            - link "privacy policy" [ref=e71] [cursor=pointer]:
+              - /url: /privacy
+      - generic [ref=e72]:
+        - button "Create account" [disabled]
+        - paragraph [ref=e73]:
+          - text: Already have an account?
+          - link "Sign in" [ref=e74] [cursor=pointer]:
+            - /url: /login
+        - generic [ref=e76]:
+          - generic [ref=e77]:
+            - img [ref=e78]
+            - text: SSL Secured
+          - generic [ref=e80]:
+            - img [ref=e81]
+            - text: Secure Payments
+          - generic [ref=e84]:
+            - img [ref=e85]
+            - text: Free Shipping
+          - generic [ref=e91]:
+            - img [ref=e92]
+            - text: Verified Sellers
+  - contentinfo [ref=e95]:
+    - generic [ref=e97]:
+      - heading "Join our newsletter" [level=2] [ref=e98]
+      - paragraph [ref=e99]: Stay up to date with the latest products, announcements, and blog posts.
+      - generic [ref=e101]:
+        - textbox "Enter your email" [ref=e102]
+        - button "Subscribe" [ref=e103] [cursor=pointer]
+    - generic [ref=e105]:
+      - generic [ref=e106]:
+        - link "M4KTABA" [ref=e107] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=e108]: Find great Islamic books quickly and easily, all in one place.
+        - generic [ref=e109]:
+          - link "Facebook" [ref=e110] [cursor=pointer]:
+            - /url: https://facebook.com/m4ktaba
+            - img
+            - generic [ref=e111] [cursor=pointer]: Facebook
+          - link "Instagram" [ref=e112] [cursor=pointer]:
+            - /url: https://instagram.com/m4ktaba
+            - img
+            - generic [ref=e113] [cursor=pointer]: Instagram
+          - link "Twitter" [ref=e114] [cursor=pointer]:
+            - /url: https://x.com/M4KTABA
+            - img
+            - generic [ref=e115] [cursor=pointer]: Twitter
+      - generic [ref=e116]:
+        - heading "Product" [level=3] [ref=e117]
+        - list [ref=e118]:
+          - listitem [ref=e119]:
+            - link "All Books" [ref=e120] [cursor=pointer]:
+              - /url: /all
+          - listitem [ref=e121]:
+            - link "Honey" [ref=e122] [cursor=pointer]:
+              - /url: /honey
+          - listitem [ref=e123]:
+            - link "Blog" [ref=e124] [cursor=pointer]:
+              - /url: /blog
+          - listitem [ref=e125]:
+            - link "Sell" [ref=e126] [cursor=pointer]:
+              - /url: /sell
+      - generic [ref=e127]:
+        - heading "Company" [level=3] [ref=e128]
+        - list [ref=e129]:
+          - listitem [ref=e130]:
+            - link "About" [ref=e131] [cursor=pointer]:
+              - /url: /about
+          - listitem [ref=e132]:
+            - link "Contact" [ref=e133] [cursor=pointer]:
+              - /url: /contact
+          - listitem [ref=e134]:
+            - link "Terms" [ref=e135] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e136]:
+            - link "Privacy" [ref=e137] [cursor=pointer]:
+              - /url: /privacy
+      - generic [ref=e138]:
+        - heading "Support" [level=3] [ref=e139]
+        - list [ref=e140]:
+          - listitem [ref=e141]:
+            - link "FAQ" [ref=e142] [cursor=pointer]:
+              - /url: /faq
+          - listitem [ref=e143]:
+            - link "Shipping" [ref=e144] [cursor=pointer]:
+              - /url: /shipping
+          - listitem [ref=e145]:
+            - link "Returns" [ref=e146] [cursor=pointer]:
+              - /url: /returns
+          - listitem [ref=e147]:
+            - link "Track Order" [ref=e148] [cursor=pointer]:
+              - /url: /track
+    - generic [ref=e150]:
+      - paragraph [ref=e151]: © 2025 M4KTABA. All rights reserved.
+      - generic [ref=e152]:
+        - link "Terms" [ref=e153] [cursor=pointer]:
+          - /url: /terms
+        - link "Privacy" [ref=e154] [cursor=pointer]:
+          - /url: /privacy
+        - link "Cookies" [ref=e155] [cursor=pointer]:
+          - /url: /cookies
+  - button "Support Open support" [ref=e156] [cursor=pointer]:
+    - paragraph [ref=e157] [cursor=pointer]: Support
+    - generic [ref=e158] [cursor=pointer]: Open support
+  - region "Notifications (F8)":
+    - list
+  - alert [ref=e159]
+```

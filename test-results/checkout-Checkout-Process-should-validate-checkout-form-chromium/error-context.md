@@ -1,0 +1,125 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - navigation [ref=e3]:
+      - link "M4KTABA" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - list [ref=e5]:
+        - listitem [ref=e6]:
+          - link "All Books" [ref=e7] [cursor=pointer]:
+            - /url: /all
+        - listitem [ref=e8]:
+          - link "Honey" [ref=e9] [cursor=pointer]:
+            - /url: /honey
+        - listitem [ref=e10]:
+          - link "Blog" [ref=e11] [cursor=pointer]:
+            - /url: /blog
+      - generic [ref=e12]:
+        - button [disabled]:
+          - img
+        - link "Sell" [ref=e14] [cursor=pointer]:
+          - /url: /sell
+          - button "Sell" [ref=e15] [cursor=pointer]
+        - button "Open cart" [ref=e16] [cursor=pointer]:
+          - img
+  - contentinfo [ref=e18]:
+    - generic [ref=e20]:
+      - heading "Join our newsletter" [level=2] [ref=e21]
+      - paragraph [ref=e22]: Stay up to date with the latest products, announcements, and blog posts.
+      - generic [ref=e24]:
+        - textbox "Enter your email" [ref=e25]
+        - button "Subscribe" [ref=e26] [cursor=pointer]
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - link "M4KTABA" [ref=e30] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=e31]: Find great Islamic books quickly and easily, all in one place.
+        - generic [ref=e32]:
+          - link "Facebook" [ref=e33] [cursor=pointer]:
+            - /url: https://facebook.com/m4ktaba
+            - img
+            - generic [ref=e34] [cursor=pointer]: Facebook
+          - link "Instagram" [ref=e35] [cursor=pointer]:
+            - /url: https://instagram.com/m4ktaba
+            - img
+            - generic [ref=e36] [cursor=pointer]: Instagram
+          - link "Twitter" [ref=e37] [cursor=pointer]:
+            - /url: https://x.com/M4KTABA
+            - img
+            - generic [ref=e38] [cursor=pointer]: Twitter
+      - generic [ref=e39]:
+        - heading "Product" [level=3] [ref=e40]
+        - list [ref=e41]:
+          - listitem [ref=e42]:
+            - link "All Books" [ref=e43] [cursor=pointer]:
+              - /url: /all
+          - listitem [ref=e44]:
+            - link "Honey" [ref=e45] [cursor=pointer]:
+              - /url: /honey
+          - listitem [ref=e46]:
+            - link "Blog" [ref=e47] [cursor=pointer]:
+              - /url: /blog
+          - listitem [ref=e48]:
+            - link "Sell" [ref=e49] [cursor=pointer]:
+              - /url: /sell
+      - generic [ref=e50]:
+        - heading "Company" [level=3] [ref=e51]
+        - list [ref=e52]:
+          - listitem [ref=e53]:
+            - link "About" [ref=e54] [cursor=pointer]:
+              - /url: /about
+          - listitem [ref=e55]:
+            - link "Contact" [ref=e56] [cursor=pointer]:
+              - /url: /contact
+          - listitem [ref=e57]:
+            - link "Terms" [ref=e58] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e59]:
+            - link "Privacy" [ref=e60] [cursor=pointer]:
+              - /url: /privacy
+      - generic [ref=e61]:
+        - heading "Support" [level=3] [ref=e62]
+        - list [ref=e63]:
+          - listitem [ref=e64]:
+            - link "FAQ" [ref=e65] [cursor=pointer]:
+              - /url: /faq
+          - listitem [ref=e66]:
+            - link "Shipping" [ref=e67] [cursor=pointer]:
+              - /url: /shipping
+          - listitem [ref=e68]:
+            - link "Returns" [ref=e69] [cursor=pointer]:
+              - /url: /returns
+          - listitem [ref=e70]:
+            - link "Track Order" [ref=e71] [cursor=pointer]:
+              - /url: /track
+    - generic [ref=e73]:
+      - paragraph [ref=e74]: © 2025 M4KTABA. All rights reserved.
+      - generic [ref=e75]:
+        - link "Terms" [ref=e76] [cursor=pointer]:
+          - /url: /terms
+        - link "Privacy" [ref=e77] [cursor=pointer]:
+          - /url: /privacy
+        - link "Cookies" [ref=e78] [cursor=pointer]:
+          - /url: /cookies
+  - button "Support Open support" [ref=e79] [cursor=pointer]:
+    - paragraph [ref=e80] [cursor=pointer]: Support
+    - generic [ref=e81] [cursor=pointer]: Open support
+  - region "Notifications (F8)":
+    - list
+  - generic:
+    - generic [ref=e84] [cursor=pointer]:
+      - img [ref=e85] [cursor=pointer]
+      - generic [ref=e87] [cursor=pointer]: 1 error
+      - button "Hide Errors" [ref=e88] [cursor=pointer]:
+        - img [ref=e89] [cursor=pointer]
+    - status [ref=e92]:
+      - generic [ref=e93]:
+        - img [ref=e95]
+        - generic [ref=e97]:
+          - text: Static route
+          - button "Hide static indicator" [ref=e98] [cursor=pointer]:
+            - img [ref=e99] [cursor=pointer]
+  - alert [ref=e102]
+```

@@ -1,0 +1,153 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - navigation [ref=e3]:
+      - link "M4KTABA" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - list [ref=e5]:
+        - listitem [ref=e6]:
+          - link "All Books" [ref=e7] [cursor=pointer]:
+            - /url: /all
+        - listitem [ref=e8]:
+          - link "Honey" [ref=e9] [cursor=pointer]:
+            - /url: /honey
+        - listitem [ref=e10]:
+          - link "Blog" [ref=e11] [cursor=pointer]:
+            - /url: /blog
+      - generic [ref=e12]:
+        - link "Login" [ref=e13] [cursor=pointer]:
+          - /url: /login
+          - button "Login" [ref=e14] [cursor=pointer]
+        - link "Sell" [ref=e16] [cursor=pointer]:
+          - /url: /sell
+          - button "Sell" [ref=e17] [cursor=pointer]
+        - button "Open cart" [ref=e18] [cursor=pointer]:
+          - img
+  - generic [ref=e20]:
+    - generic [ref=e21]:
+      - img "Authentication background" [ref=e23]
+      - blockquote [ref=e26]:
+        - paragraph [ref=e27]: "\"He who seeks knowledge, he has gained a treasure that is more valuable than gold or silver.\""
+        - contentinfo [ref=e28]: Imam as-Suyuti
+    - generic [ref=e30]:
+      - generic [ref=e31]:
+        - generic [ref=e32]: Welcome back
+        - generic [ref=e33]: Enter your credentials to continue
+      - generic [ref=e34]:
+        - button "Sign in with Google" [ref=e35] [cursor=pointer]:
+          - img
+          - generic [ref=e36] [cursor=pointer]: Sign in with Google
+        - generic [ref=e41]: or continue with
+        - generic [ref=e42]:
+          - generic [ref=e43]:
+            - generic [ref=e44]: Email
+            - img [ref=e45]
+            - textbox "Email" [ref=e48]: test@example.com
+          - generic [ref=e49]:
+            - generic [ref=e50]: Password
+            - generic [ref=e52]:
+              - img [ref=e54]
+              - textbox "Password" [active] [ref=e57]: password123
+              - button "Show password" [ref=e58] [cursor=pointer]:
+                - img
+                - generic [ref=e59] [cursor=pointer]: Show password
+          - button "Sign in" [ref=e60] [cursor=pointer]
+      - paragraph [ref=e62]:
+        - text: Don't have an account?
+        - link "Sign up" [ref=e63] [cursor=pointer]:
+          - /url: /signup
+  - contentinfo [ref=e64]:
+    - generic [ref=e66]:
+      - heading "Join our newsletter" [level=2] [ref=e67]
+      - paragraph [ref=e68]: Stay up to date with the latest products, announcements, and blog posts.
+      - generic [ref=e70]:
+        - textbox "Enter your email" [ref=e71]
+        - button "Subscribe" [ref=e72] [cursor=pointer]
+    - generic [ref=e74]:
+      - generic [ref=e75]:
+        - link "M4KTABA" [ref=e76] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=e77]: Find great Islamic books quickly and easily, all in one place.
+        - generic [ref=e78]:
+          - link "Facebook" [ref=e79] [cursor=pointer]:
+            - /url: https://facebook.com/m4ktaba
+            - img
+            - generic [ref=e80] [cursor=pointer]: Facebook
+          - link "Instagram" [ref=e81] [cursor=pointer]:
+            - /url: https://instagram.com/m4ktaba
+            - img
+            - generic [ref=e82] [cursor=pointer]: Instagram
+          - link "Twitter" [ref=e83] [cursor=pointer]:
+            - /url: https://x.com/M4KTABA
+            - img
+            - generic [ref=e84] [cursor=pointer]: Twitter
+      - generic [ref=e85]:
+        - heading "Product" [level=3] [ref=e86]
+        - list [ref=e87]:
+          - listitem [ref=e88]:
+            - link "All Books" [ref=e89] [cursor=pointer]:
+              - /url: /all
+          - listitem [ref=e90]:
+            - link "Honey" [ref=e91] [cursor=pointer]:
+              - /url: /honey
+          - listitem [ref=e92]:
+            - link "Blog" [ref=e93] [cursor=pointer]:
+              - /url: /blog
+          - listitem [ref=e94]:
+            - link "Sell" [ref=e95] [cursor=pointer]:
+              - /url: /sell
+      - generic [ref=e96]:
+        - heading "Company" [level=3] [ref=e97]
+        - list [ref=e98]:
+          - listitem [ref=e99]:
+            - link "About" [ref=e100] [cursor=pointer]:
+              - /url: /about
+          - listitem [ref=e101]:
+            - link "Contact" [ref=e102] [cursor=pointer]:
+              - /url: /contact
+          - listitem [ref=e103]:
+            - link "Terms" [ref=e104] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e105]:
+            - link "Privacy" [ref=e106] [cursor=pointer]:
+              - /url: /privacy
+      - generic [ref=e107]:
+        - heading "Support" [level=3] [ref=e108]
+        - list [ref=e109]:
+          - listitem [ref=e110]:
+            - link "FAQ" [ref=e111] [cursor=pointer]:
+              - /url: /faq
+          - listitem [ref=e112]:
+            - link "Shipping" [ref=e113] [cursor=pointer]:
+              - /url: /shipping
+          - listitem [ref=e114]:
+            - link "Returns" [ref=e115] [cursor=pointer]:
+              - /url: /returns
+          - listitem [ref=e116]:
+            - link "Track Order" [ref=e117] [cursor=pointer]:
+              - /url: /track
+    - generic [ref=e119]:
+      - paragraph [ref=e120]: © 2025 M4KTABA. All rights reserved.
+      - generic [ref=e121]:
+        - link "Terms" [ref=e122] [cursor=pointer]:
+          - /url: /terms
+        - link "Privacy" [ref=e123] [cursor=pointer]:
+          - /url: /privacy
+        - link "Cookies" [ref=e124] [cursor=pointer]:
+          - /url: /cookies
+  - button "Support Open support" [ref=e125] [cursor=pointer]:
+    - paragraph [ref=e126] [cursor=pointer]: Support
+    - generic [ref=e127] [cursor=pointer]: Open support
+  - region "Notifications (F8)":
+    - list
+  - status [ref=e128]:
+    - generic [ref=e129]:
+      - img [ref=e131]
+      - generic [ref=e133]:
+        - text: Static route
+        - button "Hide static indicator" [ref=e134] [cursor=pointer]:
+          - img [ref=e135] [cursor=pointer]
+  - alert [ref=e138]
+```
