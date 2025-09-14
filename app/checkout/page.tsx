@@ -184,16 +184,27 @@ export function CheckoutContent() {
   const didRouteOnce = React.useRef(false);
   useEffect(() => {
     if (didRouteOnce.current) return;
+    
     // Skip redirect for synthetic tests
-    if (process.env.SYNTH_BASE_URL) return;
+    if (process.env.SYNTH_BASE_URL) {
+      console.log('🔍 Skipping redirect: SYNTH_BASE_URL detected');
+      return;
+    }
+    
     // Also skip redirect if this is a synthetic test (check URL)
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
-      if (url.searchParams.get('synthetic') === 'true') {
+      if (
+        url.searchParams.get('synth') === '1' ||
+        url.searchParams.get('synthetic') === 'true'
+      ) {
+        console.log('🔍 Skipping redirect: synthetic URL parameter detected', url.searchParams.get('synth') || url.searchParams.get('synthetic'));
         return;
       }
     }
+    
     if (!session) {
+      console.log('🔍 No session found, redirecting to login');
       didRouteOnce.current = true;
       router.push('/login');
     }
@@ -520,6 +531,7 @@ export function CheckoutContent() {
   const isSyntheticTest = React.useMemo(() => {
     // Check environment variable
     if (process.env.NEXT_PUBLIC_SYNTH === '1') {
+      console.log('🔍 Synthetic test detected: NEXT_PUBLIC_SYNTH=1');
       return true;
     }
 
@@ -530,6 +542,7 @@ export function CheckoutContent() {
         url.searchParams.get('synth') === '1' ||
         url.searchParams.get('synthetic') === 'true'
       ) {
+        console.log('🔍 Synthetic test detected: URL parameter', url.searchParams.get('synth') || url.searchParams.get('synthetic'));
         return true;
       }
     }
@@ -539,6 +552,7 @@ export function CheckoutContent() {
       searchParams?.get('synth') === '1' ||
       searchParams?.get('synthetic') === 'true'
     ) {
+      console.log('🔍 Synthetic test detected: searchParams', searchParams?.get('synth') || searchParams?.get('synthetic'));
       return true;
     }
 
@@ -547,9 +561,11 @@ export function CheckoutContent() {
       typeof window !== 'undefined' &&
       window.navigator?.userAgent?.includes('HeadlessChrome')
     ) {
+      console.log('🔍 Synthetic test detected: HeadlessChrome user agent');
       return true;
     }
 
+    console.log('🔍 Not a synthetic test');
     return false;
   }, [searchParams]);
 
