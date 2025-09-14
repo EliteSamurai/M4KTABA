@@ -509,7 +509,11 @@ export function CheckoutContent() {
   }
 
   // For synthetic tests, render the form even without session
-  if (!testSession && !process.env.SYNTH_BASE_URL) return null;
+  // Check for synthetic test by looking for specific query params or user agent
+  const isSyntheticTest = searchParams?.get('synthetic') === 'true' || 
+                         (typeof window !== 'undefined' && window.navigator?.userAgent?.includes('HeadlessChrome'));
+  
+  if (!testSession && !isSyntheticTest) return null;
 
   return (
     <div className='container mx-auto min-h-screen py-8 md:py-12'>
