@@ -78,8 +78,8 @@ export default function LoginPage() {
         <div className='relative z-20 mt-auto'>
           <blockquote className='space-y-2'>
             <p className='text-lg italic'>
-              "He who seeks knowledge, he has gained a treasure that is
-              more valuable than gold or silver."
+              "He who seeks knowledge, he has gained a treasure that is more
+              valuable than gold or silver."
             </p>
             <footer className='text-sm'>Imam as-Suyuti</footer>
           </blockquote>

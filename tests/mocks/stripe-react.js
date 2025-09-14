@@ -1,16 +1,19 @@
 // tests/mocks/stripe-react.js
-import React from "react";
+const React = require('react');
 
-export const Elements = ({ children }) => (
-  <div data-testid="mock-elements">{children}</div>
-);
+const Elements = ({ children }) =>
+  React.createElement('div', { 'data-testid': 'mock-elements' }, children);
 
-export const useStripe = () => ({
+const useStripe = () => ({
   confirmPayment: jest.fn().mockResolvedValue({}),
 });
 
-export const useElements = () => ({
+const useElements = () => ({
   getElement: jest.fn(),
 });
 
-export default Elements;
+module.exports = { Elements, useStripe, useElements };
+module.exports.Elements = Elements;
+module.exports.useStripe = useStripe;
+module.exports.useElements = useElements;
+module.exports.default = Elements;

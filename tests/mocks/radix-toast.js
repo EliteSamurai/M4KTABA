@@ -1,8 +1,18 @@
-// Minimal ESM stub
-export const ToastProvider = ({ children }) => children;
-export const ToastViewport = () => null;
-export const Toast = ({ children }) => children ?? null;
-export const ToastTitle = ({ children }) => children ?? null;
-export const ToastDescription = ({ children }) => children ?? null;
-export const ToastAction = ({ children }) => children ?? null;
-export const ToastClose = () => null;
+// Minimal CommonJS stub
+const ToastProvider = ({ children }) => children;
+const ToastViewport = () => null;
+const Toast = ({ children }) => children ?? null;
+const ToastTitle = ({ children }) => children ?? null;
+const ToastDescription = ({ children }) => children ?? null;
+const ToastAction = ({ children }) => children ?? null;
+const ToastClose = () => null;
+
+module.exports = {
+  ToastProvider,
+  ToastViewport,
+  Toast,
+  ToastTitle,
+  ToastDescription,
+  ToastAction,
+  ToastClose,
+};

@@ -9,3 +9,14 @@ require("@testing-library/jest-dom");
 if (!globalThis.crypto) {
   globalThis.crypto = require("crypto").webcrypto;
 }
+
+// Mock next-auth/react globally
+jest.mock('next-auth/react', () => ({
+  useSession: () => ({
+    data: { user: { id: 'test-user', _id: 'test-user' } },
+    status: 'authenticated',
+  }),
+  signIn: jest.fn(),
+  signOut: jest.fn(),
+  getCsrfToken: jest.fn().mockResolvedValue('test-csrf'),
+}));

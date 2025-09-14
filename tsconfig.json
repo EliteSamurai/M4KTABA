@@ -4,7 +4,8 @@
     "module": "ESNext",
     "baseUrl": ".", // Base directory for resolving non-relative paths
     "paths": {
-      "@/*": ["./*"] // Map `@/` to the root directory
+      "@/*": ["./*"], // Map `@/` to the root directory
+      "@test-utils": ["./tests/helpers/test-utils"]
     },
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -27,7 +28,7 @@
       }
     ]
   },
-  "exclude": ["node_modules", ".next", "dist"],
+  "exclude": ["node_modules", ".next", "dist", "tests/**/*"],
   "include": [
     "**/*.ts",
     "**/*.tsx",

@@ -43,7 +43,8 @@ module.exports = {
   modulePathIgnorePatterns: ['<rootDir>/studio-m4ktaba/'],
 
   transform: {
-    '^.+\\.(t|j)sx?$': ['babel-jest'],
+    '^.+\\.tsx?$': ['@swc/jest'],
+    '^.+\\.jsx?$': ['babel-jest'],
   },
   transformIgnorePatterns: ['/node_modules/'],
   // Skip Playwright a11y test in Jest
@@ -56,7 +57,7 @@ module.exports = {
 
   // Coverage configuration
   collectCoverageFrom: [
-    '**/*.{js,jsx,ts,tsx}',
+    '**/*.{ts,tsx}',
     '!**/*.d.ts',
     '!**/node_modules/**',
     '!**/.next/**',
@@ -75,6 +76,8 @@ module.exports = {
     '!**/tests/**',
     '!**/scripts/**',
     '!**/studio-m4ktaba/**',
+    '!**/*.jsx',
+    '!**/*.js',
   ],
 
   coverageThreshold: {

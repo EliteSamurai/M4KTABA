@@ -1,9 +1,14 @@
-// ESM-style mock for next-auth/react
-export const useSession = () => ({
-  data: { user: { id: "test-user", _id: "test-user" } },
-  status: "authenticated",
+// CommonJS-style mock for next-auth/react
+const useSession = () => ({
+  data: { user: { id: 'test-user', _id: 'test-user' } },
+  status: 'authenticated',
 });
-export const signIn = jest.fn();
-export const signOut = jest.fn();
-export const getCsrfToken = async () => "test-csrf";
-export default { useSession, signIn, signOut, getCsrfToken };
+const signIn = jest.fn();
+const signOut = jest.fn();
+const getCsrfToken = async () => 'test-csrf';
+
+module.exports = { useSession, signIn, signOut, getCsrfToken };
+module.exports.useSession = useSession;
+module.exports.signIn = signIn;
+module.exports.signOut = signOut;
+module.exports.getCsrfToken = getCsrfToken;

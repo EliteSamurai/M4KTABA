@@ -1,4 +1,7 @@
 // tests/mocks/stripe-js.js
-export const loadStripe = async () => ({
+const loadStripe = async () => ({
   _mock: true,
 });
+
+module.exports = { loadStripe };
+module.exports.loadStripe = loadStripe;
