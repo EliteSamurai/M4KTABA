@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
-import { hash } from "bcryptjs";
-import { readClient, writeClient } from "@/studio-m4ktaba/client";
-import { z } from "zod";
+import { NextResponse } from 'next/server';
+import { hash } from 'bcryptjs';
+import { readClient, writeClient } from '@/studio-m4ktaba/client';
+import { z } from 'zod';
 
 const signupSchema = z.object({
-  email: z.string().email("Invalid email format"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 export async function POST(req: Request) {
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { message: "User already has an account" },
+        { message: 'User already has an account' },
         { status: 400 }
       );
     }
@@ -44,21 +44,21 @@ export async function POST(req: Request) {
     const hashedPassword = await hash(password, 10);
 
     const newUser = await (writeClient as any).create({
-      _type: "user",
+      _type: 'user',
       email,
       password: hashedPassword,
     });
 
     return NextResponse.json({ userId: newUser._id }, { status: 200 });
   } catch (error) {
-    console.error("Error creating user:", error);
+    console.error('Error creating user:', error);
     return NextResponse.json(
-      { message: "Failed to create user" },
+      { message: 'Failed to create user' },
       { status: 500 }
     );
   }
 }
 
 export async function GET() {
-  return NextResponse.json({ message: "Method Not Allowed" }, { status: 405 });
+  return NextResponse.json({ message: 'Method Not Allowed' }, { status: 405 });
 }

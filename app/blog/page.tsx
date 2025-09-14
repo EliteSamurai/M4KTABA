@@ -47,7 +47,11 @@ const Blog = async () => {
     );
   }
 
-  const posts = (await (readClient as any).fetch(POSTS_QUERY, {}, options)) as Post[];
+  const posts = (await (readClient as any).fetch(
+    POSTS_QUERY,
+    {},
+    options
+  )) as Post[];
 
   return (
     <main className='min-h-screen bg-gradient-to-b'>

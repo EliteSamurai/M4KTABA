@@ -1,4 +1,4 @@
-import { defineField, defineType } from 'sanity';
+import {defineField, defineType} from 'sanity'
 
 export default defineType({
   name: 'scholar',
@@ -23,4 +23,4 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
   ],
-});
+})

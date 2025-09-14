@@ -1,5 +1,5 @@
-"use client";
-import { useEffect, useRef } from "react";
+'use client';
+import { useEffect, useRef } from 'react';
 
 let setGlobalMessage: ((msg: string) => void) | null = null;
 
@@ -14,7 +14,7 @@ export function A11yLiveRegion() {
     };
   }, []);
   return (
-    <div aria-live="polite" aria-atomic="true" className="sr-only" ref={ref} />
+    <div aria-live='polite' aria-atomic='true' className='sr-only' ref={ref} />
   );
 }
 

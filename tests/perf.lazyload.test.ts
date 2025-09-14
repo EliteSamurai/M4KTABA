@@ -15,14 +15,14 @@ describe('perf lazy-load', () => {
       console.log('Build directory not found, skipping performance test');
       return;
     }
-    
+
     const pageFile = path.join(appDir, 'page.js');
     if (!fs.existsSync(pageFile)) {
       // If page.js doesn't exist, skip this test
       console.log('Page.js not found, skipping performance test');
       return;
     }
-    
+
     const files = fs.readdirSync(appDir).join('\n');
     // Check if files exist (chunks may not be generated in test builds)
     expect(files).toBeDefined();

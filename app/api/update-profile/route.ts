@@ -1,37 +1,37 @@
-import { NextRequest, NextResponse } from "next/server";
-import { writeClient } from "@/studio-m4ktaba/client";
-import { v4 as uuidv4 } from "uuid";
-import { fileImageSanity } from "@/utils/uploadImageToSanity";
-import { verifyCsrf } from "@/lib/csrf";
-import { ProfileUpdateSchema } from "@/lib/validation";
+import { NextRequest, NextResponse } from 'next/server';
+import { writeClient } from '@/studio-m4ktaba/client';
+import { v4 as uuidv4 } from 'uuid';
+import { fileImageSanity } from '@/utils/uploadImageToSanity';
+import { verifyCsrf } from '@/lib/csrf';
+import { ProfileUpdateSchema } from '@/lib/validation';
 
 export async function POST(req: NextRequest) {
   const csrf = await verifyCsrf();
   if (csrf) return csrf as unknown as NextResponse;
   const apiKey = process.env.EASYPOST_API_KEY;
   if (!apiKey) {
-    return new Response("Missing EasyPost API Key", { status: 500 });
+    return new Response('Missing EasyPost API Key', { status: 500 });
   }
   const formData = await req.formData(); // If using FormData on server
-  const bio = formData.get("bio");
-  const city = formData.get("city");
-  const state = formData.get("state");
-  const zip = formData.get("zip");
-  const country = formData.get("country");
-  const street = formData.get("street");
-  const userId = formData.get("userId");
-  const imageFile = formData.get("image");
+  const bio = formData.get('bio');
+  const city = formData.get('city');
+  const state = formData.get('state');
+  const zip = formData.get('zip');
+  const country = formData.get('country');
+  const street = formData.get('street');
+  const userId = formData.get('userId');
+  const imageFile = formData.get('image');
 
   // Basic validation (form-data)
   if (!street || !city || !state || !zip || !country) {
-    throw new Error("Complete address is required.");
+    throw new Error('Complete address is required.');
   }
 
   try {
-    const response = await fetch("https://api.easypost.com/v2/addresses", {
-      method: "POST",
+    const response = await fetch('https://api.easypost.com/v2/addresses', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         state,
         zip,
         country,
-        verify: ["delivery"],
+        verify: ['delivery'],
       }),
     });
 
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     if (!verifiedAddress.verifications?.delivery?.success) {
       throw new Error(
-        "Address verification failed. Please check your address details."
+        'Address verification failed. Please check your address details.'
       );
     }
 
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       });
       if (!parsed.success) {
         return NextResponse.json(
-          { success: false, error: "Invalid profile data" },
+          { success: false, error: 'Invalid profile data' },
           { status: 400 }
         );
       }
@@ -75,9 +75,9 @@ export async function POST(req: NextRequest) {
           bio: bio
             ? [
                 {
-                  _type: "block",
+                  _type: 'block',
                   _key: uuidv4(),
-                  children: [{ _type: "span", text: bio }],
+                  children: [{ _type: 'span', text: bio }],
                 },
               ]
             : [],
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     if (error instanceof Error) {
-      console.error("Error:", error.message);
+      console.error('Error:', error.message);
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 500 }

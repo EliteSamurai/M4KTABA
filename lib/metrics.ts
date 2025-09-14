@@ -27,11 +27,11 @@ class Counter {
         const labels = JSON.parse(k) as Labels;
         const labelStr = Object.entries(labels)
           .map(([lk, lv]) => `${lk}="${String(lv)}"`)
-          .join(",");
+          .join(',');
         lines.push(`${this.name}{${labelStr}} ${v}`);
       }
     }
-    return lines.join("\n");
+    return lines.join('\n');
   }
 }
 
@@ -72,7 +72,7 @@ class Histogram {
     lines.push(`${this.name}_bucket{le="+Inf"} ${acc}`);
     lines.push(`${this.name}_sum ${this.sum}`);
     lines.push(`${this.name}_count ${this.count}`);
-    return lines.join("\n");
+    return lines.join('\n');
   }
 }
 
@@ -103,7 +103,7 @@ export function exposeMetrics(): string {
   const parts: string[] = [];
   for (const c of registry.counters.values()) parts.push(c.expose());
   for (const h of registry.histograms.values()) parts.push(h.expose());
-  return parts.join("\n\n") + "\n";
+  return parts.join('\n\n') + '\n';
 }
 
 export async function withLatency<T>(
@@ -116,6 +116,6 @@ export async function withLatency<T>(
     return res;
   } finally {
     const dur = (performance.now() - start) / 1000;
-    histogram("api_latency_seconds", "API latency in seconds").observe(dur);
+    histogram('api_latency_seconds', 'API latency in seconds').observe(dur);
   }
 }

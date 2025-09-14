@@ -259,8 +259,8 @@ export default function CookiesPage() {
               </CardHeader>
               <CardContent>
                 <p className='text-sm text-muted-foreground mb-4'>
-                  When you first visit our website, you'll see a cookie
-                  consent banner where you can:
+                  When you first visit our website, you'll see a cookie consent
+                  banner where you can:
                 </p>
                 <ul className='space-y-2 text-sm'>
                   <li>• Accept all cookies</li>

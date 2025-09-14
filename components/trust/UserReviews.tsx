@@ -151,9 +151,10 @@ export function UserReviews({
   className,
 }: UserReviewsProps) {
   const displayReviews = reviews.slice(0, maxReviews);
-  const averageRating = reviews.length > 0 
-    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
-    : 0;
+  const averageRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+      : 0;
   const verifiedReviews = reviews.filter(review => review.verified).length;
 
   // Don't show reviews section if there are no reviews
@@ -252,17 +253,18 @@ export function ReviewSummary({
   reviews = mockReviews,
   className,
 }: ReviewSummaryProps) {
-  const averageRating = reviews.length > 0 
-    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
-    : 0;
+  const averageRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+      : 0;
   const totalReviews = reviews.length;
 
   // Don't show review summary if there are no reviews
   if (reviews.length === 0) {
     return (
       <div className={cn('text-center text-muted-foreground', className)}>
-        <p className="text-sm">No reviews yet</p>
-        <p className="text-xs">Be the first to review this item</p>
+        <p className='text-sm'>No reviews yet</p>
+        <p className='text-xs'>Be the first to review this item</p>
       </div>
     );
   }

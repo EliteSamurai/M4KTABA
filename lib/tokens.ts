@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 // Design tokens and vertical rhythm helpers (flag: tokens_rhythm)
 
@@ -15,5 +15,3 @@ export function rhythm(steps: number): string {
   const n = Number.isFinite(steps) ? steps : 0;
   return `${n * tokens.spacingBasePx}px`;
 }
-
-

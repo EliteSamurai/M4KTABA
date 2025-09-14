@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 // Simple saved addresses facade storing to localStorage keyed by user id.
 
@@ -27,14 +27,12 @@ export function listSavedAddresses(userId: string): SavedAddress[] {
 
 export function saveAddress(userId: string, addr: SavedAddress) {
   const list = listSavedAddresses(userId);
-  const next = [addr, ...list.filter((a) => a.id !== addr.id)];
+  const next = [addr, ...list.filter(a => a.id !== addr.id)];
   window.localStorage.setItem(key(userId), JSON.stringify(next));
 }
 
 export function removeAddress(userId: string, id: string) {
   const list = listSavedAddresses(userId);
-  const next = list.filter((a) => a.id !== id);
+  const next = list.filter(a => a.id !== id);
   window.localStorage.setItem(key(userId), JSON.stringify(next));
 }
-
-

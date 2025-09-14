@@ -1,14 +1,14 @@
-import bcrypt from "bcryptjs"; // For hashing and comparing passwords
-import { writeClient, readClient } from "@/studio-m4ktaba/client"; // Your configured Sanity client
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/options";
+import bcrypt from 'bcryptjs'; // For hashing and comparing passwords
+import { writeClient, readClient } from '@/studio-m4ktaba/client'; // Your configured Sanity client
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/options';
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?._id) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
   try {
@@ -17,9 +17,9 @@ export async function POST(req: NextRequest) {
     // Map hyphenated keys to camelCase
     const mappedBody = {
       userId: body.userId,
-      currentPassword: body["current-password"],
-      newPassword: body["new-password"],
-      confirmPassword: body["confirm-password"],
+      currentPassword: body['current-password'],
+      newPassword: body['new-password'],
+      confirmPassword: body['confirm-password'],
     };
 
     const { userId, currentPassword, newPassword, confirmPassword } =
@@ -27,27 +27,27 @@ export async function POST(req: NextRequest) {
 
     // Ensure user can only update their own password
     if (userId !== session.user._id) {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
     // Basic validations
     if (!userId || !currentPassword || !newPassword || !confirmPassword) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { message: 'Missing required fields' },
         { status: 400 }
       );
     }
 
     if (newPassword !== confirmPassword) {
       return NextResponse.json(
-        { message: "New passwords do not match" },
+        { message: 'New passwords do not match' },
         { status: 400 }
       );
     }
 
     if (newPassword.length < 8) {
       return NextResponse.json(
-        { message: "Password must be at least 8 characters long" },
+        { message: 'Password must be at least 8 characters long' },
         { status: 400 }
       );
     }
@@ -57,14 +57,14 @@ export async function POST(req: NextRequest) {
     const user = await (readClient as any).fetch(query, { userId });
 
     if (!user || !user.password) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
     // Verify the current password
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
       return NextResponse.json(
-        { message: "Current password is incorrect" },
+        { message: 'Current password is incorrect' },
         { status: 401 }
       );
     }
@@ -73,16 +73,19 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update the password in Sanity
-    await (writeClient as any).patch(userId).set({ password: hashedPassword }).commit();
+    await (writeClient as any)
+      .patch(userId)
+      .set({ password: hashedPassword })
+      .commit();
 
     return NextResponse.json(
-      { message: "Password updated successfully!" },
+      { message: 'Password updated successfully!' },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error updating password:", error);
+    console.error('Error updating password:', error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: 'Internal server error' },
       { status: 500 }
     );
   }

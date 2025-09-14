@@ -1,8 +1,8 @@
-import type { Stripe } from "stripe";
-import { stripe } from "./stripe";
-import { writeClient } from "@/studio-m4ktaba/client";
-import { sendEmail, emailTemplates } from "@/lib/email";
-import type { OrderItem, Order } from "@/types/order";
+import type { Stripe } from 'stripe';
+import { stripe } from './stripe';
+import { writeClient } from '@/studio-m4ktaba/client';
+import { sendEmail, emailTemplates } from '@/lib/email';
+import type { OrderItem, Order } from '@/types/order';
 
 export type StripeEvent = Stripe.Event;
 export type StripePaymentIntent = Stripe.PaymentIntent;
@@ -20,12 +20,12 @@ export async function validateWebhookSignature(
   signature: string | null
 ): Promise<StripeEvent> {
   if (!signature) {
-    throw new Error("Missing stripe-signature header");
+    throw new Error('Missing stripe-signature header');
   }
 
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
-    throw new Error("Missing STRIPE_WEBHOOK_SECRET");
+    throw new Error('Missing STRIPE_WEBHOOK_SECRET');
   }
 
   const body = await req.text();
@@ -38,7 +38,7 @@ export async function validateWebhookSignature(
 
 export async function validateEventData(event: StripeEvent) {
   if (!event.type || !event.data.object) {
-    throw new Error("Invalid event data");
+    throw new Error('Invalid event data');
   }
   return event;
 }
@@ -49,7 +49,7 @@ export async function handlePaymentIntentSucceeded(event: StripeEvent) {
   const { orderId, userEmail, shippingDetails, items } = metadata;
 
   if (!orderId || !userEmail || !shippingDetails || !items) {
-    throw new Error("Missing required metadata");
+    throw new Error('Missing required metadata');
   }
 
   // Parse the items and shipping details from JSON
@@ -57,7 +57,7 @@ export async function handlePaymentIntentSucceeded(event: StripeEvent) {
   const parsedShippingDetails = JSON.parse(shippingDetails);
 
   // Update order status to paid
-  await (writeClient as any).patch(orderId).set({ status: "paid" }).commit();
+  await (writeClient as any).patch(orderId).set({ status: 'paid' }).commit();
 
   // Group items by seller
   const sellerItems = parsedItems.reduce(
@@ -89,7 +89,7 @@ export async function handlePaymentIntentSucceeded(event: StripeEvent) {
       // Create transfer to seller
       await (stripe as any).transfers.create({
         amount: Math.round(total * 100), // Convert to cents
-        currency: "usd",
+        currency: 'usd',
         destination: seller.stripeAccountId,
         transfer_group: orderId,
       });

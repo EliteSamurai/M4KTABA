@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 import {
   markStripeEventProcessed,
   stripeEventsUnprocessed,
-} from "@/lib/sanity-system";
+} from '@/lib/sanity-system';
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));

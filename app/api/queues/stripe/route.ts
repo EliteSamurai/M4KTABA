@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { stripeEventsUnprocessed } from "@/lib/sanity-system";
+import { NextResponse } from 'next/server';
+import { stripeEventsUnprocessed } from '@/lib/sanity-system';
 
 export async function GET() {
   const items = await stripeEventsUnprocessed(100);

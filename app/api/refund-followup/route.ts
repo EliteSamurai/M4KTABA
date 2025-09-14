@@ -1,5 +1,5 @@
-import { readClient } from "@/studio-m4ktaba/client";
-import { createTransport } from "nodemailer";
+import { readClient } from '@/studio-m4ktaba/client';
+import { createTransport } from 'nodemailer';
 
 export async function POST() {
   try {
@@ -10,13 +10,13 @@ export async function POST() {
 
     if (!orders || orders.length === 0) {
       return new Response(
-        JSON.stringify({ message: "No pending refund requests." }),
+        JSON.stringify({ message: 'No pending refund requests.' }),
         { status: 404 }
       );
     }
 
     const transporter = createTransport({
-      service: "SMTP",
+      service: 'SMTP',
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
       auth: {
@@ -28,13 +28,13 @@ export async function POST() {
     // Iterate through each order and send checkup email
     for (const order of orders) {
       for (const item of order.cartItems) {
-        if (item.refundStatus === "requested") {
+        if (item.refundStatus === 'requested') {
           const userEmail = item.user.email;
 
           await transporter.sendMail({
             from: `M4KTABA <noreply@m4ktaba.com>`,
             to: userEmail,
-            subject: "Refund Request Checkup",
+            subject: 'Refund Request Checkup',
             text: `This is a follow-up email regarding your refund request for order ID: ${order._id}. Please let us know if you need any assistance. Your request was initiated on: ${item.refundDetails.refundDate}.`,
           });
         }
@@ -42,15 +42,15 @@ export async function POST() {
     }
 
     return new Response(
-      JSON.stringify({ message: "Checkup emails sent successfully." }),
+      JSON.stringify({ message: 'Checkup emails sent successfully.' }),
       { status: 200 }
     );
   } catch (error) {
     if (error instanceof Error) {
-      console.error("Error sending checkup emails:", error);
+      console.error('Error sending checkup emails:', error);
       return new Response(
         JSON.stringify({
-          message: "Error sending checkup emails.",
+          message: 'Error sending checkup emails.',
           error: error.message,
         }),
         { status: 500 }

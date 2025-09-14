@@ -1,26 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
 // EasyPost API details
-const EASYPOST_API_URL = "https://api.easypost.com/v2";
+const EASYPOST_API_URL = 'https://api.easypost.com/v2';
 const EASYPOST_API_KEY = process.env.EASYPOST_API_KEY;
 
-async function validateAddress(
-  address: {
-    street1: string;
-    street2?: string;
-    city: string;
-    zip: string;
-    state: string;
-    country: string;
-  },
-) {
+async function validateAddress(address: {
+  street1: string;
+  street2?: string;
+  city: string;
+  zip: string;
+  state: string;
+  country: string;
+}) {
   try {
     // Add the `verify` flag to trigger address verification
     const response = await fetch(`${EASYPOST_API_URL}/addresses`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${Buffer.from(EASYPOST_API_KEY + ":").toString("base64")}`,
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${Buffer.from(EASYPOST_API_KEY + ':').toString('base64')}`,
       },
       body: JSON.stringify({
         ...address,
@@ -46,11 +44,11 @@ async function validateAddress(
     if (zip4Valid && deliveryValid) {
       return true;
     } else {
-      console.error("Address validation failed:", verifications);
+      console.error('Address validation failed:', verifications);
       return false;
     }
   } catch (error) {
-    console.error("Error validating address:", error);
+    console.error('Error validating address:', error);
     return false;
   }
 }
@@ -63,7 +61,7 @@ export async function POST(req: NextRequest) {
     // Ensure the address fields are valid
     if (!street1 || !city || !zip || !state || !country) {
       return NextResponse.json(
-        { message: "Missing required address fields" },
+        { message: 'Missing required address fields' },
         { status: 400 }
       );
     }
@@ -81,9 +79,9 @@ export async function POST(req: NextRequest) {
     // Return the validation result
     return NextResponse.json({ isValid });
   } catch (error) {
-    console.error("Error processing address validation:", error);
+    console.error('Error processing address validation:', error);
     return NextResponse.json(
-      { message: "Internal Server Error" },
+      { message: 'Internal Server Error' },
       { status: 500 }
     );
   }

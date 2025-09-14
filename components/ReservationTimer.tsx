@@ -1,5 +1,5 @@
-"use client";
-import { useEffect, useState } from "react";
+'use client';
+import { useEffect, useState } from 'react';
 
 export function ReservationTimer({
   keyId,
@@ -29,14 +29,14 @@ export function ReservationTimer({
 
   useEffect(() => {
     if (remaining <= 0) return onExpire();
-    const id = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
+    const id = setInterval(() => setRemaining(r => Math.max(0, r - 1)), 1000);
     return () => clearInterval(id);
   }, [remaining, onExpire]);
 
-  const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
-  const ss = String(remaining % 60).padStart(2, "0");
+  const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+  const ss = String(remaining % 60).padStart(2, '0');
   return (
-    <div aria-live="polite" className="text-sm text-muted-foreground">
+    <div aria-live='polite' className='text-sm text-muted-foreground'>
       Reservation expires in {mm}:{ss}
     </div>
   );

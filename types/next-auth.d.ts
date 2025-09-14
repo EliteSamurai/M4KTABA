@@ -1,7 +1,7 @@
-import "next-auth";
-import { DefaultUser } from "next-auth";
+import 'next-auth';
+import { DefaultUser } from 'next-auth';
 
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session {
     user: {
       _id: string;
@@ -13,7 +13,7 @@ declare module "next-auth" {
         zip?: string;
         country?: string;
       };
-    } & DefaultSession["user"];
+    } & DefaultSession['user'];
   }
 
   interface User extends DefaultUser {

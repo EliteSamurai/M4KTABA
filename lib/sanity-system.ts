@@ -1,4 +1,4 @@
-import { readClient, writeClient } from "@/lib/sanity-clients";
+import { readClient, writeClient } from '@/lib/sanity-clients';
 
 export type EventOutbox = {
   _id: string;
@@ -58,10 +58,10 @@ export async function enqueueOutbox(
     if (existing) return existing._id as string;
   }
   const doc = await (writeClient as any).create({
-    _type: "event_outbox",
+    _type: 'event_outbox',
     type,
     payload:
-      typeof payload === "string" ? payload : JSON.stringify(payload ?? null),
+      typeof payload === 'string' ? payload : JSON.stringify(payload ?? null),
     key: key || null,
     created_at: new Date().toISOString(),
     attempts: 0,
@@ -77,10 +77,10 @@ export async function incOutboxAttemptsOrMoveToDLQ(id: string, reason: string) {
   const attempts = (doc?.attempts || 0) + 1;
   if (attempts >= 5) {
     await (writeClient as any).create({
-      _type: "dlq",
-      queue: "outbox",
+      _type: 'dlq',
+      queue: 'outbox',
       payload:
-        typeof doc?.payload === "string"
+        typeof doc?.payload === 'string'
           ? doc?.payload
           : JSON.stringify(doc?.payload ?? null),
       reason,
@@ -101,15 +101,18 @@ export async function dlqList(limit = 100): Promise<DlqDoc[]> {
 }
 
 export async function dlqRequeue(id: string) {
-  const item = await (readClient as any).fetch(`*[_type == "dlq" && _id == $id][0]`, {
-    id,
-  });
+  const item = await (readClient as any).fetch(
+    `*[_type == "dlq" && _id == $id][0]`,
+    {
+      id,
+    }
+  );
   if (item) {
     await (writeClient as any).create({
-      _type: "event_outbox",
-      type: item.queue || "unknown",
+      _type: 'event_outbox',
+      type: item.queue || 'unknown',
       payload:
-        typeof item.payload === "string"
+        typeof item.payload === 'string'
           ? item.payload
           : JSON.stringify(item.payload ?? null),
       created_at: new Date().toISOString(),
@@ -147,10 +150,10 @@ export async function incStripeEventAttemptsOrDLQ(id: string, reason: string) {
   const attempts = (doc?.attempts || 0) + 1;
   if (attempts >= 5) {
     await (writeClient as any).create({
-      _type: "dlq",
-      queue: "stripe_events",
+      _type: 'dlq',
+      queue: 'stripe_events',
       payload:
-        typeof doc?.payload === "string"
+        typeof doc?.payload === 'string'
           ? doc?.payload
           : JSON.stringify(doc?.payload ?? null),
       reason,

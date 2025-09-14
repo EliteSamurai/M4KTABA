@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { fetchOutboxOldest, markOutboxProcessed } from "@/lib/sanity-system";
+import { NextResponse } from 'next/server';
+import { fetchOutboxOldest, markOutboxProcessed } from '@/lib/sanity-system';
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));

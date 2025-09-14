@@ -351,9 +351,7 @@ export default function PrivacyPage() {
 
           {/* Children's Privacy */}
           <section>
-            <h2 className='text-2xl font-semibold mb-6'>
-              Children's Privacy
-            </h2>
+            <h2 className='text-2xl font-semibold mb-6'>Children's Privacy</h2>
             <div className='bg-blue-50 border border-blue-200 rounded-lg p-6'>
               <p className='text-sm text-blue-800'>
                 Our platform is not intended for children under 13. We do not
@@ -399,8 +397,7 @@ export default function PrivacyPage() {
                 <strong>Address:</strong> M4KTABA Privacy Team
               </p>
               <p>
-                <strong>Response Time:</strong> We'll respond within 8
-                hours
+                <strong>Response Time:</strong> We'll respond within 8 hours
               </p>
             </div>
           </section>

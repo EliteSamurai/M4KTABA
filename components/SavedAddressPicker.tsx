@@ -1,7 +1,7 @@
-"use client";
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+'use client';
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 type Address = {
   id: string;
@@ -30,31 +30,31 @@ export function SavedAddressPicker({
         <CardTitle>Saved addresses</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          {addresses.map((a) => (
-            <label key={a.id} className="flex items-start gap-3">
+        <div className='space-y-3'>
+          {addresses.map(a => (
+            <label key={a.id} className='flex items-start gap-3'>
               <input
-                type="radio"
-                name="saved-address"
+                type='radio'
+                name='saved-address'
                 checked={selected === a.id}
                 onChange={() => setSelected(a.id)}
               />
-              <div className="text-sm">
-                <div className="font-medium">{a.name || "Saved address"}</div>
-                <div className="text-muted-foreground">
+              <div className='text-sm'>
+                <div className='font-medium'>{a.name || 'Saved address'}</div>
+                <div className='text-muted-foreground'>
                   {[a.street1, a.street2, a.city, a.state, a.zip, a.country]
                     .filter(Boolean)
-                    .join(", ")}
+                    .join(', ')}
                 </div>
               </div>
             </label>
           ))}
         </div>
-        <div className="mt-4">
+        <div className='mt-4'>
           <Button
-            type="button"
+            type='button'
             onClick={() => {
-              const addr = addresses.find((x) => x.id === selected);
+              const addr = addresses.find(x => x.id === selected);
               if (addr) onUse(addr);
             }}
           >

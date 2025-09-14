@@ -1,51 +1,51 @@
-"use client";
+'use client';
 
 import React from 'react';
-import Link from "next/link";
-import LoginButton from "@/components/LoginButton";
-import { Button } from "./ui/button";
-import { CartSheet } from "./CartSheet";
-import { cn } from "@/lib/utils";
-import { MobileNav } from "./mobile-nav";
-import { event } from "@/lib/fbpixel";
+import Link from 'next/link';
+import LoginButton from '@/components/LoginButton';
+import { Button } from './ui/button';
+import { CartSheet } from './CartSheet';
+import { cn } from '@/lib/utils';
+import { MobileNav } from './mobile-nav';
+import { event } from '@/lib/fbpixel';
 
 const Links = [
-  { href: "/all", text: "All Books" },
-  { href: "/honey", text: "Honey" },
-  { href: "/blog", text: "Blog" },
+  { href: '/all', text: 'All Books' },
+  { href: '/honey', text: 'Honey' },
+  { href: '/blog', text: 'Blog' },
 ];
 
 const Navbar = () => {
   const handleClick = () => {
-    event("StartSelling");
+    event('StartSelling');
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <nav className="flex h-14 items-center justify-between sm:px-4">
+    <header className='sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+      <nav className='flex h-14 items-center justify-between sm:px-4'>
         {/* Mobile Navigation */}
-        <div className="flex items-center md:hidden">
+        <div className='flex items-center md:hidden'>
           <MobileNav links={Links} />
         </div>
 
         {/* Logo */}
         <Link
-          href="/"
-          className="text-xl pl-14 md:pl-0 font-bold tracking-tighter transition-colors hover:text-foreground/80 lg:text-2xl"
+          href='/'
+          className='text-xl pl-14 md:pl-0 font-bold tracking-tighter transition-colors hover:text-foreground/80 lg:text-2xl'
         >
           M4KTABA
         </Link>
 
         {/* Desktop Links */}
-        <ul className="hidden md:flex items-center gap-6">
-          {Links.map((link) => (
+        <ul className='hidden md:flex items-center gap-6'>
+          {Links.map(link => (
             <li key={link.href}>
               <Link
                 href={link.href}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-foreground/80",
-                  "relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0",
-                  "after:bg-foreground after:transition-all after:duration-300 hover:after:w-full"
+                  'text-sm font-medium transition-colors hover:text-foreground/80',
+                  'relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0',
+                  'after:bg-foreground after:transition-all after:duration-300 hover:after:w-full'
                 )}
               >
                 {link.text}
@@ -55,14 +55,14 @@ const Navbar = () => {
         </ul>
 
         {/* Action Buttons */}
-        <div className="flex items-center sm:gap-4 gap-1">
+        <div className='flex items-center sm:gap-4 gap-1'>
           <LoginButton />
-          <div className="hidden md:block">
-            <Link href="/sell">
+          <div className='hidden md:block'>
+            <Link href='/sell'>
               <Button
                 onClick={handleClick}
-                className="bg-purple-600 text-white hover:bg-purple-700"
-                size="sm"
+                className='bg-purple-600 text-white hover:bg-purple-700'
+                size='sm'
               >
                 Sell
               </Button>

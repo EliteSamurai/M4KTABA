@@ -62,7 +62,7 @@ export default defineType({
       name: 'selectedCategory',
       type: 'reference', // If referencing a category document
       title: 'Selected Category',
-      to: [{ type: 'category' }], // Ensure 'category' matches the type of your category documents
+      to: [{type: 'category'}], // Ensure 'category' matches the type of your category documents
       validation: (Rule) => Rule.required(),
     },
     defineField({

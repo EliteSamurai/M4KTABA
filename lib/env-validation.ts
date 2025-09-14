@@ -306,9 +306,10 @@ export function logEnvironmentValidation(): void {
     console.log('ℹ️  Present optional variables:');
     optionalPresent.forEach(key => {
       const value = process.env[key];
-      const displayValue = key.includes('SECRET') || key.includes('KEY') || key.includes('TOKEN') 
-        ? '***' + (value?.slice(-4) || '')
-        : value;
+      const displayValue =
+        key.includes('SECRET') || key.includes('KEY') || key.includes('TOKEN')
+          ? '***' + (value?.slice(-4) || '')
+          : value;
       console.log(`  - ${key}: ${displayValue}`);
     });
   }

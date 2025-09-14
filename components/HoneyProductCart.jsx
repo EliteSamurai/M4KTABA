@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -10,26 +10,26 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useCart } from "@/contexts/CartContext";
-import HoneyPortrait from "@/public/HoneyPortrait.png";
-import { useState, useEffect } from "react";
-import { readClient } from "@/studio-m4ktaba/client";
-import { ShoppingCart } from "lucide-react";
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useCart } from '@/contexts/CartContext';
+import HoneyPortrait from '@/public/HoneyPortrait.png';
+import { useState, useEffect } from 'react';
+import { readClient } from '@/studio-m4ktaba/client';
+import { ShoppingCart } from 'lucide-react';
 
 export default function HoneyProductCard() {
   const { addToCart, isInCart } = useCart();
   const [seller, setSeller] = useState(null);
 
   const product = {
-    id: "honey-001",
-    title: "Raw Sidr Honey",
+    id: 'honey-001',
+    title: 'Raw Sidr Honey',
     price: 47.99,
     image: HoneyPortrait,
     user: {
-      _id: "MH7kyac4DmuRU6j51iL0It",
-      email: "contact@m4ktaba.com"
+      _id: 'MH7kyac4DmuRU6j51iL0It',
+      email: 'contact@m4ktaba.com',
     },
   };
 
@@ -49,7 +49,7 @@ export default function HoneyProductCard() {
           setSeller(sellerData);
         }
       } catch (error) {
-        console.error("Error fetching seller data:", error);
+        console.error('Error fetching seller data:', error);
       }
     }
 
@@ -57,34 +57,34 @@ export default function HoneyProductCard() {
   }, [product.user._id]);
 
   return (
-    <Card className="group overflow-hidden">
-      <Link href="/honey/sidrhoney" className="block">
-        <CardHeader className="border-b p-0">
-          <div className="relative aspect-square w-full h-96 overflow-hidden">
+    <Card className='group overflow-hidden'>
+      <Link href='/honey/sidrhoney' className='block'>
+        <CardHeader className='border-b p-0'>
+          <div className='relative aspect-square w-full h-96 overflow-hidden'>
             <Image
               src={product.image}
               alt={product.title}
               fill
-              className="object-contain transition-transform duration-300 group-hover:scale-105"
-              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+              className='object-contain transition-transform duration-300 group-hover:scale-105'
+              sizes='(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw'
               priority
             />
           </div>
         </CardHeader>
-        <CardContent className="space-y-1.5 p-4">
-          <CardTitle className="line-clamp-1">{product.title}</CardTitle>
-          <CardDescription className="flex items-center gap-2">
-            <Badge variant="secondary">Premium</Badge>
+        <CardContent className='space-y-1.5 p-4'>
+          <CardTitle className='line-clamp-1'>{product.title}</CardTitle>
+          <CardDescription className='flex items-center gap-2'>
+            <Badge variant='secondary'>Premium</Badge>
             <span>By M4KTABA</span>
           </CardDescription>
         </CardContent>
       </Link>
-      <CardFooter className="p-4 pt-0">
-        <div className="flex w-full items-center justify-between gap-2">
-          <span className="text-2xl font-bold">${product.price}</span>
+      <CardFooter className='p-4 pt-0'>
+        <div className='flex w-full items-center justify-between gap-2'>
+          <span className='text-2xl font-bold'>${product.price}</span>
           <Button
-            className="w-full max-w-[200px]"
-            variant={isInCart(product.id) ? "secondary" : "default"}
+            className='w-full max-w-[200px]'
+            variant={isInCart(product.id) ? 'secondary' : 'default'}
             onClick={() =>
               !isInCart(product.id) &&
               addToCart({
@@ -97,8 +97,8 @@ export default function HoneyProductCard() {
             }
             disabled={isInCart(product.id)}
           >
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            {isInCart(product.id) ? "In Cart" : "Add to Cart"}
+            <ShoppingCart className='mr-2 h-4 w-4' />
+            {isInCart(product.id) ? 'In Cart' : 'Add to Cart'}
           </Button>
         </div>
       </CardFooter>

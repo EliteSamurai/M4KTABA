@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
-import { createTransport } from "nodemailer";
+import { NextResponse } from 'next/server';
+import { createTransport } from 'nodemailer';
 
 export async function POST(request: Request) {
   const formData = await request.formData();
 
   const transporter = createTransport({
     host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || "587"),
+    port: parseInt(process.env.SMTP_PORT || '587'),
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
@@ -14,11 +14,11 @@ export async function POST(request: Request) {
   });
 
   // Get all attachments as an array of files
-  const attachments = formData.getAll("attachments") as File[];
+  const attachments = formData.getAll('attachments') as File[];
 
   // Handle attachments concurrently using Promise.all
   const attachmentBuffers = await Promise.all(
-    attachments.map(async (file) => {
+    attachments.map(async file => {
       const buffer = await file.arrayBuffer();
       return {
         filename: file.name,
@@ -27,20 +27,20 @@ export async function POST(request: Request) {
     })
   );
 
-  const email = formData.get("email");
-  const replyTo = typeof email === "string" ? email : undefined;
+  const email = formData.get('email');
+  const replyTo = typeof email === 'string' ? email : undefined;
 
   const mailOptions = {
     from: `"M4KTABA Support" <${process.env.SUPPORT_EMAIL}>`,
     to: process.env.SUPPORT_EMAIL,
     replyTo,
-    subject: "New Support Request",
+    subject: 'New Support Request',
     text: `
-Email: ${formData.get("email")}
-Contact Reason: ${formData.get("contactReason")}
-Order Number: ${formData.get("orderNumber") || "N/A"}
+Email: ${formData.get('email')}
+Contact Reason: ${formData.get('contactReason')}
+Order Number: ${formData.get('orderNumber') || 'N/A'}
 Message:
-${formData.get("message")}
+${formData.get('message')}
     `,
     attachments: attachmentBuffers,
   };
@@ -50,9 +50,9 @@ ${formData.get("message")}
     await transporter.sendMail(mailOptions);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to send email:", error);
+    console.error('Failed to send email:', error);
     return NextResponse.json(
-      { success: false, error: "Failed to send email" },
+      { success: false, error: 'Failed to send email' },
       { status: 500 }
     );
   }

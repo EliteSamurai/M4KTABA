@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useCart } from "@/contexts/CartContext";
-import { useRouter } from "next/navigation";
-import * as React from "react";
-import { prefetchCheckoutData } from "@/lib/prefetch";
+import { useCart } from '@/contexts/CartContext';
+import { useRouter } from 'next/navigation';
+import * as React from 'react';
+import { prefetchCheckoutData } from '@/lib/prefetch';
 
 export default function CheckoutButton() {
   const { cart } = useCart();
@@ -12,7 +12,7 @@ export default function CheckoutButton() {
 
   const handleCheckout = () => {
     if (cart.length === 0) {
-      alert("Your cart is empty.");
+      alert('Your cart is empty.');
       return;
     }
 
@@ -21,7 +21,7 @@ export default function CheckoutButton() {
 
   return (
     <button
-      className="w-full bg-purple-600 text-white p-4 rounded"
+      className='w-full bg-purple-600 text-white p-4 rounded'
       onClick={handleCheckout}
       onMouseEnter={async () => {
         if (isPrefetched) return;

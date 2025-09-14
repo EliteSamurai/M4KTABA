@@ -1,13 +1,13 @@
-import "../scripts/env/load";
+import '../scripts/env/load';
 /* eslint-disable no-console */
-import { setTimeout as sleep } from "node:timers/promises";
-import { retryAsync } from "@/lib/retry";
+import { setTimeout as sleep } from 'node:timers/promises';
+import { retryAsync } from '@/lib/retry';
 import {
   incStripeEventAttemptsOrDLQ,
   markStripeEventProcessed,
   stripeEventsUnprocessed,
-} from "@/lib/sanity-system";
-import { updateOrderFromStripeEvent } from "@/lib/payments";
+} from '@/lib/sanity-system';
+import { updateOrderFromStripeEvent } from '@/lib/payments';
 
 type StripeEventRow = {
   _id: string;
@@ -19,7 +19,7 @@ type StripeEventRow = {
 const MAX_ATTEMPTS = 5;
 
 async function handleStripeEvent(payload: any) {
-  const parsed = typeof payload === "string" ? safeParse(payload) : payload;
+  const parsed = typeof payload === 'string' ? safeParse(payload) : payload;
   await retryAsync(() => updateOrderFromStripeEvent(parsed), {
     retries: 3,
     factor: 1.8,
@@ -50,19 +50,19 @@ async function pollOnce() {
 }
 
 let running = true;
-process.on("SIGINT", () => (running = false));
-process.on("SIGTERM", () => (running = false));
+process.on('SIGINT', () => (running = false));
+process.on('SIGTERM', () => (running = false));
 
 (async function main() {
-  console.log("[stripe] consumer started");
+  console.log('[stripe] consumer started');
   while (running) {
     try {
       await pollOnce();
       await sleep(1500);
     } catch (e) {
-      console.error("[stripe] loop error", e);
+      console.error('[stripe] loop error', e);
       await sleep(2000);
     }
   }
-  console.log("[stripe] consumer stopped");
+  console.log('[stripe] consumer stopped');
 })();

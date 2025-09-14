@@ -49,8 +49,6 @@ body {
   @apply -translate-y-0.5;
 }
 
-
-
 .profile-btn:hover {
   background-color: rgb(17, 24, 39); /* Dark background */
   color: white; /* White text */
@@ -62,7 +60,7 @@ body {
 .hero-section {
   position: relative;
   height: 60vh;
-  padding:8px;
+  padding: 8px;
   overflow: hidden;
   border-radius: 25px;
 }

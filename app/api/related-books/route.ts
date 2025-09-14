@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
-import { readClient } from "@/studio-m4ktaba/client";
+import { NextRequest, NextResponse } from 'next/server';
+import { readClient } from '@/studio-m4ktaba/client';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const bookId = searchParams.get("bookId");
-    const categoryId = searchParams.get("categoryId");
-    const limit = parseInt(searchParams.get("limit") || "4");
+    const bookId = searchParams.get('bookId');
+    const categoryId = searchParams.get('categoryId');
+    const limit = parseInt(searchParams.get('limit') || '4');
 
     if (!bookId || !categoryId) {
       return NextResponse.json(
-        { error: "bookId and categoryId are required" },
+        { error: 'bookId and categoryId are required' },
         { status: 400 }
       );
     }
@@ -39,9 +39,9 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ books: relatedBooks });
   } catch (error) {
-    console.error("Error fetching related books:", error);
+    console.error('Error fetching related books:', error);
     return NextResponse.json(
-      { error: "Failed to fetch related books" },
+      { error: 'Failed to fetch related books' },
       { status: 500 }
     );
   }

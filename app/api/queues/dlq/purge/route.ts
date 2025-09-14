@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import { dlqList } from "@/lib/sanity-system";
-import { writeClient } from "@/lib/sanity-clients";
+import { NextResponse } from 'next/server';
+import { dlqList } from '@/lib/sanity-system';
+import { writeClient } from '@/lib/sanity-clients';
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));

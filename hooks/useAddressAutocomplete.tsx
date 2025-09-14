@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { debounce } from "@/lib/debounce";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { debounce } from '@/lib/debounce';
 import {
   AddressSuggestion,
   fetchAddressSuggestions,
   applySuggestionToFields,
-} from "@/lib/addressAutocomplete";
+} from '@/lib/addressAutocomplete';
 
 export function useAddressAutocomplete() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
-  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
-    "idle"
+  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>(
+    'idle'
   );
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -22,16 +22,16 @@ export function useAddressAutocomplete() {
         if (controllerRef.current) controllerRef.current.abort();
         const controller = new AbortController();
         controllerRef.current = controller;
-        setStatus("loading");
+        setStatus('loading');
         try {
           const list = await fetchAddressSuggestions(q, {
             signal: controller.signal,
           });
           setSuggestions(list);
-          setStatus("ready");
+          setStatus('ready');
         } catch (e: any) {
-          if (e?.name === "AbortError") return;
-          setStatus("error");
+          if (e?.name === 'AbortError') return;
+          setStatus('error');
         }
       }, 250),
     []
@@ -40,7 +40,7 @@ export function useAddressAutocomplete() {
   useEffect(() => {
     if (!query || query.trim().length < 3) {
       setSuggestions([]);
-      setStatus("idle");
+      setStatus('idle');
       return;
     }
     run(query);
@@ -52,5 +52,3 @@ export function useAddressAutocomplete() {
 
   return { query, setQuery, suggestions, status, apply } as const;
 }
-
-

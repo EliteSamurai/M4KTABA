@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format } from 'date-fns';
 import {
   Table,
   TableBody,
@@ -6,16 +6,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Transaction } from "@/types/stripe";
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Transaction } from '@/types/stripe';
 
 interface TransactionsTableProps {
   transactions: Transaction[];
@@ -23,22 +23,22 @@ interface TransactionsTableProps {
 
 export function TransactionsTable({ transactions }: TransactionsTableProps) {
   const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
       currency: currency.toUpperCase(),
     }).format(amount / 100);
   };
 
-  const getStatusColor = (status: Transaction["status"]) => {
+  const getStatusColor = (status: Transaction['status']) => {
     switch (status) {
-      case "succeeded":
-        return "bg-green-500/10 text-green-500 hover:bg-green-500/20";
-      case "pending":
-        return "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20";
-      case "failed":
-        return "bg-red-500/10 text-red-500 hover:bg-red-500/20";
+      case 'succeeded':
+        return 'bg-green-500/10 text-green-500 hover:bg-green-500/20';
+      case 'pending':
+        return 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20';
+      case 'failed':
+        return 'bg-red-500/10 text-red-500 hover:bg-red-500/20';
       default:
-        return "";
+        return '';
     }
   };
 
@@ -60,22 +60,22 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.map((transaction) => (
+            {transactions.map(transaction => (
               <TableRow key={transaction.id}>
                 <TableCell>
-                  {format(transaction.created * 1000, "MMM d, yyyy")}
+                  {format(transaction.created * 1000, 'MMM d, yyyy')}
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-medium">
+                  <div className='flex flex-col'>
+                    <span className='font-medium'>
                       {transaction.customer.name}
                     </span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className='text-sm text-muted-foreground'>
                       {transaction.customer.email}
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="font-medium">
+                <TableCell className='font-medium'>
                   {formatCurrency(transaction.amount, transaction.currency)}
                 </TableCell>
                 <TableCell>
@@ -83,7 +83,7 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                     {transaction.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className='text-muted-foreground'>
                   {transaction.payment_method}
                 </TableCell>
               </TableRow>

@@ -3,13 +3,13 @@ let stripeImpl = {
   paymentIntents: {
     create: jest
       .fn()
-      .mockResolvedValue({ id: "pi_test", client_secret: "cs_test" }),
+      .mockResolvedValue({ id: 'pi_test', client_secret: 'cs_test' }),
     confirm: jest
       .fn()
-      .mockResolvedValue({ id: "pi_test", status: "succeeded" }),
+      .mockResolvedValue({ id: 'pi_test', status: 'succeeded' }),
   },
   transfers: {
-    create: jest.fn().mockResolvedValue({ id: "tr_test" }),
+    create: jest.fn().mockResolvedValue({ id: 'tr_test' }),
   },
   charges: {
     list: jest.fn().mockResolvedValue({ data: [] }),
@@ -17,8 +17,8 @@ let stripeImpl = {
 };
 
 const config = { api: { bodyParser: false } };
-const getPlatformFeeAmount = (cents) => {
-  const bps = Number(process.env.PLATFORM_FEE_BPS || "0");
+const getPlatformFeeAmount = cents => {
+  const bps = Number(process.env.PLATFORM_FEE_BPS || '0');
   const amount = Number(cents || 0);
   return Math.round((amount * bps) / 10000);
 };
@@ -26,7 +26,7 @@ async function createPaymentIntentWithDestinationCharge(args = {}) {
   const s = module.exports.stripe;
   const res = await s.paymentIntents.create({
     amount: args.amountCents ?? 0,
-    currency: args.currency ?? "usd",
+    currency: args.currency ?? 'usd',
     automatic_payment_methods: { enabled: true },
     transfer_data: args.sellerStripeAccountId
       ? { destination: args.sellerStripeAccountId }
@@ -38,10 +38,10 @@ async function createPaymentIntentWithDestinationCharge(args = {}) {
       orderId: args.orderId,
       buyerId: args.buyerId,
       sellerIds: Array.isArray(args.sellerIds)
-        ? args.sellerIds.join(",")
+        ? args.sellerIds.join(',')
         : undefined,
       lineItemIds: Array.isArray(args.lineItemIds)
-        ? args.lineItemIds.join(",")
+        ? args.lineItemIds.join(',')
         : undefined,
     },
   });

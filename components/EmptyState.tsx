@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Button } from '@/components/ui/button';
 
 interface EmptyStateProps {
   title: string;
@@ -17,20 +17,22 @@ export default function EmptyState({
   secondaryAction,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border bg-card p-8 text-center text-card-foreground">
-      <h3 className="text-lg font-semibold">{title}</h3>
+    <div className='flex flex-col items-center justify-center rounded-lg border bg-card p-8 text-center text-card-foreground'>
+      <h3 className='text-lg font-semibold'>{title}</h3>
       {description && (
-        <p className="mt-2 max-w-prose text-sm text-muted-foreground">
+        <p className='mt-2 max-w-prose text-sm text-muted-foreground'>
           {description}
         </p>
       )}
       {(primaryAction || secondaryAction) && (
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+        <div className='mt-4 flex flex-wrap items-center justify-center gap-3'>
           {primaryAction && (
-            <Button onClick={primaryAction.onClick}>{primaryAction.label}</Button>
+            <Button onClick={primaryAction.onClick}>
+              {primaryAction.label}
+            </Button>
           )}
           {secondaryAction && (
-            <Button variant="outline" onClick={secondaryAction.onClick}>
+            <Button variant='outline' onClick={secondaryAction.onClick}>
               {secondaryAction.label}
             </Button>
           )}
@@ -39,5 +41,3 @@ export default function EmptyState({
     </div>
   );
 }
-
-

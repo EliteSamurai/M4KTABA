@@ -34,8 +34,8 @@ export default function ReturnsPage() {
             Returns & Refunds
           </h1>
           <p className='text-lg text-muted-foreground'>
-            We want you to be completely satisfied with your purchase.
-            Here's everything you need to know about our return process.
+            We want you to be completely satisfied with your purchase. Here's
+            everything you need to know about our return process.
           </p>
         </div>
 
@@ -92,9 +92,8 @@ export default function ReturnsPage() {
                 <div>
                   <h3 className='font-medium'>Start Your Return</h3>
                   <p className='text-muted-foreground'>
-                    Log into your account and go to "My Orders". Click
-                    "Return Item" next to the order you want to
-                    return.
+                    Log into your account and go to "My Orders". Click "Return
+                    Item" next to the order you want to return.
                   </p>
                 </div>
               </div>
@@ -106,8 +105,8 @@ export default function ReturnsPage() {
                 <div>
                   <h3 className='font-medium'>Select Reason & Items</h3>
                   <p className='text-muted-foreground'>
-                    Choose why you're returning the item and select which
-                    items you want to return.
+                    Choose why you're returning the item and select which items
+                    you want to return.
                   </p>
                 </div>
               </div>
@@ -119,8 +118,8 @@ export default function ReturnsPage() {
                 <div>
                   <h3 className='font-medium'>Package Your Return</h3>
                   <p className='text-muted-foreground'>
-                    Package your item securely. You'll need to arrange your
-                    own return shipping and cover the costs.
+                    Package your item securely. You'll need to arrange your own
+                    return shipping and cover the costs.
                   </p>
                 </div>
               </div>
@@ -145,8 +144,8 @@ export default function ReturnsPage() {
                 <div>
                   <h3 className='font-medium'>Receive Refund</h3>
                   <p className='text-muted-foreground'>
-                    Once we receive and inspect your return, we'll process
-                    your refund within 3-5 business days.
+                    Once we receive and inspect your return, we'll process your
+                    refund within 3-5 business days.
                   </p>
                 </div>
               </div>
@@ -220,8 +219,8 @@ export default function ReturnsPage() {
                       depending on your bank
                     </li>
                     <li>
-                      • <strong>Email Confirmation:</strong> You'll receive
-                      an email when your refund is processed
+                      • <strong>Email Confirmation:</strong> You'll receive an
+                      email when your refund is processed
                     </li>
                   </ul>
                 </div>
@@ -243,8 +242,8 @@ export default function ReturnsPage() {
                 </CardHeader>
                 <CardContent>
                   <p className='text-sm text-muted-foreground'>
-                    We'll arrange for a replacement or full refund,
-                    including return shipping costs.
+                    We'll arrange for a replacement or full refund, including
+                    return shipping costs.
                   </p>
                 </CardContent>
               </Card>
@@ -253,8 +252,8 @@ export default function ReturnsPage() {
                 <CardHeader>
                   <CardTitle>Wrong Items</CardTitle>
                   <CardDescription>
-                    If you receive the wrong item, we'll cover all return
-                    costs and expedite your correct order.
+                    If you receive the wrong item, we'll cover all return costs
+                    and expedite your correct order.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -287,8 +286,8 @@ export default function ReturnsPage() {
           <section className='bg-slate-50 rounded-lg p-6'>
             <h2 className='text-2xl font-semibold mb-4'>Need Help?</h2>
             <p className='text-muted-foreground mb-4'>
-              If you have questions about returns or need assistance, we're
-              here to help.
+              If you have questions about returns or need assistance, we're here
+              to help.
             </p>
             <div className='flex flex-col sm:flex-row gap-4'>
               <Button asChild>

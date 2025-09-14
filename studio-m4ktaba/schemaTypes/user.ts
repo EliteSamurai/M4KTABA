@@ -153,7 +153,7 @@ export default defineType({
       of: [
         {
           type: 'reference',
-          to: [{ type: 'order' }], // Reference to the order document type
+          to: [{type: 'order'}], // Reference to the order document type
         },
       ],
       description: 'Past orders that the user has completed.',

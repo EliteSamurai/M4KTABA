@@ -1,26 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
+import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
-    const paymentIntentId = searchParams.get("payment_intent");
+    const paymentIntentId = searchParams.get('payment_intent');
 
     if (!paymentIntentId) {
       return NextResponse.json(
-        { error: "Payment Intent ID is required" },
+        { error: 'Payment Intent ID is required' },
         { status: 400 }
       );
     }
 
     // Retrieve PaymentIntent
-    const paymentIntent = await (stripe as any).paymentIntents.retrieve(paymentIntentId);
+    const paymentIntent = await (stripe as any).paymentIntents.retrieve(
+      paymentIntentId
+    );
 
     if (!paymentIntent) {
       return NextResponse.json(
-        { error: "Payment Intent not found" },
+        { error: 'Payment Intent not found' },
         { status: 404 }
       );
     }
@@ -39,9 +41,9 @@ export async function GET(req: NextRequest) {
       metadata: paymentIntent.metadata, // Include metadata for cart details
     });
   } catch (error) {
-    console.error("Error retrieving PaymentIntent:", error);
+    console.error('Error retrieving PaymentIntent:', error);
     return NextResponse.json(
-      { error: "Failed to fetch receipt" },
+      { error: 'Failed to fetch receipt' },
       { status: 500 }
     );
   }

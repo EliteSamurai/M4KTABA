@@ -92,8 +92,7 @@ export default async function PostPage({
       <div className='flex min-h-[40vh] flex-col items-center justify-center gap-2'>
         <h1 className='text-2xl font-bold'>Post not found</h1>
         <p className='text-muted-foreground'>
-          The post you're looking for doesn't exist or has been
-          removed.
+          The post you're looking for doesn't exist or has been removed.
         </p>
         <Button asChild variant='outline' className='mt-4'>
           <Link href='/blog'>

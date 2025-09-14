@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const CartItemSchema = z.object({
   id: z.string().min(1),
@@ -52,7 +52,7 @@ export const SearchQuerySchema = z.object({
   condition: z.string().optional(),
   price_min: z.coerce.number().optional(),
   price_max: z.coerce.number().optional(),
-  sort: z.enum(["new", "price_asc", "price_desc"]).optional(),
+  sort: z.enum(['new', 'price_asc', 'price_desc']).optional(),
   page: z.coerce.number().min(1).optional(),
   limit: z.coerce.number().min(1).max(50).optional(),
 });

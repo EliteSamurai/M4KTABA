@@ -7,7 +7,7 @@ const router = {
 };
 
 const useRouter = () => router;
-const usePathname = () => "/";
+const usePathname = () => '/';
 const useSearchParams = () => new URLSearchParams();
 const redirect = jest.fn();
 const notFound = jest.fn();

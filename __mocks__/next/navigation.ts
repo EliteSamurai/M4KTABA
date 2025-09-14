@@ -15,7 +15,7 @@ const searchParams = new URLSearchParams();
 export const useRouter = jest.fn(() => router);
 export const useSearchParams = jest.fn(() => searchParams);
 export const useParams = jest.fn(() => ({}));
-export const usePathname = jest.fn(() => "/");
+export const usePathname = jest.fn(() => '/');
 export const redirect = jest.fn();
 export const notFound = jest.fn();
 

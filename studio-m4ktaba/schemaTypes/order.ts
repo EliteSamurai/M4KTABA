@@ -41,10 +41,10 @@ export default defineType({
               type: 'string',
               options: {
                 list: [
-                  { title: 'Pending', value: 'pending' },
-                  { title: 'Shipped', value: 'shipped' },
-                  { title: 'Delivered', value: 'delivered' },
-                  { title: 'Cancelled', value: 'cancelled' },
+                  {title: 'Pending', value: 'pending'},
+                  {title: 'Shipped', value: 'shipped'},
+                  {title: 'Delivered', value: 'delivered'},
+                  {title: 'Cancelled', value: 'cancelled'},
                 ],
               },
             },

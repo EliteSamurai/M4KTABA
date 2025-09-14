@@ -1,21 +1,21 @@
-import "../env/load";
+import '../env/load';
 /* eslint-disable no-console */
 import {
   readClient,
   writeClient,
   assertWritePermissions,
-} from "@/lib/sanity-clients";
+} from '@/lib/sanity-clients';
 /* eslint-disable no-console */
 
 async function preflight() {
-  if (process.env.NODE_ENV === "production")
-    throw new Error("Do not cleanup in production");
+  if (process.env.NODE_ENV === 'production')
+    throw new Error('Do not cleanup in production');
   await assertWritePermissions();
 }
 
 async function main() {
-  if (process.env.NODE_ENV === "production")
-    throw new Error("Do not cleanup in production");
+  if (process.env.NODE_ENV === 'production')
+    throw new Error('Do not cleanup in production');
   const ids: string[] = await (readClient as any).fetch(
     `array::compact((*[ _type in ["event_outbox","dlq","stripe_events"]]._id))`
   );
@@ -25,7 +25,7 @@ async function main() {
   console.log(`Deleted ${ids.length} docs from queues types`);
 }
 
-main().catch((e) => {
+main().catch(e => {
   console.error(e);
   process.exit(1);
 });

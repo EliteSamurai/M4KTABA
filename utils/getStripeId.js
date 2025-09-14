@@ -1,4 +1,4 @@
-import { readClient } from "@/studio-m4ktaba/client";
+import { readClient } from '@/studio-m4ktaba/client';
 
 export async function getStripeAccountId(userId) {
   return await readClient.fetch(

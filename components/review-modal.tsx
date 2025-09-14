@@ -1,9 +1,9 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Star } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import { useState } from 'react';
+import { Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -11,8 +11,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { useToast } from "@/hooks/use-toast"
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -41,9 +41,9 @@ export function ReviewModal({
   const handleSubmit = async () => {
     if (!rating) {
       toast({
-        title: "Rating Required",
-        description: "Please select a rating before submitting.",
-        variant: "destructive",
+        title: 'Rating Required',
+        description: 'Please select a rating before submitting.',
+        variant: 'destructive',
       });
       return;
     }
@@ -52,18 +52,18 @@ export function ReviewModal({
     try {
       await onSubmit();
       toast({
-        title: "Review Submitted",
-        description: "Thank you for your feedback!",
+        title: 'Review Submitted',
+        description: 'Thank you for your feedback!',
       });
       onClose();
     } catch (error) {
       if (error instanceof Error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+        toast({
+          title: 'Error',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -71,53 +71,55 @@ export function ReviewModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className='sm:max-w-[425px]'>
         <DialogHeader>
           <DialogTitle>Leave a Review</DialogTitle>
           <DialogDescription>
-            Share your experience with this seller. Your feedback helps others make
-            informed decisions.
+            Share your experience with this seller. Your feedback helps others
+            make informed decisions.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="flex items-center justify-center space-x-1">
-            {[1, 2, 3, 4, 5].map((star) => (
+        <div className='grid gap-4 py-4'>
+          <div className='flex items-center justify-center space-x-1'>
+            {[1, 2, 3, 4, 5].map(star => (
               <button
                 key={star}
-                type="button"
-                className="focus:outline-none"
+                type='button'
+                className='focus:outline-none'
                 onClick={() => setRating(star)}
                 onMouseEnter={() => setHoveredRating(star)}
                 onMouseLeave={() => setHoveredRating(null)}
               >
                 <Star
                   className={`h-8 w-8 transition-colors ${
-                    (hoveredRating !== null
-                      ? star <= hoveredRating
-                      : star <= (rating || 0))
-                      ? "fill-yellow-400 text-yellow-400"
-                      : "text-muted-foreground"
+                    (
+                      hoveredRating !== null
+                        ? star <= hoveredRating
+                        : star <= (rating || 0)
+                    )
+                      ? 'fill-yellow-400 text-yellow-400'
+                      : 'text-muted-foreground'
                   }`}
                 />
-                <span className="sr-only">Rate {star} stars</span>
+                <span className='sr-only'>Rate {star} stars</span>
               </button>
             ))}
           </div>
-          <div className="grid gap-2">
+          <div className='grid gap-2'>
             <Textarea
-              placeholder="Write your review here..."
+              placeholder='Write your review here...'
               value={reviewText}
-              onChange={(e) => setReviewText(e.target.value)}
-              className="min-h-[100px] resize-none"
+              onChange={e => setReviewText(e.target.value)}
+              className='min-h-[100px] resize-none'
             />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <Button variant='outline' onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Submit Review"}
+            {isSubmitting ? 'Submitting...' : 'Submit Review'}
           </Button>
         </DialogFooter>
       </DialogContent>

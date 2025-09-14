@@ -217,7 +217,11 @@ export async function POST(req: Request) {
 
   try {
     const payload = await req.text();
-    event = (stripe as any).webhooks.constructEvent(payload, sig, webhookSecret);
+    event = (stripe as any).webhooks.constructEvent(
+      payload,
+      sig,
+      webhookSecret
+    );
     console.log(event);
   } catch (error) {
     if (error instanceof Error) {

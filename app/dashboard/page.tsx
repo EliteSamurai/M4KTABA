@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
-import { OverviewCards } from "@/components/overview-cards";
-import { TransactionsTable } from "@/components/transactions-table";
-import { PayoutsList } from "@/components/payouts-list";
-import { BalanceData, Transaction, Payout } from "@/types/stripe";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useSession } from "next-auth/react";
-import { getStripeAccountId } from "@/utils/getStripeId";
+import { OverviewCards } from '@/components/overview-cards';
+import { TransactionsTable } from '@/components/transactions-table';
+import { PayoutsList } from '@/components/payouts-list';
+import { BalanceData, Transaction, Payout } from '@/types/stripe';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useSession } from 'next-auth/react';
+import { getStripeAccountId } from '@/utils/getStripeId';
 
 export default function StripeDashboard() {
   const [loading, setLoading] = useState(true);
@@ -35,12 +35,12 @@ export default function StripeDashboard() {
         console.log(result);
 
         if (!response.ok) {
-          throw new Error(result.message || "Failed to fetch dashboard data");
+          throw new Error(result.message || 'Failed to fetch dashboard data');
         }
 
         setData(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
@@ -51,15 +51,15 @@ export default function StripeDashboard() {
 
   if (loading) {
     return (
-      <div className="flex h-[200px] items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin" />
+      <div className='flex h-[200px] items-center justify-center'>
+        <Loader2 className='h-6 w-6 animate-spin' />
       </div>
     );
   }
 
   if (error) {
     return (
-      <Alert variant="destructive">
+      <Alert variant='destructive'>
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>{error}</AlertDescription>
       </Alert>
@@ -71,21 +71,21 @@ export default function StripeDashboard() {
   }
 
   return (
-    <div className="container mx-auto space-y-8 py-6 min-h-screen">
+    <div className='container mx-auto space-y-8 py-6 min-h-screen'>
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">
+        <h2 className='text-3xl font-bold tracking-tight'>Dashboard</h2>
+        <p className='text-muted-foreground'>
           Overview of your payment activity
         </p>
       </div>
 
       <OverviewCards balance={data.balance} volume={data.volume} />
 
-      <div className="grid gap-8 md:grid-cols-7">
-        <div className="md:col-span-4">
+      <div className='grid gap-8 md:grid-cols-7'>
+        <div className='md:col-span-4'>
           <TransactionsTable transactions={data.transactions} />
         </div>
-        <div className="md:col-span-3">
+        <div className='md:col-span-3'>
           <PayoutsList payouts={data.payouts} />
         </div>
       </div>

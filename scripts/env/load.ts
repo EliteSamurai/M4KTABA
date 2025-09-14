@@ -1,18 +1,18 @@
-import fs from "node:fs";
-import path from "node:path";
-import * as dotenv from "dotenv";
+import fs from 'node:fs';
+import path from 'node:path';
+import * as dotenv from 'dotenv';
 let dotenvExpand: undefined | ((r: any) => any);
 try {
   // optional: only used if present
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  dotenvExpand = require("dotenv-expand").expand;
+  dotenvExpand = require('dotenv-expand').expand;
 } catch {
   // no-op; we'll continue without expansion
 }
 
 const root = process.cwd();
 
-const candidates = [".env.local", ".env.development.local", ".env"];
+const candidates = ['.env.local', '.env.development.local', '.env'];
 
 let loadedFile: string | null = null;
 for (const file of candidates) {
@@ -24,7 +24,7 @@ for (const file of candidates) {
     } else {
       // eslint-disable-next-line no-console
       console.warn(
-        "[env] dotenv-expand not installed; skipping ${VAR} expansion"
+        '[env] dotenv-expand not installed; skipping ${VAR} expansion'
       );
     }
     loadedFile = file;
@@ -37,6 +37,6 @@ for (const file of candidates) {
 if (!loadedFile) {
   // eslint-disable-next-line no-console
   console.warn(
-    "[env] no .env file found in project root; relying on process env"
+    '[env] no .env file found in project root; relying on process env'
   );
 }

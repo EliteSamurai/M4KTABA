@@ -1,5 +1,5 @@
-"use client";
-import { useEffect, useRef } from "react";
+'use client';
+import { useEffect, useRef } from 'react';
 
 export function useFocusRestore(active: boolean) {
   const prev = useRef<HTMLElement | null>(null);

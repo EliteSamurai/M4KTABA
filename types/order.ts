@@ -17,7 +17,7 @@ export interface ShippingDetails {
 
 export interface Order {
   _id: string;
-  status: "pending" | "paid" | "shipped" | "delivered" | "disputed";
+  status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'disputed';
   buyer: {
     _ref: string;
     email: string;

@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { readClient } from "@/studio-m4ktaba/client";
+import { NextResponse } from 'next/server';
+import { readClient } from '@/studio-m4ktaba/client';
 
 export async function GET() {
   const items = await (readClient as any).fetch(

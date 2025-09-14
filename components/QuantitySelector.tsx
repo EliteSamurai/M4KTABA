@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Minus, Plus } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Minus, Plus } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface QuantitySelectorProps {
   bookId: string;
@@ -20,7 +20,7 @@ export default function QuantitySelector({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (bookId !== "honey-001") {
+    if (bookId !== 'honey-001') {
       const fetchAvailability = async () => {
         try {
           const res = await fetch(`/api/check-availability/${bookId}`);
@@ -32,7 +32,7 @@ export default function QuantitySelector({
             setAvailableQuantity(0);
           }
         } catch (error) {
-          console.error("Error fetching availability:", error);
+          console.error('Error fetching availability:', error);
         } finally {
           setLoading(false);
         }
@@ -58,35 +58,35 @@ export default function QuantitySelector({
   };
 
   if (loading) {
-    return <Skeleton className="h-10 w-32" />;
+    return <Skeleton className='h-10 w-32' />;
   }
 
   if (availableQuantity <= 1) return null;
 
   return (
-    <div className="inline-flex items-center rounded-md border">
+    <div className='inline-flex items-center rounded-md border'>
       <Button
-        variant="ghost"
-        size="icon"
+        variant='ghost'
+        size='icon'
         onClick={decrement}
         disabled={quantity === 1}
-        className="h-10 w-10 rounded-none border-r"
-        aria-label="Decrease quantity"
+        className='h-10 w-10 rounded-none border-r'
+        aria-label='Decrease quantity'
       >
-        <Minus className="h-4 w-4" />
+        <Minus className='h-4 w-4' />
       </Button>
-      <div className="flex h-10 w-14 items-center justify-center text-center font-medium">
+      <div className='flex h-10 w-14 items-center justify-center text-center font-medium'>
         {quantity}
       </div>
       <Button
-        variant="ghost"
-        size="icon"
+        variant='ghost'
+        size='icon'
         onClick={increment}
         disabled={quantity >= availableQuantity}
-        className="h-10 w-10 rounded-none border-l"
-        aria-label="Increase quantity"
+        className='h-10 w-10 rounded-none border-l'
+        aria-label='Increase quantity'
       >
-        <Plus className="h-4 w-4" />
+        <Plus className='h-4 w-4' />
       </Button>
     </div>
   );
