@@ -510,9 +510,11 @@ export function CheckoutContent() {
 
   // For synthetic tests, render the form even without session
   // Check for synthetic test by looking for specific query params or user agent
-  const isSyntheticTest = searchParams?.get('synthetic') === 'true' || 
-                         (typeof window !== 'undefined' && window.navigator?.userAgent?.includes('HeadlessChrome'));
-  
+  const isSyntheticTest =
+    searchParams?.get('synthetic') === 'true' ||
+    (typeof window !== 'undefined' &&
+      window.navigator?.userAgent?.includes('HeadlessChrome'));
+
   if (!testSession && !isSyntheticTest) return null;
 
   return (
