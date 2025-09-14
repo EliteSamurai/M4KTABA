@@ -16,11 +16,11 @@ async function preflight() {
 async function main() {
   if (process.env.NODE_ENV === "production")
     throw new Error("Do not cleanup in production");
-  const ids: string[] = await readClient.fetch(
+  const ids: string[] = await (readClient as any).fetch(
     `array::compact((*[ _type in ["event_outbox","dlq","stripe_events"]]._id))`
   );
   for (const id of ids) {
-    await writeClient.delete(id);
+    await (writeClient as any).delete(id);
   }
   console.log(`Deleted ${ids.length} docs from queues types`);
 }

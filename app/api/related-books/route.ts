@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch related books from the same category, excluding the current book
-    const relatedBooks = await readClient.fetch(
+    const relatedBooks = await (readClient as any).fetch(
       `*[_type == "book" && selectedCategory._ref == $categoryId && _id != $bookId && quantity > 0] | order(_createdAt desc)[0...$limit]{
         _id,
         title,

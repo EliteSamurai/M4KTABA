@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React, { createContext, useState, useContext, useEffect } from "react";
-import { CartItem } from "@/types/shipping-types";
-import { signOut } from "next-auth/react";
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { CartItem } from '@/types/shipping-types';
+import { signOut } from 'next-auth/react';
 
 type CartContextType = {
   cart: CartItem[];
@@ -25,7 +25,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     const loadCartFromLocalStorage = () => {
-      const storedCart = localStorage.getItem("cart");
+      const storedCart = localStorage.getItem('cart');
       if (storedCart) {
         setCart(JSON.parse(storedCart));
       }
@@ -36,31 +36,31 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const syncCartWithBackend = async (updatedCart: CartItem[]) => {
     try {
-      const response = await fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cart: updatedCart }),
       });
 
       if (!response.ok) {
-        console.error("Error syncing cart:", await response.text());
+        console.error('Error syncing cart:', await response.text());
       } else {
-        console.log("Cart synced successfully");
+        console.log('Cart synced successfully');
       }
     } catch (error) {
-      console.error("Failed to sync cart with backend", error);
+      console.error('Failed to sync cart with backend', error);
     }
   };
 
   const updateLocalStorage = (updatedCart: CartItem[]) => {
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
   };
 
   const addToCart = (item: CartItem) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
+    setCart(prevCart => {
+      const existingItem = prevCart.find(cartItem => cartItem.id === item.id);
       const updatedCart = existingItem
-        ? prevCart.map((cartItem) =>
+        ? prevCart.map(cartItem =>
             cartItem.id === item.id
               ? { ...cartItem, quantity: cartItem.quantity + item.quantity }
               : cartItem
@@ -73,8 +73,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const removeFromCart = (id: string) => {
-    setCart((prevCart) => {
-      const updatedCart = prevCart.filter((item) => item.id !== id);
+    setCart(prevCart => {
+      const updatedCart = prevCart.filter(item => item.id !== id);
       updateLocalStorage(updatedCart);
       syncCartWithBackend(updatedCart);
       return updatedCart;
@@ -82,8 +82,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const updateItemQuantity = (id: string, quantity: number) => {
-    setCart((prevCart) => {
-      const updatedCart = prevCart.map((item) =>
+    setCart(prevCart => {
+      const updatedCart = prevCart.map(item =>
         item.id === id ? { ...item, quantity } : item
       );
       updateLocalStorage(updatedCart);
@@ -114,7 +114,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const isInCart = (id: string) => {
-    return cart.some((item) => item.id === id);
+    return cart.some(item => item.id === id);
   };
 
   return (
@@ -139,7 +139,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error("useCart must be used within a CartProvider");
+    throw new Error('useCart must be used within a CartProvider');
   }
   return context;
 };

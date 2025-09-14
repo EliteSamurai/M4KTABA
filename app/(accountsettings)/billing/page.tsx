@@ -1,22 +1,17 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import {
-  Loader2,
-  ArrowRight,
-  ExternalLink,
-  Info as InfoCircle,
-} from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useState, useEffect } from 'react';
+import { Loader2, ExternalLink } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+} from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import {
   Card,
   CardContent,
@@ -24,9 +19,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import Link from "next/link";
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import Link from 'next/link';
 import {
   Table,
   TableBody,
@@ -34,12 +29,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { format } from "date-fns";
-import { CartItem } from "@/types/shipping-types";
-import { ReviewModal } from "@/components/review-modal";
-import { useToast } from "@/hooks/use-toast";
-import RefundModal from "@/components/refund-modal";
+} from '@/components/ui/table';
+import { format } from 'date-fns';
+import { CartItem } from '@/types/shipping-types';
+import { ReviewModal } from '@/components/review-modal';
+import { useToast } from '@/hooks/use-toast';
+import RefundModal from '@/components/refund-modal';
 
 interface Order {
   _id: string;
@@ -50,10 +45,10 @@ interface Order {
 
 export default function BillingPage() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
-  const [reviewText, setReviewText] = useState("");
+  const [reviewText, setReviewText] = useState('');
   const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
@@ -61,9 +56,9 @@ export default function BillingPage() {
   const [selectedCartItemId, setSelectedCartItemId] = useState<string | null>(
     null
   );
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [, setIsSubmittingReview] = useState(false);
   const [maxRefundAmount, setMaxRefundAmount] = useState<number>(0);
-  const [itemTitle, setItemTitle] = useState<string>("");
+  const [itemTitle, setItemTitle] = useState<string>('');
   const { toast } = useToast();
   const { data: session } = useSession();
 
@@ -71,21 +66,21 @@ export default function BillingPage() {
     const fetchOrderHistory = async () => {
       if (!session?.user?.stripeAccountId) {
         console.warn(
-          "Stripe account ID is missing. Skipping order history fetch."
+          'Stripe account ID is missing. Skipping order history fetch.'
         );
         return;
       }
 
       try {
-        const response = await fetch("/api/orders");
+        const response = await fetch('/api/orders');
         if (!response.ok) {
-          throw new Error("Failed to fetch order history");
+          throw new Error('Failed to fetch order history');
         }
         const data = await response.json();
         setOrders(data.orders || []);
       } catch (err) {
         if (err instanceof Error) {
-          setError(err.message || "An error occurred while fetching orders.");
+          setError(err.message || 'An error occurred while fetching orders.');
         }
       }
     };
@@ -101,9 +96,9 @@ export default function BillingPage() {
   const handleSubmitReview = async () => {
     if (rating === null) {
       toast({
-        title: "Error",
-        description: "Please select a rating.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Please select a rating.',
+        variant: 'destructive',
       });
       return;
     }
@@ -112,9 +107,9 @@ export default function BillingPage() {
 
     if (reviewText && reviewText.trim().length > 500) {
       toast({
-        title: "Warning",
-        description: "Review text should be under 500 characters.",
-        variant: "destructive",
+        title: 'Warning',
+        description: 'Review text should be under 500 characters.',
+        variant: 'destructive',
       });
       return;
     }
@@ -126,9 +121,9 @@ export default function BillingPage() {
 
     try {
       const response = await fetch(`/api/sellers/${selectedSellerId}/reviews`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(reviewPayload),
       });
@@ -137,29 +132,29 @@ export default function BillingPage() {
 
       if (response.ok) {
         toast({
-          title: "Success",
-          description: "Review submitted successfully!",
-          variant: "default",
+          title: 'Success',
+          description: 'Review submitted successfully!',
+          variant: 'default',
         });
         setRating(null);
-        setReviewText("");
+        setReviewText('');
         setIsReviewModalOpen(false);
         setIsSubmittingReview(false);
       } else {
         toast({
-          title: "Error",
+          title: 'Error',
           description: `Failed to submit review: ${
-            data.message || "Unknown error"
+            data.message || 'Unknown error'
           }`,
-          variant: "destructive",
+          variant: 'destructive',
         });
       }
     } catch (error) {
-      console.error("Error submitting review:", error);
+      console.error('Error submitting review:', error);
       toast({
-        title: "Error",
-        description: "An error occurred while submitting the review.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'An error occurred while submitting the review.',
+        variant: 'destructive',
       });
     }
   };
@@ -187,9 +182,9 @@ export default function BillingPage() {
       const response = await fetch(
         `/api/orders/${selectedOrderId}/request-refund`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             orderId: selectedOrderId,
@@ -204,23 +199,23 @@ export default function BillingPage() {
 
       if (response.ok) {
         toast({
-          title: "Refund Requested",
+          title: 'Refund Requested',
           description:
-            "Your refund request has been submitted successfully. Be sure to check your junk email.",
+            'Your refund request has been submitted successfully. Be sure to check your junk email.',
         });
       } else {
         toast({
-          title: "Error",
+          title: 'Error',
           description: data.message,
-          variant: "destructive",
+          variant: 'destructive',
         });
       }
     } catch (error) {
-      console.error("Error requesting refund:", error);
+      console.error('Error requesting refund:', error);
       toast({
-        title: "Error",
-        description: "Failed to submit refund request. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to submit refund request. Please try again.',
+        variant: 'destructive',
       });
     }
   };
@@ -230,13 +225,13 @@ export default function BillingPage() {
 
     try {
       const token =
-        document.cookie.match(/(?:^|; )csrf_token=([^;]+)/)?.[1] || "";
-      const response = await fetch("/api/connect/account-link", {
-        method: "POST",
-        headers: { "x-csrf-token": token },
+        document.cookie.match(/(?:^|; )csrf_token=([^;]+)/)?.[1] || '';
+      const response = await fetch('/api/connect/account-link', {
+        method: 'POST',
+        headers: { 'x-csrf-token': token },
       });
 
-      if (!response.ok) throw new Error("Failed to get Stripe link");
+      if (!response.ok) throw new Error('Failed to get Stripe link');
 
       const data = await response.json();
 
@@ -244,17 +239,17 @@ export default function BillingPage() {
         window.location.href = data.url;
       } else {
         toast({
-          title: "Error",
-          description: "Could not retrieve Stripe link.",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Could not retrieve Stripe link.',
+          variant: 'destructive',
         });
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Something went wrong. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -262,18 +257,18 @@ export default function BillingPage() {
   };
 
   useEffect(() => {
-    if (window.location.search.includes("onboarding=success")) {
+    if (window.location.search.includes('onboarding=success')) {
       toast({
-        title: "Success",
-        description: "Stripe account created successfully!",
+        title: 'Success',
+        description: 'Stripe account created successfully!',
       });
     }
   }, []);
 
   if (!session) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">
+      <div className='min-h-screen flex items-center justify-center'>
+        <p className='text-muted-foreground'>
           You must be logged in to view this page.
         </p>
       </div>
@@ -281,22 +276,22 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">
+    <div className='min-h-screen'>
+      <div className='mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8'>
+        <div className='space-y-2'>
+          <h1 className='text-3xl font-bold tracking-tight'>
             Billing Settings
           </h1>
-          <p className="text-muted-foreground">
+          <p className='text-muted-foreground'>
             Manage your billing information and view your payment history.
           </p>
         </div>
 
-        <div className="mt-8 grid gap-8">
+        <div className='mt-8 grid gap-8'>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ExternalLink className="h-5 w-5" />
+              <CardTitle className='flex items-center gap-2'>
+                <ExternalLink className='h-5 w-5' />
                 Stripe Account
               </CardTitle>
               <CardDescription>
@@ -304,9 +299,9 @@ export default function BillingPage() {
               </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-4">
+            <CardContent className='space-y-4'>
               {error && (
-                <Alert variant="destructive">
+                <Alert variant='destructive'>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
@@ -314,55 +309,55 @@ export default function BillingPage() {
 
             <CardFooter>
               <Button
-                className="w-full"
-                size="lg"
+                className='w-full'
+                size='lg'
                 onClick={handleStripeButtonClick}
                 disabled={loading}
               >
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {loading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                 {session?.user?.stripeAccountId
-                  ? "View Stripe Dashboard"
-                  : "Connect Stripe Account"}
+                  ? 'View Stripe Dashboard'
+                  : 'Connect Stripe Account'}
               </Button>
             </CardFooter>
           </Card>
         </div>
 
-        <div className="mt-12">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h2 className="text-2xl font-semibold tracking-tight">
+        <div className='mt-12'>
+          <div className='flex items-center justify-between'>
+            <div className='space-y-1'>
+              <h2 className='text-2xl font-semibold tracking-tight'>
                 Order History
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className='text-sm text-muted-foreground'>
                 View and manage your previous orders
               </p>
             </div>
           </div>
-          <Separator className="my-4" />
+          <Separator className='my-4' />
 
-          <div className="space-y-4">
-            {orders.map((order) => (
+          <div className='space-y-4'>
+            {orders.map(order => (
               <Card key={order._id}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-base">
+                <CardHeader className='pb-3'>
+                  <div className='flex items-center justify-between'>
+                    <div className='space-y-1'>
+                      <CardTitle className='text-base'>
                         Order #{order._id.slice(-8)}
                       </CardTitle>
                       <CardDescription>
-                        {format(new Date(order._createdAt), "PPP")}
+                        {format(new Date(order._createdAt), 'PPP')}
                       </CardDescription>
                     </div>
                     <Badge
                       variant={
-                        order.status === "completed"
-                          ? "default"
-                          : order.status === "pending"
-                          ? "secondary"
-                          : order.status === "refunded"
-                          ? "outline"
-                          : "destructive"
+                        order.status === 'completed'
+                          ? 'default'
+                          : order.status === 'pending'
+                            ? 'secondary'
+                            : order.status === 'refunded'
+                              ? 'outline'
+                              : 'destructive'
                       }
                     >
                       {order.status.charAt(0).toUpperCase() +
@@ -370,10 +365,10 @@ export default function BillingPage() {
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="pb-1">
-                  <Accordion type="single" collapsible>
-                    <AccordionItem value="items">
-                      <AccordionTrigger className="text-sm">
+                <CardContent className='pb-1'>
+                  <Accordion type='single' collapsible>
+                    <AccordionItem value='items'>
+                      <AccordionTrigger className='text-sm'>
                         View Order Items
                       </AccordionTrigger>
                       <AccordionContent>
@@ -381,13 +376,13 @@ export default function BillingPage() {
                           <TableHeader>
                             <TableRow>
                               <TableHead>Item</TableHead>
-                              <TableHead className="w-[100px] text-right">
+                              <TableHead className='w-[100px] text-right'>
                                 Quantity
                               </TableHead>
-                              <TableHead className="w-[100px] text-right">
+                              <TableHead className='w-[100px] text-right'>
                                 Price
                               </TableHead>
-                              <TableHead className="w-[200px] text-right">
+                              <TableHead className='w-[200px] text-right'>
                                 Actions
                               </TableHead>
                             </TableRow>
@@ -395,33 +390,33 @@ export default function BillingPage() {
                           <TableBody>
                             {order.cart.map((item, index) => (
                               <TableRow key={index}>
-                                <TableCell className="font-medium">
+                                <TableCell className='font-medium'>
                                   {item.title}
                                 </TableCell>
-                                <TableCell className="text-right">
+                                <TableCell className='text-right'>
                                   {item.quantity}
                                 </TableCell>
-                                <TableCell className="text-right">
+                                <TableCell className='text-right'>
                                   ${item.price.toFixed(2)}
                                 </TableCell>
-                                <TableCell className="text-right">
-                                  <div className="flex justify-end gap-2">
+                                <TableCell className='text-right'>
+                                  <div className='flex justify-end gap-2'>
                                     <Button
-                                      variant="outline"
-                                      size="sm"
+                                      variant='outline'
+                                      size='sm'
                                       onClick={() => {
                                         if (item?.user?._id) {
                                           handleLeaveReview(item.user._id);
                                         } else {
-                                          console.error("User ID is missing");
+                                          console.error('User ID is missing');
                                         }
                                       }}
                                     >
                                       Rate Seller
                                     </Button>
                                     <Button
-                                      variant="outline"
-                                      size="sm"
+                                      variant='outline'
+                                      size='sm'
                                       onClick={() =>
                                         handleRefundClick(
                                           order._id,
@@ -439,9 +434,9 @@ export default function BillingPage() {
                             ))}
                           </TableBody>
                         </Table>
-                        <div className="mt-4 flex justify-between border-t pt-4">
-                          <span className="text-sm font-medium">Total</span>
-                          <span className="text-sm font-medium">
+                        <div className='mt-4 flex justify-between border-t pt-4'>
+                          <span className='text-sm font-medium'>Total</span>
+                          <span className='text-sm font-medium'>
                             $
                             {order.cart
                               .reduce(
@@ -461,15 +456,15 @@ export default function BillingPage() {
 
           {orders.length === 0 && (
             <Card>
-              <CardContent className="flex min-h-[120px] pt-5 flex-col items-center justify-center space-y-2 text-center">
-                <div className="text-sm text-muted-foreground">
+              <CardContent className='flex min-h-[120px] pt-5 flex-col items-center justify-center space-y-2 text-center'>
+                <div className='text-sm text-muted-foreground'>
                   No orders found
                 </div>
                 <Button
-                  variant="link"
-                  className="text-sm text-muted-foreground"
+                  variant='link'
+                  className='text-sm text-muted-foreground'
                 >
-                  <Link href="/all">Start shopping</Link>
+                  <Link href='/all'>Start shopping</Link>
                 </Button>
               </CardContent>
             </Card>

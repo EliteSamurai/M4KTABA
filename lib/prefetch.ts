@@ -1,9 +1,9 @@
-import { CartItem } from "@/types/shipping-types";
+import { CartItem } from '@/types/shipping-types';
 
 export async function prefetchCheckoutData(cart: CartItem[]) {
   try {
     // Warm up address validator module
-    await import("@/app/checkout/address-validator");
+    await import('@/app/checkout/address-validator');
   } catch {}
   try {
     // Optionally prefetch related books/recommendations based on first item
@@ -11,7 +11,7 @@ export async function prefetchCheckoutData(cart: CartItem[]) {
     if (first) {
       const qs = new URLSearchParams({
         bookId: first.id,
-        categoryId: (first as any).categoryId || "",
+        categoryId: (first as { categoryId?: string }).categoryId || '',
       });
       fetch(`/api/related-books?${qs.toString()}`).catch(() => {});
     }

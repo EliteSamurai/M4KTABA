@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Retrieve the Stripe account
-    const account = await stripe.accounts.retrieve(stripeAccountId);
+    const account = await (stripe as any).accounts.retrieve(stripeAccountId);
 
     // Check account requirements
     const { requirements } = account;
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Fetch external accounts (e.g., cards)
-    const externalAccounts = await stripe.accounts.listExternalAccounts(
+    const externalAccounts = await (stripe as any).accounts.listExternalAccounts(
       stripeAccountId,
       {
         object: "card",

@@ -3,7 +3,7 @@ import {readClient, writeClient} from '@/lib/sanity-clients'
 export {readClient, writeClient}
 
 export async function getTopSellers() {
-  return readClient.fetch(`
+  return (readClient as any).fetch(`
     *[_type == "book"] | order(sales desc) [0...5] {
       _id,
       title,
@@ -15,7 +15,7 @@ export async function getTopSellers() {
 }
 
 export async function getAllBooks() {
-  return readClient.fetch(`
+  return (readClient as any).fetch(`
     *[_type == "book"] {
       _id,
       title,
@@ -40,7 +40,7 @@ export async function fetchLatestBooks() {
 }`
 
   try {
-    const latestBooks = await readClient.fetch(query)
+    const latestBooks = await (readClient as any).fetch(query)
     return latestBooks
   } catch (error) {
     console.error('Error fetching latest books:', error)

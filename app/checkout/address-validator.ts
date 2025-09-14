@@ -13,12 +13,13 @@ export async function validateAddressClient(
   signal?: AbortSignal
 ): Promise<{ isValid: boolean }> {
   const base =
-    typeof window !== "undefined" && (window as any).location?.origin
-      ? (window as any).location.origin
-      : "http://localhost";
+    typeof window !== 'undefined' &&
+    (window as { location?: { origin?: string } }).location?.origin
+      ? (window as { location?: { origin?: string } }).location?.origin
+      : 'http://localhost';
   const response = await fetch(`${base}/api/validate-address`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(shippingData),
     signal,
   });

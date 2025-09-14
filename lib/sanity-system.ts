@@ -32,14 +32,14 @@ export type StripeEventDoc = {
 };
 
 export async function fetchOutboxOldest(limit = 50): Promise<EventOutbox[]> {
-  return readClient.fetch(
+  return (readClient as any).fetch(
     `*[_type == "event_outbox" && !defined(processed_at)] | order(created_at asc)[0...$limit]`,
     { limit }
   );
 }
 
 export async function markOutboxProcessed(id: string) {
-  await writeClient
+  await (writeClient as any)
     .patch(id)
     .set({ processed_at: new Date().toISOString(), attempts: 1 })
     .commit();
@@ -51,13 +51,13 @@ export async function enqueueOutbox(
   key?: string
 ) {
   if (key) {
-    const existing = await readClient.fetch(
+    const existing = await (readClient as any).fetch(
       `*[_type == "event_outbox" && key == $key][0]`,
       { key }
     );
     if (existing) return existing._id as string;
   }
-  const doc = await writeClient.create({
+  const doc = await (writeClient as any).create({
     _type: "event_outbox",
     type,
     payload:
@@ -70,13 +70,13 @@ export async function enqueueOutbox(
 }
 
 export async function incOutboxAttemptsOrMoveToDLQ(id: string, reason: string) {
-  const doc = await readClient.fetch(
+  const doc = await (readClient as any).fetch(
     `*[_type == "event_outbox" && _id == $id][0]`,
     { id }
   );
   const attempts = (doc?.attempts || 0) + 1;
   if (attempts >= 5) {
-    await writeClient.create({
+    await (writeClient as any).create({
       _type: "dlq",
       queue: "outbox",
       payload:
@@ -87,25 +87,25 @@ export async function incOutboxAttemptsOrMoveToDLQ(id: string, reason: string) {
       created_at: new Date().toISOString(),
       attempts,
     });
-    await writeClient.delete(id);
+    await (writeClient as any).delete(id);
   } else {
-    await writeClient.patch(id).set({ attempts }).commit();
+    await (writeClient as any).patch(id).set({ attempts }).commit();
   }
 }
 
 export async function dlqList(limit = 100): Promise<DlqDoc[]> {
-  return readClient.fetch(
+  return (readClient as any).fetch(
     `*[_type == "dlq"] | order(created_at desc)[0...$limit]`,
     { limit }
   );
 }
 
 export async function dlqRequeue(id: string) {
-  const item = await readClient.fetch(`*[_type == "dlq" && _id == $id][0]`, {
+  const item = await (readClient as any).fetch(`*[_type == "dlq" && _id == $id][0]`, {
     id,
   });
   if (item) {
-    await writeClient.create({
+    await (writeClient as any).create({
       _type: "event_outbox",
       type: item.queue || "unknown",
       payload:
@@ -115,38 +115,38 @@ export async function dlqRequeue(id: string) {
       created_at: new Date().toISOString(),
       attempts: 0,
     });
-    await writeClient.delete(id);
+    await (writeClient as any).delete(id);
   }
 }
 
 export async function dlqPurge(id: string) {
-  await writeClient.delete(id);
+  await (writeClient as any).delete(id);
 }
 
 export async function stripeEventsUnprocessed(
   limit = 100
 ): Promise<StripeEventDoc[]> {
-  return readClient.fetch(
+  return (readClient as any).fetch(
     `*[_type == "stripe_events" && !defined(processed_at)] | order(created_at asc)[0...$limit]`,
     { limit }
   );
 }
 
 export async function markStripeEventProcessed(id: string) {
-  await writeClient
+  await (writeClient as any)
     .patch(id)
     .set({ processed_at: new Date().toISOString(), attempts: 1 })
     .commit();
 }
 
 export async function incStripeEventAttemptsOrDLQ(id: string, reason: string) {
-  const doc = await readClient.fetch(
+  const doc = await (readClient as any).fetch(
     `*[_type == "stripe_events" && _id == $id][0]`,
     { id }
   );
   const attempts = (doc?.attempts || 0) + 1;
   if (attempts >= 5) {
-    await writeClient.create({
+    await (writeClient as any).create({
       _type: "dlq",
       queue: "stripe_events",
       payload:
@@ -157,8 +157,8 @@ export async function incStripeEventAttemptsOrDLQ(id: string, reason: string) {
       created_at: new Date().toISOString(),
       attempts,
     });
-    await writeClient.delete(id);
+    await (writeClient as any).delete(id);
   } else {
-    await writeClient.patch(id).set({ attempts }).commit();
+    await (writeClient as any).patch(id).set({ attempts }).commit();
   }
 }

@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/options";
-import { writeClient } from "@/studio-m4ktaba/client";
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/options';
+import { writeClient } from '@/studio-m4ktaba/client';
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?._id) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
   try {
@@ -15,27 +15,27 @@ export async function POST(req: Request) {
 
     if (!userId) {
       return NextResponse.json(
-        { message: "Missing user ID." },
+        { message: 'Missing user ID.' },
         { status: 400 }
       );
     }
 
     // Ensure user can only delete their own account
     if (userId !== session.user._id) {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
     // Unpublish the document
-    await writeClient.delete(userId);
+    await (writeClient as any).delete(userId);
 
     return NextResponse.json(
-      { message: "Account deleted successfully." },
+      { message: 'Account deleted successfully.' },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error deleting account:", error);
+    console.error('Error deleting account:', error);
     return NextResponse.json(
-      { message: "Internal server error." },
+      { message: 'Internal server error.' },
       { status: 500 }
     );
   }

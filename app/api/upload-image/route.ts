@@ -1,29 +1,29 @@
-import { writeClient } from "@/studio-m4ktaba/client";
-import { NextResponse } from "next/server";
+import { writeClient } from '@/studio-m4ktaba/client';
+import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
     let file: File | null = null;
     let bookId: string | null = null;
 
-    const contentType = req.headers.get("content-type") || "";
+    const contentType = req.headers.get('content-type') || '';
 
-    if (contentType.includes("multipart/form-data")) {
+    if (contentType.includes('multipart/form-data')) {
       // Handle FormData request (file upload)
       const formData = await req.formData();
-      file = formData.get("file") as File;
-      bookId = formData.get("bookId") as string;
+      file = formData.get('file') as File;
+      bookId = formData.get('bookId') as string;
 
       if (!file) {
         return NextResponse.json(
-          { error: "No file uploaded." },
+          { error: 'No file uploaded.' },
           { status: 400 }
         );
       }
 
       if (!bookId) {
         return NextResponse.json(
-          { error: "Book ID is required." },
+          { error: 'Book ID is required.' },
           { status: 400 }
         );
       }
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       const stream = file.stream() as unknown as NodeJS.ReadableStream;
 
       // Upload the file as an asset to the media store
-      const asset = await writeClient.assets.upload("image", stream, {
+      const asset = await (writeClient as any).assets.upload('image', stream, {
         filename: file.name,
         contentType: file.type,
       });
@@ -43,26 +43,28 @@ export async function POST(req: Request) {
 
       if (!bookId) {
         return NextResponse.json(
-          { error: "Book ID is required." },
+          { error: 'Book ID is required.' },
           { status: 400 }
         );
       }
 
       if (!photos || !Array.isArray(photos)) {
         return NextResponse.json(
-          { error: "Photos array is required." },
+          { error: 'Photos array is required.' },
           { status: 400 }
         );
       }
 
       // Ensure photos have _key property
-      const photosWithKeys = photos.map((photo: any, index: number) => ({
-        ...photo,
-        _key: photo._key || `photo-${index}-${Date.now()}`,
-      }));
+      const photosWithKeys = photos.map(
+        (photo: { _key?: string; [key: string]: unknown }, index: number) => ({
+          ...photo,
+          _key: photo._key || `photo-${index}-${Date.now()}`,
+        })
+      );
 
       // Update the book's photos in Sanity
-      const result = await writeClient
+      const result = await (writeClient as any)
         .patch(bookId)
         .set({ photos: photosWithKeys })
         .commit();
@@ -70,7 +72,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, result });
     }
   } catch (error) {
-    console.error("Upload failed:", error);
-    return NextResponse.json({ error: "Image upload failed" }, { status: 500 });
+    console.error('Upload failed:', error);
+    return NextResponse.json({ error: 'Image upload failed' }, { status: 500 });
   }
 }

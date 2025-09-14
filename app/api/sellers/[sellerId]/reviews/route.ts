@@ -13,7 +13,7 @@ export async function POST(
       });
     }
 
-    const seller = await readClient.fetch(
+    const seller = await (readClient as any).fetch(
       `*[_type == "user" && _id == $sellerId][0]`,
       { sellerId: params.sellerId }
     );
@@ -24,7 +24,7 @@ export async function POST(
       });
     }
 
-    const updatedSeller = await writeClient
+    const updatedSeller = await (writeClient as any)
       .patch(params.sellerId)
       .setIfMissing({ ratings: [] })
       .insert("after", "ratings[-1]", [

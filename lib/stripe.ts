@@ -1,27 +1,27 @@
-import Stripe from "stripe";
+import Stripe from 'stripe';
 
 // Create a build-safe Stripe client
 function createStripeClient() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
-  
+
   if (!secretKey) {
     // Return a mock client during build time
     return {
       paymentIntents: {
         create: async () => {
-          throw new Error("Stripe not configured - missing STRIPE_SECRET_KEY");
-        }
+          throw new Error('Stripe not configured - missing STRIPE_SECRET_KEY');
+        },
       },
       charges: {
         list: async () => {
-          throw new Error("Stripe not configured - missing STRIPE_SECRET_KEY");
-        }
-      }
-    } as any;
+          throw new Error('Stripe not configured - missing STRIPE_SECRET_KEY');
+        },
+      },
+    } as unknown as Partial<Stripe>;
   }
-  
+
   return new Stripe(secretKey, {
-    apiVersion: "2025-02-24.acacia",
+    apiVersion: '2025-02-24.acacia',
     typescript: true,
   });
 }
@@ -35,7 +35,7 @@ export const config = {
 };
 
 export function getPlatformFeeAmount(totalCents: number): number {
-  const bps = Number(process.env.PLATFORM_FEE_BPS || "0");
+  const bps = Number(process.env.PLATFORM_FEE_BPS || '0');
   if (!Number.isFinite(bps) || bps <= 0) return 0;
   return Math.floor((totalCents * bps) / 10_000);
 }
@@ -54,7 +54,9 @@ export type DestinationChargeParams = {
   metadata?: Record<string, string>;
 };
 
-export async function createPaymentIntentWithDestinationCharge(p: DestinationChargeParams) {
+export async function createPaymentIntentWithDestinationCharge(
+  p: DestinationChargeParams
+) {
   const base: Stripe.PaymentIntentCreateParams = {
     amount: p.amountCents,
     currency: p.currency,
@@ -64,8 +66,8 @@ export async function createPaymentIntentWithDestinationCharge(p: DestinationCha
     metadata: {
       orderId: p.orderId,
       buyerId: p.buyerId,
-      sellerIds: p.sellerIds.join(","),
-      lineItemIds: p.lineItemIds.join(","),
+      sellerIds: p.sellerIds.join(','),
+      lineItemIds: p.lineItemIds.join(','),
       ...(p.metadata || {}),
     },
   };
@@ -73,33 +75,35 @@ export async function createPaymentIntentWithDestinationCharge(p: DestinationCha
   // Use destination charges only if there is a single seller with a connected account
   if (p.sellerStripeAccountId) {
     const fee = getPlatformFeeAmount(p.amountCents);
-    (base as any).transfer_data = { destination: p.sellerStripeAccountId };
-    if (fee > 0) (base as any).application_fee_amount = fee;
+    Object.assign(base, {
+      transfer_data: { destination: p.sellerStripeAccountId },
+    });
+    if (fee > 0) Object.assign(base, { application_fee_amount: fee });
   }
 
   const opts: Stripe.RequestOptions = {};
   if (p.idempotencyKey) opts.idempotencyKey = p.idempotencyKey;
-  const pi = await stripe.paymentIntents.create(base, opts);
+  const pi = await (stripe as any).paymentIntents.create(base, opts);
   return pi;
 }
 
-export async function getTransactions(timeframe: "week" | "month" | "year") {
+export async function getTransactions(timeframe: 'week' | 'month' | 'year') {
   const now = new Date();
   const startDate = new Date();
 
   switch (timeframe) {
-    case "week":
+    case 'week':
       startDate.setDate(now.getDate() - 7);
       break;
-    case "month":
+    case 'month':
       startDate.setMonth(now.getMonth() - 1);
       break;
-    case "year":
+    case 'year':
       startDate.setFullYear(now.getFullYear() - 1);
       break;
   }
 
-  const charges = await stripe.charges.list({
+  const charges = await (stripe as any).charges.list({
     created: {
       gte: Math.floor(startDate.getTime() / 1000),
     },
@@ -109,7 +113,12 @@ export async function getTransactions(timeframe: "week" | "month" | "year") {
   return charges.data;
 }
 
-export async function getRevenue(timeframe: "week" | "month" | "year") {
+export async function getRevenue(timeframe: 'week' | 'month' | 'year') {
   const transactions = await getTransactions(timeframe);
-  return transactions.reduce((acc: number, charge: any) => acc + charge.amount, 0) / 100;
+  return (
+    transactions.reduce(
+      (acc: number, charge: Stripe.Charge) => acc + charge.amount,
+      0
+    ) / 100
+  );
 }

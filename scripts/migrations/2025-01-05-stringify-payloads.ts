@@ -3,7 +3,7 @@ import "../env/load";
 import { writeClient, readClient } from "@/lib/sanity-clients";
 
 async function fixCollection(type: string) {
-  const items: any[] = await readClient.fetch(
+  const items: any[] = await (readClient as any).fetch(
     `*[_type == $t][0...1000] | order(_createdAt asc)`,
     { t: type }
   );
@@ -11,7 +11,7 @@ async function fixCollection(type: string) {
   for (const it of items) {
     const p = it?.payload;
     if (typeof p === "string") continue;
-    await writeClient
+    await (writeClient as any)
       .patch(it._id)
       .set({ payload: JSON.stringify(p ?? null) })
       .commit();

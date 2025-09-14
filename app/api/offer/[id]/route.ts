@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { writeClient } from "@/studio-m4ktaba/client";
-import { groq } from "next-sanity";
-import { Resend } from "resend";
-import Stripe from "stripe";
-import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { writeClient } from '@/studio-m4ktaba/client';
+import { groq } from 'next-sanity';
+import { Resend } from 'resend';
+import Stripe from 'stripe';
+import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
+  apiVersion: '2025-02-24.acacia',
 });
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -20,7 +20,7 @@ export async function PATCH(
 
     if (!session?.user) {
       return NextResponse.json(
-        { message: "Authentication required" },
+        { message: 'Authentication required' },
         { status: 401 }
       );
     }
@@ -30,21 +30,21 @@ export async function PATCH(
 
     if (!action) {
       return NextResponse.json(
-        { message: "Action is required" },
+        { message: 'Action is required' },
         { status: 400 }
       );
     }
 
     // Validate counterAmount if action is counter
-    if (action === "counter" && (!counterAmount || counterAmount <= 0)) {
+    if (action === 'counter' && (!counterAmount || counterAmount <= 0)) {
       return NextResponse.json(
-        { message: "Valid counter offer amount is required" },
+        { message: 'Valid counter offer amount is required' },
         { status: 400 }
       );
     }
 
     // Get the offer
-    const offer = await writeClient.fetch(
+    const offer = await (writeClient as any).fetch(
       groq`*[_type == "offer" && _id == $offerId][0]{
         _id,
         book->{_id, title, price},
@@ -57,18 +57,18 @@ export async function PATCH(
     );
 
     if (!offer) {
-      return NextResponse.json({ message: "Offer not found" }, { status: 404 });
+      return NextResponse.json({ message: 'Offer not found' }, { status: 404 });
     }
 
     // Verify seller is responding to their own offer (FIXED LOGIC)
     if (offer.seller._id !== session.user._id) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
     // Check if offer is still pending
-    if (offer.status !== "pending") {
+    if (offer.status !== 'pending') {
       return NextResponse.json(
-        { message: "This offer has already been processed" },
+        { message: 'This offer has already been processed' },
         { status: 400 }
       );
     }
@@ -77,14 +77,14 @@ export async function PATCH(
     let emailData;
 
     switch (action) {
-      case "accept":
+      case 'accept':
         // Create Stripe checkout session
-        const checkoutSession = await stripe.checkout.sessions.create({
-          payment_method_types: ["card"],
+        const checkoutSession = await (stripe as any).checkout.sessions.create({
+          payment_method_types: ['card'],
           line_items: [
             {
               price_data: {
-                currency: "usd",
+                currency: 'usd',
                 product_data: {
                   name: offer.book.title,
                 },
@@ -93,7 +93,7 @@ export async function PATCH(
               quantity: 1,
             },
           ],
-          mode: "payment",
+          mode: 'payment',
           success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cancel`,
           metadata: {
@@ -101,10 +101,10 @@ export async function PATCH(
           },
         });
 
-        updatedOffer = await writeClient
+        updatedOffer = await (writeClient as any)
           .patch(offerId)
           .set({
-            status: "accepted",
+            status: 'accepted',
             stripeCheckoutId: checkoutSession.id,
             updatedAt: new Date().toISOString(),
           })
@@ -112,7 +112,7 @@ export async function PATCH(
 
         emailData = {
           to: offer.buyer.email,
-          subject: "🎉 Your Offer Has Been Accepted!",
+          subject: '🎉 Your Offer Has Been Accepted!',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #16a34a;">Your Offer Has Been Accepted!</h1>
@@ -128,18 +128,18 @@ export async function PATCH(
         };
         break;
 
-      case "decline":
-        updatedOffer = await writeClient
+      case 'decline':
+        updatedOffer = await (writeClient as any)
           .patch(offerId)
           .set({
-            status: "declined",
+            status: 'declined',
             updatedAt: new Date().toISOString(),
           })
           .commit();
 
         emailData = {
           to: offer.buyer.email,
-          subject: "Offer Update - M4KTABA",
+          subject: 'Offer Update - M4KTABA',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #dc2626;">Offer Declined</h1>
@@ -153,27 +153,27 @@ export async function PATCH(
         };
         break;
 
-      case "counter":
+      case 'counter':
         // Create new counter offer
-        const counterOffer = await writeClient.create({
-          _type: "offer",
+        await (writeClient as any).create({
+          _type: 'offer',
           book: {
-            _type: "reference",
+            _type: 'reference',
             _ref: offer.book._id,
           },
           buyer: {
-            _type: "reference",
+            _type: 'reference',
             _ref: offer.buyer._id,
           },
           seller: {
-            _type: "reference",
+            _type: 'reference',
             _ref: offer.seller._id,
           },
           amount: counterAmount,
-          status: "pending",
+          status: 'pending',
           isCounterOffer: true,
           parentOffer: {
-            _type: "reference",
+            _type: 'reference',
             _ref: offerId,
           },
           createdAt: new Date().toISOString(),
@@ -181,17 +181,17 @@ export async function PATCH(
         });
 
         // Update original offer
-        updatedOffer = await writeClient
+        updatedOffer = await (writeClient as any)
           .patch(offerId)
           .set({
-            status: "countered",
+            status: 'countered',
             updatedAt: new Date().toISOString(),
           })
           .commit();
 
         emailData = {
           to: offer.buyer.email,
-          subject: "💰 New Counter Offer Received",
+          subject: '💰 New Counter Offer Received',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #3b82f6;">New Counter Offer Received</h1>
@@ -208,7 +208,7 @@ export async function PATCH(
 
       default:
         return NextResponse.json(
-          { message: "Invalid action" },
+          { message: 'Invalid action' },
           { status: 400 }
         );
     }
@@ -217,20 +217,20 @@ export async function PATCH(
     if (emailData) {
       try {
         await resend.emails.send({
-          from: "M4KTABA <contact@m4ktaba.com>",
+          from: 'M4KTABA <contact@m4ktaba.com>',
           ...emailData,
         });
       } catch (emailError) {
-        console.error("Error sending email:", emailError);
+        console.error('Error sending email:', emailError);
         // Continue even if email fails
       }
     }
 
     return NextResponse.json({ offer: updatedOffer });
   } catch (error) {
-    console.error("Error handling offer response:", error);
+    console.error('Error handling offer response:', error);
     return NextResponse.json(
-      { message: "Failed to process offer response" },
+      { message: 'Failed to process offer response' },
       { status: 500 }
     );
   }

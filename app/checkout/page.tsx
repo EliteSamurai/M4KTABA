@@ -41,7 +41,7 @@ const CheckoutForm = dynamic(
   { ssr: false }
 );
 // Import the validator function directly
-import { validateAddressClient } from './address-validator';
+// import { validateAddressClient } from './address-validator';
 import type { CartItem } from '@/types/shipping-types';
 import { useRouter } from 'next/navigation';
 import { defaults as testDefaults } from './test-defaults';
@@ -55,14 +55,14 @@ import {
 import { debounce } from '@/lib/debounce';
 // (duplicate import removed)
 import { useAddressAutocomplete } from '@/hooks/useAddressAutocomplete';
-import { listSavedAddresses, saveAddress } from '@/lib/savedAddresses';
+import { listSavedAddresses } from '@/lib/savedAddresses';
 import {
   isOnline,
   subscribeOnlineStatus,
   drainQueue,
   safeFetch,
 } from '@/lib/offlineQueue';
-import { tokens, rhythm } from '@/lib/tokens';
+import { rhythm } from '@/lib/tokens';
 import { SavedAddressPicker } from '@/components/SavedAddressPicker';
 import { ReservationTimer } from '@/components/ReservationTimer';
 import { announce } from '@/components/A11yLiveRegion';
@@ -169,12 +169,11 @@ export function CheckoutContent() {
       router.push('/login');
     }
   }, [session, router]);
-  if (!session) return null;
 
   const form = useForm<ShippingFormValues>({
     resolver: zodResolver(shippingSchema),
     mode: 'onChange',
-    defaultValues: (testDefaults as any) ?? {
+    defaultValues: (testDefaults as Partial<ShippingFormValues>) ?? {
       name: '',
       street1: '',
       street2: '',
@@ -189,15 +188,30 @@ export function CheckoutContent() {
   const lastResetKeyRef = React.useRef<string | null>(null);
   useEffect(() => {
     if (!session) return;
-    const loc = (session?.user && (session as any).user.location) || {};
+    const loc =
+      (session?.user &&
+        (
+          session as {
+            user?: {
+              location?: {
+                street?: string;
+                city?: string;
+                zip?: string;
+                state?: string;
+                country?: string;
+              };
+            };
+          }
+        ).user?.location) ||
+      {};
     const nextValues = {
-      name: (session as any)?.user?.name || '',
-      street1: (loc as any).street || '',
+      name: (session as { user?: { name?: string } })?.user?.name || '',
+      street1: loc.street || '',
       street2: '',
-      city: (loc as any).city || '',
-      zip: (loc as any).zip || '',
-      state: (loc as any).state || '',
-      country: (loc as any).country || '',
+      city: loc.city || '',
+      zip: loc.zip || '',
+      state: loc.state || '',
+      country: loc.country || '',
     };
     const key = JSON.stringify(nextValues);
     if (lastResetKeyRef.current === key) return;
@@ -213,7 +227,7 @@ export function CheckoutContent() {
   const cartParamString = React.useMemo(() => {
     try {
       return searchParams?.get('cart') ?? null;
-    } catch (_e) {
+    } catch {
       return null;
     }
   }, [searchParams]);
@@ -229,7 +243,7 @@ export function CheckoutContent() {
     }
   }, [cartParamString]);
 
-  const cartsEqual = (a: any, b: any) =>
+  const cartsEqual = (a: unknown, b: unknown) =>
     a === b || (a && b && JSON.stringify(a) === JSON.stringify(b));
 
   useEffect(() => {
@@ -275,20 +289,23 @@ export function CheckoutContent() {
     const disableInTests =
       typeof process !== 'undefined' &&
       process.env.NODE_ENV === 'test' &&
-      !(process as any).env?.ENABLE_PREFLIGHT_REVIEW;
+      !(process as { env?: { ENABLE_PREFLIGHT_REVIEW?: string } }).env
+        ?.ENABLE_PREFLIGHT_REVIEW;
     if (disableInTests) {
-      return { hasDrift: false, reviewed: cart, changes: [] as any[] };
+      return { hasDrift: false, reviewed: cart, changes: [] as unknown[] };
     }
     const qs = new URLSearchParams({
       cart: JSON.stringify(cart),
       simulate:
-        disableInTests || (process as any).env?.SIMULATE_DRIFT !== '1'
+        disableInTests ||
+        (process as { env?: { SIMULATE_DRIFT?: string } }).env
+          ?.SIMULATE_DRIFT !== '1'
           ? '0'
           : '1',
     }).toString();
     const res = await fetch(`/api/cart/review?${qs}`);
     if (!res.ok)
-      return { hasDrift: false, reviewed: cart, changes: [] as any[] };
+      return { hasDrift: false, reviewed: cart, changes: [] as unknown[] };
     return res.json();
   };
 
@@ -311,13 +328,16 @@ export function CheckoutContent() {
   // Saved addresses
   const userKey = React.useMemo(
     () =>
-      ((session as any)?.user?._id ||
-        (session as any)?.user?.id ||
-        (session as any)?.user?.email ||
+      ((session as { user?: { _id?: string; id?: string; email?: string } })
+        ?.user?._id ||
+        (session as { user?: { _id?: string; id?: string; email?: string } })
+          ?.user?.id ||
+        (session as { user?: { _id?: string; id?: string; email?: string } })
+          ?.user?.email ||
         'anon') as string,
     [session]
   );
-  const [savedAddrs, setSavedAddrs] = useState<any[]>([]);
+  const [savedAddrs, setSavedAddrs] = useState<unknown[]>([]);
   useEffect(() => {
     if (!savedAddressesEnabled) return;
     try {
@@ -353,8 +373,14 @@ export function CheckoutContent() {
           );
           setBgValidationValid(Boolean(result?.isValid));
           setBgValidationStatus('success');
-        } catch (error: any) {
-          if (error && (error.name === 'AbortError' || error.code === 20)) {
+        } catch (error: unknown) {
+          if (
+            (error &&
+              typeof error === 'object' &&
+              (error as { name?: string; code?: number }).name ===
+                'AbortError') ||
+            (error as { name?: string; code?: number }).code === 20
+          ) {
             // Ignore aborts
             return;
           }
@@ -374,7 +400,8 @@ export function CheckoutContent() {
     if (
       typeof process !== 'undefined' &&
       process.env.NODE_ENV === 'test' &&
-      !(process as any).env?.ENABLE_BG_VALIDATION
+      !(process as { env?: { ENABLE_BG_VALIDATION?: string } }).env
+        ?.ENABLE_BG_VALIDATION
     ) {
       return;
     }
@@ -428,7 +455,7 @@ export function CheckoutContent() {
         // Pre-flight review
         const review = preflightEnabled
           ? await reviewCart(cart)
-          : ({ hasDrift: false } as any);
+          : ({ hasDrift: false } as { hasDrift: boolean });
         if (preflightEnabled && review?.hasDrift) {
           setReviewBanner({
             changes: review.changes || [],
@@ -459,6 +486,8 @@ export function CheckoutContent() {
     }
   }
 
+  if (!session) return null;
+
   return (
     <div className='container mx-auto min-h-screen py-8 md:py-12'>
       <div className='mx-auto max-w-5xl'>
@@ -483,7 +512,9 @@ export function CheckoutContent() {
               <CartSummary cart={cart} />
               <div className='mt-2'>
                 <ReservationTimer
-                  keyId={(session as any).user._id}
+                  keyId={
+                    (session as { user?: { _id?: string } })?.user?._id || ''
+                  }
                   seconds={15 * 60}
                   onExpire={() => setReviewBanner(null)}
                 />
@@ -591,7 +622,7 @@ export function CheckoutContent() {
                     >
                       {savedAddressesEnabled && savedAddrs.length > 0 && (
                         <SavedAddressPicker
-                          addresses={savedAddrs.map(a => ({
+                          addresses={savedAddrs.map((a: any) => ({
                             id: a.id || a._id || a.street1,
                             ...a,
                           }))}
@@ -620,6 +651,7 @@ export function CheckoutContent() {
                                   checkoutCopy.fields.name.placeholder
                                 }
                                 {...field}
+                                value={field.value as string}
                               />
                             </FormControl>
                             <FormMessage />
@@ -643,6 +675,7 @@ export function CheckoutContent() {
                                     checkoutCopy.fields.street1.placeholder
                                   }
                                   {...field}
+                                  value={field.value as string}
                                   onChange={e => {
                                     field.onChange(e);
                                     if (autocompleteEnabled)
@@ -699,6 +732,7 @@ export function CheckoutContent() {
                                   checkoutCopy.fields.street2.placeholder
                                 }
                                 {...field}
+                                value={field.value as string}
                               />
                             </FormControl>
                             <FormMessage />
@@ -721,6 +755,7 @@ export function CheckoutContent() {
                                     checkoutCopy.fields.city.placeholder
                                   }
                                   {...field}
+                                  value={field.value as string}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -742,6 +777,7 @@ export function CheckoutContent() {
                                     checkoutCopy.fields.state.placeholder
                                   }
                                   {...field}
+                                  value={field.value as string}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -766,6 +802,7 @@ export function CheckoutContent() {
                                   }
                                   aria-describedby='zip-help'
                                   {...field}
+                                  value={field.value as string}
                                 />
                               </FormControl>
                               <p
@@ -793,6 +830,7 @@ export function CheckoutContent() {
                                     checkoutCopy.fields.country.placeholder
                                   }
                                   {...field}
+                                  value={field.value as string}
                                 />
                               </FormControl>
                               <FormMessage />

@@ -1,5 +1,6 @@
-import { Star, StarHalf } from "lucide-react";
-import { urlFor } from "@/utils/imageUrlBuilder";
+import { Star, StarHalf } from 'lucide-react';
+import { urlFor } from '@/utils/imageUrlBuilder';
+import Image from 'next/image';
 
 interface SellerInfoProps {
   email: string;
@@ -11,7 +12,7 @@ interface SellerInfoProps {
 export function SellerInfo({ email, rating, image, name }: SellerInfoProps) {
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;
-  
+
   // Handle both direct URL strings and Sanity asset objects
   let sellerImg: string | null = null;
   if (typeof image === 'string') {
@@ -28,17 +29,21 @@ export function SellerInfo({ email, rating, image, name }: SellerInfoProps) {
   // Generate initials from name or email
   const getInitials = () => {
     if (name) {
-      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      return name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
     }
     // Fallback to email username
-    const username = email.split("@")[0];
+    const username = email.split('@')[0];
     return username.slice(0, 2).toUpperCase();
   };
 
   // Check if we should show Gmail profile image
   const getGmailProfileImage = (email: string) => {
     if (email.includes('@gmail.com')) {
-      const username = email.split('@')[0];
       return `https://lh3.googleusercontent.com/a/default-user=s64-c`;
     }
     return null;
@@ -49,13 +54,13 @@ export function SellerInfo({ email, rating, image, name }: SellerInfoProps) {
     if (sellerImg) {
       return sellerImg;
     }
-    
+
     // Try Gmail profile image for Gmail users
     const gmailImg = getGmailProfileImage(email);
     if (gmailImg) {
       return gmailImg;
     }
-    
+
     // Return null to show initials
     return null;
   };
@@ -64,45 +69,47 @@ export function SellerInfo({ email, rating, image, name }: SellerInfoProps) {
   const initials = getInitials();
 
   return (
-    <div className="flex items-center justify-between pt-5">
-      <span className="flex items-center gap-2 text-sm font-medium">
+    <div className='flex items-center justify-between pt-5'>
+      <span className='flex items-center gap-2 text-sm font-medium'>
         {imageUrl ? (
-          <img 
-            className="rounded-full w-8 h-8 object-cover object-top" 
-            src={imageUrl} 
-            alt="sellers image"
-            onError={(e) => {
+          <Image
+            className='rounded-full w-8 h-8 object-cover object-top'
+            src={imageUrl}
+            alt='sellers image'
+            width={32}
+            height={32}
+            onError={e => {
               // If image fails to load, show initials instead
               e.currentTarget.style.display = 'none';
               e.currentTarget.nextElementSibling?.classList.remove('hidden');
             }}
           />
         ) : null}
-        <div 
+        <div
           className={`rounded-full w-8 h-8 flex items-center justify-center text-white text-sm font-semibold bg-gradient-to-br from-purple-500 to-blue-500 ${imageUrl ? 'hidden' : ''}`}
         >
           {initials}
         </div>
-        {email.split("@")[0]}
+        {email.split('@')[0]}
       </span>
-      <div className="flex items-center">
+      <div className='flex items-center'>
         {[...Array(5)].map((_, i) => {
           if (i < fullStars) {
             return (
               <Star
                 key={i}
-                className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                className='w-4 h-4 fill-yellow-400 text-yellow-400'
               />
             );
           } else if (i === fullStars && hasHalfStar) {
             return (
               <StarHalf
                 key={i}
-                className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                className='w-4 h-4 fill-yellow-400 text-yellow-400'
               />
             );
           } else {
-            return <Star key={i} className="w-4 h-4 text-gray-300" />;
+            return <Star key={i} className='w-4 h-4 text-gray-300' />;
           }
         })}
       </div>

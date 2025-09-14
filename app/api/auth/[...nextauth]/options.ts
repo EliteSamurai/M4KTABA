@@ -1,11 +1,11 @@
-import NextAuth, { NextAuthOptions, User } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import Credentials from "next-auth/providers/credentials";
-import { writeClient, readClient } from "@/studio-m4ktaba/client";
-import bcrypt from "bcryptjs";
-import { v4 as uuidv4 } from "uuid";
-import { urlFor } from "@/utils/imageUrlBuilder";
-import { uploadImageToSanity } from "@/utils/uploadImageToSanity";
+import NextAuth, { NextAuthOptions, User } from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
+import Credentials from 'next-auth/providers/credentials';
+import { writeClient, readClient } from '@/studio-m4ktaba/client';
+import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
+import { urlFor } from '@/utils/imageUrlBuilder';
+import { uploadImageToSanity } from '@/utils/uploadImageToSanity';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -14,43 +14,43 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_SECRET!,
       authorization: {
         params: {
-          scope: "openid email profile",
+          scope: 'openid email profile',
         },
       },
     }),
     Credentials({
-      name: "Credentials",
+      name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         const { email, password } = credentials || {};
 
         if (!email || !password) {
-          throw new Error("Missing email or password.");
+          throw new Error('Missing email or password.');
         }
 
         // Fetch user from database based on email
         const query = `*[_type == "user" && email == $email][0]`;
-        const user = await writeClient.fetch(query, { email });
+        const user = await (writeClient as any).fetch(query, { email });
 
         if (!user) {
-          console.error("User not found in the database"); // Removed email from log
-          throw new Error("User not found.");
+          console.error('User not found in the database'); // Removed email from log
+          throw new Error('User not found.');
         }
 
         // Compare password with the hashed password in the database
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
-          console.error("Invalid password attempt"); // Removed email from log
-          throw new Error("Invalid email or password.");
+          console.error('Invalid password attempt'); // Removed email from log
+          throw new Error('Invalid email or password.');
         }
 
         return {
           _id: user._id,
           email: user.email,
-          image: user.image ? urlFor(user.image) : "",
+          image: user.image ? urlFor(user.image) : '',
           location: user.location,
           stripeAccountId: user.stripeAccountId || null,
         } as User;
@@ -58,7 +58,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
   },
   callbacks: {
     async jwt({ token, user, account }) {
@@ -69,9 +69,9 @@ export const authOptions: NextAuthOptions = {
         token.location = user.location || {};
         token.stripeAccountId = user.stripeAccountId || null;
 
-        if (account?.provider === "google") {
+        if (account?.provider === 'google') {
           try {
-            let existingUser = await readClient.fetch(
+            let existingUser = await (readClient as any).fetch(
               `*[_type == "user" && email == $email][0]`,
               { email: token.email }
             );
@@ -82,7 +82,7 @@ export const authOptions: NextAuthOptions = {
                 : null;
 
               const newUser = {
-                _type: "user",
+                _type: 'user',
                 _id: user._id || uuidv4(),
                 email: user.email,
                 location: user.location || {},
@@ -90,7 +90,7 @@ export const authOptions: NextAuthOptions = {
                 stripeAccountId: user.stripeAccountId || null,
               };
 
-              await writeClient.createIfNotExists(newUser);
+              await (writeClient as any).createIfNotExists(newUser);
               existingUser = newUser;
             }
 
@@ -99,7 +99,7 @@ export const authOptions: NextAuthOptions = {
             token.location = existingUser.location || {};
             token.stripeAccountId = existingUser.stripeAccountId || null;
           } catch (error) {
-            console.error("Error fetching or creating Google user:", error);
+            console.error('Error fetching or creating Google user:', error);
           }
         } else {
           token.image = user.image || null;
@@ -117,7 +117,7 @@ export const authOptions: NextAuthOptions = {
       session.user.stripeAccountId = token.stripeAccountId || null;
 
       try {
-        const latestUser = await readClient.fetch(
+        const latestUser = await (readClient as any).fetch(
           `*[_type == "user" && _id == $_id][0]{email, image, location, stripeAccountId}`,
           { _id: token._id }
         );
@@ -127,7 +127,7 @@ export const authOptions: NextAuthOptions = {
         session.user.stripeAccountId =
           latestUser?.stripeAccountId || session.user.stripeAccountId;
       } catch (error) {
-        console.error("Error fetching user data for session:", error);
+        console.error('Error fetching user data for session:', error);
       }
 
       return session;
@@ -135,7 +135,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   pages: {
-    signOut: "/", // Redirect to the root path on sign out
+    signOut: '/', // Redirect to the root path on sign out
   },
 };
 

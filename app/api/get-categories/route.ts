@@ -1,17 +1,17 @@
-import { NextResponse } from "next/server";
-import { readClient } from "@/studio-m4ktaba/client";
+import { NextResponse } from 'next/server';
+import { readClient } from '@/studio-m4ktaba/client';
 
 export async function GET() {
   try {
-    const categories = await readClient.fetch(
+    const categories = await (readClient as any).fetch(
       `*[_type == "category"]{_id, title}`
     );
 
     return NextResponse.json(categories);
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    console.error('Error fetching categories:', error);
     return NextResponse.json(
-      { error: "Failed to fetch categories" },
+      { error: 'Failed to fetch categories' },
       { status: 500 }
     );
   }

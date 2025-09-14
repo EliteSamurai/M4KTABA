@@ -4,7 +4,7 @@ import { createTransport } from "nodemailer";
 export async function POST() {
   try {
     // Fetch all orders with 'refundStatus' as 'requested'
-    const orders = await readClient.fetch(
+    const orders = await (readClient as any).fetch(
       `*[_type == "order" && cart[].refundDetails.refundStatus == "requested"]`
     );
 

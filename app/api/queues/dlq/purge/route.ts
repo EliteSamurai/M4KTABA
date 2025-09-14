@@ -7,12 +7,12 @@ export async function POST(req: Request) {
   const id: string | undefined = body?.id;
   let affected = 0;
   if (id) {
-    await writeClient.delete(id);
+    await (writeClient as any).delete(id);
     affected = 1;
   } else {
     const items = await dlqList(100);
     for (const item of items) {
-      await writeClient.delete(item._id);
+      await (writeClient as any).delete(item._id);
       affected++;
     }
   }

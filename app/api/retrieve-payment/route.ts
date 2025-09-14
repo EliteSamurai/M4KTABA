@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Retrieve PaymentIntent
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    const paymentIntent = await (stripe as any).paymentIntents.retrieve(paymentIntentId);
 
     if (!paymentIntent) {
       return NextResponse.json(
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Get the latest charge
-    const charges = await stripe.charges.list({
+    const charges = await (stripe as any).charges.list({
       payment_intent: paymentIntentId,
       limit: 1, // We only need the most recent charge
     });

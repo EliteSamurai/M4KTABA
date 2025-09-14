@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { writeClient } from "@/studio-m4ktaba/client";
-import { groq } from "next-sanity";
-import { Resend } from "resend";
-import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { writeClient } from '@/studio-m4ktaba/client';
+import { groq } from 'next-sanity';
+import { Resend } from 'resend';
+import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
     if (!session?.user) {
       return NextResponse.json(
-        { message: "Authentication required" },
+        { message: 'Authentication required' },
         { status: 401 }
       );
     }
@@ -23,20 +23,20 @@ export async function POST(req: Request) {
     // Validate input
     if (!bookId || !sellerId || !amount) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { message: 'Missing required fields' },
         { status: 400 }
       );
     }
 
     if (!session.user._id) {
       return NextResponse.json(
-        { message: "User ID not found in session" },
+        { message: 'User ID not found in session' },
         { status: 400 }
       );
     }
 
     // Check existing offers for this book by this buyer
-    const existingOffers = await writeClient.fetch(
+    const existingOffers = await (writeClient as any).fetch(
       groq`*[_type == "offer" && book._ref == $bookId && buyer._ref == $buyerId] {
         _id,
         status,
@@ -51,11 +51,11 @@ export async function POST(req: Request) {
 
     // Check if user has a pending offer
     const pendingOffer = existingOffers.find(
-      (offer: any) => offer.status === "pending"
+      (offer: { status: string }) => offer.status === 'pending'
     );
     if (pendingOffer) {
       return NextResponse.json(
-        { message: "You already have a pending offer for this book" },
+        { message: 'You already have a pending offer for this book' },
         { status: 400 }
       );
     }
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           message:
-            "You have reached the maximum number of offers for this book (2 total offers).",
+            'You have reached the maximum number of offers for this book (2 total offers).',
         },
         { status: 400 }
       );
@@ -73,35 +73,35 @@ export async function POST(req: Request) {
 
     // If user has 1 declined offer, they can make 1 more offer
     const declinedOffers = existingOffers.filter(
-      (offer: any) => offer.status === "declined"
+      (offer: { status: string }) => offer.status === 'declined'
     );
     if (declinedOffers.length >= 1 && existingOffers.length >= 2) {
       return NextResponse.json(
         {
           message:
-            "You have reached the maximum number of offers for this book.",
+            'You have reached the maximum number of offers for this book.',
         },
         { status: 400 }
       );
     }
 
     // Create the offer
-    const offer = await writeClient.create({
-      _type: "offer",
+    const offer = await (writeClient as any).create({
+      _type: 'offer',
       book: {
-        _type: "reference",
+        _type: 'reference',
         _ref: bookId,
       },
       buyer: {
-        _type: "reference",
+        _type: 'reference',
         _ref: session.user._id,
       },
       seller: {
-        _type: "reference",
+        _type: 'reference',
         _ref: sellerId,
       },
       amount,
-      status: "pending",
+      status: 'pending',
       isCounterOffer: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -109,11 +109,11 @@ export async function POST(req: Request) {
 
     // Get seller and book details for email
     const [seller, book] = await Promise.all([
-      writeClient.fetch(
+      (writeClient as any).fetch(
         groq`*[_type == "user" && _id == $sellerId][0]{ email, name }`,
         { sellerId }
       ),
-      writeClient.fetch(
+      (writeClient as any).fetch(
         groq`*[_type == "book" && _id == $bookId][0]{ title }`,
         { bookId }
       ),
@@ -123,9 +123,9 @@ export async function POST(req: Request) {
     if (seller?.email) {
       try {
         await resend.emails.send({
-          from: "M4KTABA <contact@m4ktaba.com>",
+          from: 'M4KTABA <contact@m4ktaba.com>',
           to: seller.email,
-          subject: "📚 New Offer Received - M4KTABA",
+          subject: '📚 New Offer Received - M4KTABA',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #3b82f6;">New Offer Received!</h1>
@@ -140,15 +140,15 @@ export async function POST(req: Request) {
           `,
         });
       } catch (emailError) {
-        console.error("Error sending email:", emailError);
+        console.error('Error sending email:', emailError);
       }
     }
 
     return NextResponse.json({ offer });
   } catch (error) {
-    console.error("Error creating offer:", error);
+    console.error('Error creating offer:', error);
     return NextResponse.json(
-      { message: "Failed to create offer" },
+      { message: 'Failed to create offer' },
       { status: 500 }
     );
   }

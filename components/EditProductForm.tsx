@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { Loader2, Save, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { Loader2, Save, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -16,62 +16,56 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/select';
+// import { CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
-import { readClient } from "@/studio-m4ktaba/client";
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+// import { readClient } from '@/studio-m4ktaba/client';
 
 const conditions = [
-  { value: "new", label: "New" },
-  { value: "like-new", label: "Like New" },
-  { value: "good", label: "Good" },
-  { value: "fair", label: "Fair" },
-  { value: "poor", label: "Poor" },
+  { value: 'new', label: 'New' },
+  { value: 'like-new', label: 'Like New' },
+  { value: 'good', label: 'Good' },
+  { value: 'fair', label: 'Fair' },
+  { value: 'poor', label: 'Poor' },
 ];
 
 const editProductSchema = z.object({
   title: z
     .string()
-    .min(1, "Title is required")
-    .max(100, "Title must be less than 100 characters"),
+    .min(1, 'Title is required')
+    .max(100, 'Title must be less than 100 characters'),
   author: z
     .string()
-    .min(1, "Author is required")
-    .max(50, "Author must be less than 50 characters"),
+    .min(1, 'Author is required')
+    .max(50, 'Author must be less than 50 characters'),
   description: z
     .string()
-    .min(10, "Description must be at least 10 characters")
-    .max(1000, "Description must be less than 1000 characters"),
-  selectedCondition: z.string().min(1, "Condition is required"),
-  quantity: z.number().min(1, "Quantity must be at least 1"),
-  price: z.number().min(0, "Price must be at least 0"),
-  category: z.string().min(1, "Category is required"),
+    .min(10, 'Description must be at least 10 characters')
+    .max(1000, 'Description must be less than 1000 characters'),
+  selectedCondition: z.string().min(1, 'Condition is required'),
+  quantity: z.number().min(1, 'Quantity must be at least 1'),
+  price: z.number().min(0, 'Price must be at least 0'),
+  category: z.string().min(1, 'Category is required'),
 });
 
 interface EditProductFormProps {
-  book: any;
+  book: { _id?: string; [key: string]: unknown };
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
@@ -94,13 +88,13 @@ export default function EditProductForm({
   const form = useForm({
     resolver: zodResolver(editProductSchema),
     defaultValues: {
-      title: book?.title || "",
-      author: book?.author || "",
-      description: book?.description || "",
-      selectedCondition: book?.selectedCondition || "",
+      title: book?.title || '',
+      author: book?.author || '',
+      description: book?.description || '',
+      selectedCondition: book?.selectedCondition || '',
       quantity: book?.quantity || 1,
       price: book?.price || 0,
-      category: book?.selectedCategory?._id || "",
+      category: (book?.selectedCategory as any)?._id || '',
     },
   });
 
@@ -108,13 +102,13 @@ export default function EditProductForm({
   useEffect(() => {
     if (book) {
       form.reset({
-        title: book.title || "",
-        author: book.author || "",
-        description: book.description || "",
-        selectedCondition: book.selectedCondition || "",
+        title: book.title || '',
+        author: book.author || '',
+        description: book.description || '',
+        selectedCondition: book.selectedCondition || '',
         quantity: book.quantity || 1,
         price: book.price || 0,
-        category: book.selectedCategory?._id || "",
+        category: (book.selectedCategory as any)?._id || '',
       });
     }
   }, [book, form]);
@@ -122,37 +116,37 @@ export default function EditProductForm({
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const response = await fetch("/api/get-categories");
+        const response = await fetch('/api/get-categories');
         if (response.ok) {
           const fetchedCategories = await response.json();
           setCategories(fetchedCategories);
         } else {
           // Fallback categories if API fails
           setCategories([
-            { _id: "fiction", title: "Fiction" },
-            { _id: "non-fiction", title: "Non-Fiction" },
-            { _id: "academic", title: "Academic" },
-            { _id: "religious", title: "Religious" },
-            { _id: "children", title: "Children's Books" },
-            { _id: "other", title: "Other" },
+            { _id: 'fiction', title: 'Fiction' },
+            { _id: 'non-fiction', title: 'Non-Fiction' },
+            { _id: 'academic', title: 'Academic' },
+            { _id: 'religious', title: 'Religious' },
+            { _id: 'children', title: "Children's Books" },
+            { _id: 'other', title: 'Other' },
           ]);
         }
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error('Error fetching categories:', error);
         // Fallback categories
         setCategories([
-          { _id: "fiction", title: "Fiction" },
-          { _id: "non-fiction", title: "Non-Fiction" },
-          { _id: "academic", title: "Academic" },
-          { _id: "religious", title: "Religious" },
-          { _id: "children", title: "Children's Books" },
-          { _id: "other", title: "Other" },
+          { _id: 'fiction', title: 'Fiction' },
+          { _id: 'non-fiction', title: 'Non-Fiction' },
+          { _id: 'academic', title: 'Academic' },
+          { _id: 'religious', title: 'Religious' },
+          { _id: 'children', title: "Children's Books" },
+          { _id: 'other', title: 'Other' },
         ]);
         toast({
-          title: "Warning",
+          title: 'Warning',
           description:
-            "Using default categories. Some features may be limited.",
-          variant: "default",
+            'Using default categories. Some features may be limited.',
+          variant: 'default',
         });
       }
     }
@@ -162,9 +156,9 @@ export default function EditProductForm({
   async function onSubmit(data: z.infer<typeof editProductSchema>) {
     if (!session?.user?._id) {
       toast({
-        title: "Error",
-        description: "You must be logged in to edit this item.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'You must be logged in to edit this item.',
+        variant: 'destructive',
       });
       return;
     }
@@ -185,34 +179,34 @@ export default function EditProductForm({
         },
       };
 
-      console.log("Sending update request:", {
+      console.log('Sending update request:', {
         bookId: book._id,
         sessionUserId: session.user._id,
-        bookUserId: book.user?._id,
+        bookUserId: (book.user as any)?._id,
         requestBody,
       });
 
-      const response = await fetch("/api/update-book", {
-        method: "POST",
+      const response = await fetch('/api/update-book', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Update failed:", {
+        console.error('Update failed:', {
           status: response.status,
           statusText: response.statusText,
           errorData,
         });
-        throw new Error(errorData.message || "Failed to update book");
+        throw new Error(errorData.message || 'Failed to update book');
       }
 
       toast({
-        title: "Success!",
-        description: "Your book has been updated successfully.",
+        title: 'Success!',
+        description: 'Your book has been updated successfully.',
       });
 
       onSuccess();
@@ -222,10 +216,10 @@ export default function EditProductForm({
       router.refresh();
     } catch (error) {
       toast({
-        title: "Error",
+        title: 'Error',
         description:
-          error instanceof Error ? error.message : "Failed to update book",
-        variant: "destructive",
+          error instanceof Error ? error.message : 'Failed to update book',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -234,7 +228,7 @@ export default function EditProductForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>Edit Product Listing</DialogTitle>
           <DialogDescription>
@@ -244,46 +238,21 @@ export default function EditProductForm({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(onSubmit as any)}
+            className='space-y-6'
+          >
             <FormField
               control={form.control}
-              name="title"
+              name='title'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter book title" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="author"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Author</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter author name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Describe your book"
-                      className="min-h-[100px]"
+                    <Input
+                      placeholder='Enter book title'
                       {...field}
+                      value={field.value as string}
                     />
                   </FormControl>
                   <FormMessage />
@@ -293,21 +262,58 @@ export default function EditProductForm({
 
             <FormField
               control={form.control}
-              name="selectedCondition"
+              name='author'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Author</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder='Enter author name'
+                      {...field}
+                      value={field.value as string}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='description'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder='Describe your book'
+                      className='min-h-[100px]'
+                      {...field}
+                      value={field.value as string}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='selectedCondition'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Condition</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    defaultValue={field.value as string}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select condition" />
+                        <SelectValue placeholder='Select condition' />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {conditions.map((condition) => (
+                      {conditions.map(condition => (
                         <SelectItem
                           key={condition.value}
                           value={condition.value}
@@ -322,19 +328,20 @@ export default function EditProductForm({
               )}
             />
 
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className='grid gap-6 sm:grid-cols-2'>
               <FormField
                 control={form.control}
-                name="quantity"
+                name='quantity'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Quantity</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
+                        type='number'
                         min={1}
                         {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        value={field.value as string}
+                        onChange={e => field.onChange(Number(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -344,19 +351,20 @@ export default function EditProductForm({
 
               <FormField
                 control={form.control}
-                name="price"
+                name='price'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Price ($)</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
+                        type='number'
                         min={0}
                         step={0.01}
                         {...field}
-                        onChange={(e) => {
+                        value={field.value as string}
+                        onChange={e => {
                           const value = e.target.value;
-                          field.onChange(value === "" ? 0 : Number(value));
+                          field.onChange(value === '' ? 0 : Number(value));
                         }}
                       />
                     </FormControl>
@@ -371,25 +379,30 @@ export default function EditProductForm({
 
             <FormField
               control={form.control}
-              name="category"
+              name='category'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    defaultValue={field.value as string}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
+                        <SelectValue placeholder='Select a category' />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories.map((category: any) => (
-                        <SelectItem key={category._id} value={category._id}>
-                          {category.title}
-                        </SelectItem>
-                      ))}
+                      {categories.map(
+                        (category: { _id?: string; title?: string }) => (
+                          <SelectItem
+                            key={category._id}
+                            value={category._id || ''}
+                          >
+                            {category.title}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -397,31 +410,31 @@ export default function EditProductForm({
               )}
             />
 
-            <div className="flex gap-3 pt-4">
+            <div className='flex gap-3 pt-4'>
               <Button
-                type="submit"
-                className="flex-1"
+                type='submit'
+                className='flex-1'
                 disabled={isSubmitting || !form.formState.isValid}
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                     Updating...
                   </>
                 ) : (
                   <>
-                    <Save className="mr-2 h-4 w-4" />
+                    <Save className='mr-2 h-4 w-4' />
                     Update Listing
                   </>
                 )}
               </Button>
               <Button
-                type="button"
-                variant="outline"
+                type='button'
+                variant='outline'
                 onClick={onClose}
                 disabled={isSubmitting}
               >
-                <X className="mr-2 h-4 w-4" />
+                <X className='mr-2 h-4 w-4' />
                 Cancel
               </Button>
             </div>

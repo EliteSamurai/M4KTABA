@@ -7,21 +7,21 @@ async function main() {
     throw new Error("Do not seed in production");
   await assertWritePermissions();
   const now = new Date().toISOString();
-  await writeClient.create({
+  await (writeClient as any).create({
     _type: "event_outbox",
     type: "email.order_paid",
     payload: JSON.stringify({ orderId: "o_test_1" }),
     created_at: now,
     attempts: 0,
   });
-  await writeClient.create({
+  await (writeClient as any).create({
     _type: "event_outbox",
     type: "analytics.checkout_succeeded",
     payload: JSON.stringify({ orderId: "o_test_2" }),
     created_at: now,
     attempts: 0,
   });
-  await writeClient.create({
+  await (writeClient as any).create({
     _type: "stripe_events",
     event_id: "evt_test_1",
     payload: JSON.stringify({ type: "payment_intent.succeeded" }),
@@ -29,7 +29,7 @@ async function main() {
     created_at: now,
     attempts: 0,
   });
-  await writeClient.create({
+  await (writeClient as any).create({
     _type: "dlq",
     queue: "outbox",
     payload: JSON.stringify({ orderId: "o_test_dlq" }),

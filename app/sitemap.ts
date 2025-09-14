@@ -31,7 +31,7 @@ async function getAllBlogPosts(): Promise<BlogPost[]> {
   }
 
   try {
-    const posts = await readClient.fetch(`
+    const posts = await (readClient as any).fetch(`
       *[_type == "post" && publishedAt != null] {
         "slug": slug.current,
         publishedAt,

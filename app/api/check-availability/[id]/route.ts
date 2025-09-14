@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { readClient } from "@/studio-m4ktaba/client";
+import { NextResponse } from 'next/server';
+import { readClient } from '@/studio-m4ktaba/client';
 
 type Book = {
   quantity: number;
@@ -15,7 +15,7 @@ export async function GET(
 
     if (!id) {
       return NextResponse.json(
-        { error: "Product ID is required" },
+        { error: 'Product ID is required' },
         { status: 400 }
       );
     }
@@ -23,13 +23,13 @@ export async function GET(
     // Check if Sanity is configured
     if (!process.env.SANITY_PROJECT_ID || !process.env.SANITY_DATASET) {
       return NextResponse.json(
-        { error: "Service temporarily unavailable" },
+        { error: 'Service temporarily unavailable' },
         { status: 503 }
       );
     }
 
     // Fetch the product from Sanity
-    const book: Book | null = await readClient.fetch(
+    const book: Book | null = await (readClient as any).fetch(
       `*[_type == "book" && _id == $id][0]{
         quantity
       }`,
@@ -37,7 +37,7 @@ export async function GET(
     );
 
     if (!book) {
-      return NextResponse.json({ error: "Book not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Book not found' }, { status: 404 });
     }
 
     const isAvailable = book.quantity > 0;
@@ -47,9 +47,9 @@ export async function GET(
       quantity: book.quantity, // Include quantity
     });
   } catch (error) {
-    console.error("Error checking availability:", error);
+    console.error('Error checking availability:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

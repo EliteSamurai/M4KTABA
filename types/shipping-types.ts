@@ -42,7 +42,7 @@ export interface User {
 }
 
 export type Book = {
-  _id: number;
+  _id: string;
   title: string;
   author: string;
   user: User;

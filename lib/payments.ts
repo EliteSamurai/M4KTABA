@@ -7,8 +7,11 @@ export async function updateOrderFromStripeEvent(
   payload: unknown
 ): Promise<void> {
   try {
-    const event = payload as any;
-    const type: string = event?.type || "unknown";
+    const event = payload as {
+      type?: string;
+      data?: { object?: { id?: string; payment_intent?: string } };
+    };
+    const type: string = event?.type || 'unknown';
     const intentId: string | undefined =
       event?.data?.object?.id || event?.data?.object?.payment_intent;
     // Non-throwing no-op; just log for visibility in workers
@@ -19,12 +22,11 @@ export async function updateOrderFromStripeEvent(
     // - charge.dispute.created => flag dispute on order
     // - payout.paid => record seller payout
     // - etc.
-    // eslint-disable-next-line no-console
-    console.log("[payments] stub updateOrderFromStripeEvent", {
+    console.log('[payments] stub updateOrderFromStripeEvent', {
       type,
       intentId,
     });
-  } catch (_e) {
+  } catch {
     // swallow; worker retries are not needed for stub
   }
 }

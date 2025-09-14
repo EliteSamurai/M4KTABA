@@ -1,33 +1,36 @@
-import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Trash2, Star, Upload } from "lucide-react";
-import { urlFor } from "@/utils/imageUrlBuilder";
-import { cn } from "@/lib/utils";
-import { uploadImagesToSanity } from "@/utils/uploadImageToSanity";
+import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Trash2, Star, Upload } from 'lucide-react';
+import { urlFor } from '@/utils/imageUrlBuilder';
+import { cn } from '@/lib/utils';
+import { uploadImagesToSanity } from '@/utils/uploadImageToSanity';
 
-let heic2any: any;
+let heic2any: ((input: File) => Promise<Blob>) | undefined;
 
-if (typeof window !== "undefined") {
-  import("heic2any").then((module) => {
-    heic2any = module.default;
+if (typeof window !== 'undefined') {
+  import('heic2any').then(module => {
+    heic2any = module.default as any;
   });
 }
 
 interface EditableThumbnailManagerProps {
-  photos: any[];
+  photos: { _key?: string; asset?: { _ref?: string } }[];
   bookId: string;
-  onChange: (updatedPhotos: any[]) => void;
+  onChange: (
+    updatedPhotos: { _key?: string; asset?: { _ref?: string } }[]
+  ) => void;
   isLoading?: boolean;
 }
 
 export default function EditableThumbnailManager({
   photos,
-  bookId,
   onChange,
   isLoading = false,
-}: EditableThumbnailManagerProps) {
-  const [localPhotos, setLocalPhotos] = useState<any[]>([]);
+}: Omit<EditableThumbnailManagerProps, 'bookId'>) {
+  const [localPhotos, setLocalPhotos] = useState<
+    { _key?: string; asset?: { _ref?: string } }[]
+  >([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -81,23 +84,23 @@ export default function EditableThumbnailManager({
 
     // Convert HEIC files to JPEG on the frontend
     const convertedFiles = await Promise.all(
-      filesArray.map(async (file) => {
-        if (file.type === "image/heic" || file.name.endsWith(".heic")) {
+      filesArray.map(async file => {
+        if (file.type === 'image/heic' || file.name.endsWith('.heic')) {
           try {
-            const blob = await heic2any({
+            const blob = await (heic2any as any)({
               blob: file,
-              toType: "image/jpeg",
+              toType: 'image/jpeg',
             });
 
             return new File(
               [blob as BlobPart],
-              file.name.replace(/\.heic$/, ".jpg"),
+              file.name.replace(/\.heic$/, '.jpg'),
               {
-                type: "image/jpeg",
+                type: 'image/jpeg',
               }
             );
           } catch (error) {
-            console.error("HEIC conversion failed:", error);
+            console.error('HEIC conversion failed:', error);
             return null;
           }
         }
@@ -112,11 +115,11 @@ export default function EditableThumbnailManager({
       const uploadedImages = await uploadImagesToSanity(filteredFiles);
 
       if (uploadedImages.length > 0) {
-        const updatedPhotos = uploadedImages.map((image) => ({
-          _type: "image",
+        const updatedPhotos = uploadedImages.map(image => ({
+          _type: 'image',
           _key: image._key,
           asset: {
-            _type: "reference",
+            _type: 'reference',
             _ref: image.asset._ref,
           },
         }));
@@ -126,7 +129,7 @@ export default function EditableThumbnailManager({
         onChange(updated);
       }
     } catch (err) {
-      console.error("Upload failed:", err);
+      console.error('Upload failed:', err);
     }
   };
 
@@ -134,13 +137,13 @@ export default function EditableThumbnailManager({
   const canUpload = localPhotos.length < 5;
 
   return (
-    <div className="space-y-4">
+    <div className='space-y-4'>
       {mainImage && (
-        <div className="relative overflow-hidden rounded-lg border bg-background aspect-square">
+        <div className='relative overflow-hidden rounded-lg border bg-background aspect-square'>
           <Image
-            src={urlFor(mainImage?.asset?._ref) || "/placeholder.jpg"}
-            alt="Main image"
-            className="h-full w-full object-contain"
+            src={urlFor(mainImage?.asset?._ref) || '/placeholder.jpg'}
+            alt='Main image'
+            className='h-full w-full object-contain'
             width={600}
             height={600}
           />
@@ -149,28 +152,28 @@ export default function EditableThumbnailManager({
 
       {/* Only show the upload button if there are less than or equal to 5 images */}
       {canUpload && (
-        <div className="flex gap-2">
+        <div className='flex gap-2'>
           <Button
             onClick={handleUploadClick}
-            variant="secondary"
+            variant='secondary'
             disabled={isLoading || localPhotos.length >= 5} // Disable if there are 5 or more images
           >
             {isLoading ? (
-              <div className="flex items-center">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent mr-2" />
+              <div className='flex items-center'>
+                <div className='h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent mr-2' />
                 Updating...
               </div>
             ) : (
               <>
-                <Upload className="w-4 h-4 mr-2" /> Upload Image
+                <Upload className='w-4 h-4 mr-2' /> Upload Image
               </>
             )}
           </Button>
 
           <input
             ref={fileInputRef}
-            type="file"
-            accept="image/*"
+            type='file'
+            accept='image/*'
             hidden
             onChange={handleFileChange}
             disabled={isLoading}
@@ -179,21 +182,21 @@ export default function EditableThumbnailManager({
       )}
 
       {/* Display thumbnails of images */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className='grid grid-cols-4 gap-4'>
         {localPhotos.map((photo, index) => (
           <div
             key={photo._key || index}
             className={cn(
-              "relative aspect-square overflow-hidden rounded-lg border bg-background",
-              "transition-all hover:border-primary",
-              index === 0 && "ring-2 ring-primary ring-offset-2", // Highlight the main image
-              isLoading && "opacity-50"
+              'relative aspect-square overflow-hidden rounded-lg border bg-background',
+              'transition-all hover:border-primary',
+              index === 0 && 'ring-2 ring-primary ring-offset-2', // Highlight the main image
+              isLoading && 'opacity-50'
             )}
           >
             <Image
-              src={urlFor(photo?.asset?._ref) || "/placeholder.jpg"}
+              src={urlFor(photo?.asset?._ref) || '/placeholder.jpg'}
               alt={`Thumbnail ${index + 1}`}
-              className="h-full w-full object-cover"
+              className='h-full w-full object-cover'
               width={150}
               height={150}
               onClick={() => !isLoading && handleMakeMain(index)}
@@ -201,34 +204,34 @@ export default function EditableThumbnailManager({
 
             {/* Show the 'Make Main' button only if it's not the main image */}
             {index !== 0 && (
-              <div className="absolute top-1 left-1">
+              <div className='absolute top-1 left-1'>
                 <Button
-                  size="icon"
-                  variant="secondary"
-                  onClick={(e) => {
+                  size='icon'
+                  variant='secondary'
+                  onClick={e => {
                     e.stopPropagation();
                     if (!isLoading) handleMakeMain(index);
                   }}
                   disabled={isLoading}
                 >
-                  <Star className="h-4 w-4" />
+                  <Star className='h-4 w-4' />
                 </Button>
               </div>
             )}
 
             {/* Only show delete button if there's more than 1 image */}
             {localPhotos.length > 1 && index !== 0 && (
-              <div className="absolute top-1 right-1">
+              <div className='absolute top-1 right-1'>
                 <Button
-                  size="icon"
-                  variant="destructive"
-                  onClick={(e) => {
+                  size='icon'
+                  variant='destructive'
+                  onClick={e => {
                     e.stopPropagation();
                     if (!isLoading) handleDelete(index);
                   }}
                   disabled={isLoading || localPhotos.length === 1} // Disable if there is only 1 image
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className='h-4 w-4' />
                 </Button>
               </div>
             )}

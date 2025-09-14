@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { readClient } from "@/studio-m4ktaba/client";
+import { NextRequest, NextResponse } from 'next/server';
+import { readClient } from '@/studio-m4ktaba/client';
 
 const POSTS_QUERY = `*[
   _type == "post" && defined(slug.current) && publishedAt <= now()
@@ -18,8 +18,8 @@ const POSTS_QUERY = `*[
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "6");
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '6');
     const offset = (page - 1) * limit;
 
     // Check if Sanity is configured
@@ -27,8 +27,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ posts: [], hasMore: false });
     }
 
-    const allPosts = await readClient.fetch(POSTS_QUERY, {}, { next: { revalidate: 30 } });
-    
+    const allPosts = await (readClient as any).fetch(
+      POSTS_QUERY,
+      {},
+      { next: { revalidate: 30 } }
+    );
+
     const posts = allPosts.slice(offset, offset + limit);
     const hasMore = offset + limit < allPosts.length;
 
@@ -37,12 +41,12 @@ export async function GET(request: NextRequest) {
       hasMore,
       total: allPosts.length,
       page,
-      limit
+      limit,
     });
   } catch (error) {
-    console.error("Error fetching blog posts:", error);
+    console.error('Error fetching blog posts:', error);
     return NextResponse.json(
-      { error: "Failed to fetch blog posts" },
+      { error: 'Failed to fetch blog posts' },
       { status: 500 }
     );
   }

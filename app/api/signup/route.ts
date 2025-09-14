@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const { email, password } = validationResult.data;
 
     // Check if the user already exists in the database
-    const existingUser = await readClient.fetch(
+    const existingUser = await (readClient as any).fetch(
       `*[_type == "user" && email == $email][0]`,
       { email }
     );
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     // Hash the password and create the new user
     const hashedPassword = await hash(password, 10);
 
-    const newUser = await writeClient.create({
+    const newUser = await (writeClient as any).create({
       _type: "user",
       email,
       password: hashedPassword,

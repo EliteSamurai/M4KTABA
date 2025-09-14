@@ -29,7 +29,7 @@ export async function validateWebhookSignature(
   }
 
   const body = await req.text();
-  return stripe.webhooks.constructEvent(
+  return (stripe as any).webhooks.constructEvent(
     body,
     signature,
     webhookSecret
@@ -57,7 +57,7 @@ export async function handlePaymentIntentSucceeded(event: StripeEvent) {
   const parsedShippingDetails = JSON.parse(shippingDetails);
 
   // Update order status to paid
-  await writeClient.patch(orderId).set({ status: "paid" }).commit();
+  await (writeClient as any).patch(orderId).set({ status: "paid" }).commit();
 
   // Group items by seller
   const sellerItems = parsedItems.reduce(
@@ -75,7 +75,7 @@ export async function handlePaymentIntentSucceeded(event: StripeEvent) {
   for (const [sellerId, items] of Object.entries(sellerItems)) {
     try {
       // Get seller's Stripe account
-      const seller = await writeClient.getDocument(sellerId);
+      const seller = await (writeClient as any).getDocument(sellerId);
       if (!seller || !seller.stripeAccountId) {
         throw new Error(`Seller ${sellerId} has no Stripe account`);
       }
@@ -87,7 +87,7 @@ export async function handlePaymentIntentSucceeded(event: StripeEvent) {
       );
 
       // Create transfer to seller
-      await stripe.transfers.create({
+      await (stripe as any).transfers.create({
         amount: Math.round(total * 100), // Convert to cents
         currency: "usd",
         destination: seller.stripeAccountId,

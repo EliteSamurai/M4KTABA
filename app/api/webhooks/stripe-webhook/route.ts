@@ -1,12 +1,12 @@
-import { stripe } from "@/lib/stripe";
-import { NextResponse } from "next/server";
-import type { Stripe } from "stripe";
-import { createTransport } from "nodemailer";
-import { CartItem, User } from "@/types/shipping-types";
-import { readClient } from "@/studio-m4ktaba/client";
-import { begin as idemBegin, commit as idemCommit } from "@/lib/idempotency";
-import { reportError } from "@/lib/sentry";
-import { counter, withLatency } from "@/lib/metrics";
+import { stripe } from '@/lib/stripe';
+import { NextResponse } from 'next/server';
+import type { Stripe } from 'stripe';
+import { createTransport } from 'nodemailer';
+import { CartItem, User } from '@/types/shipping-types';
+import { readClient } from '@/studio-m4ktaba/client';
+import { begin as idemBegin, commit as idemCommit } from '@/lib/idempotency';
+import { reportError } from '@/lib/sentry';
+import { counter, withLatency } from '@/lib/metrics';
 
 export const config = {
   api: {
@@ -17,7 +17,7 @@ export const config = {
 async function getCartFromSanity(email: string): Promise<User | null> {
   try {
     const query = `*[_type == "user" && email == $email][0]`;
-    const user: User | null = await readClient.fetch(query, { email });
+    const user: User | null = await (readClient as any).fetch(query, { email });
 
     if (!user || !user.cart) {
       console.error(`No user or cart found for email: ${email}`);
@@ -41,7 +41,7 @@ async function sendEmail({
   html: string;
 }) {
   const transporter = createTransport({
-    service: "SMTP",
+    service: 'SMTP',
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT),
     auth: {
@@ -78,23 +78,23 @@ function generateBuyerEmailContent(
   orderId: string
 ) {
   const itemsHtml = items
-    .map((item) => {
-      const isHoney = item.id === "honey-001";
-      const itemName = isHoney ? "Raw Sidr Honey (226g)" : item.title;
+    .map(item => {
+      const isHoney = item.id === 'honey-001';
+      const itemName = isHoney ? 'Raw Sidr Honey (226g)' : item.title;
       return `<li>${itemName} - Quantity: ${
         item.quantity
       } - $${item.price.toFixed(2)}</li>`;
     })
-    .join("");
+    .join('');
 
   const shippingAddress = `
     <p><strong>Shipping Address:</strong></p>
     <p>${shippingDetails.name}</p>
     <p>${shippingDetails.street1}</p>
-    ${shippingDetails.street2 ? `<p>${shippingDetails.street2}</p>` : ""}
+    ${shippingDetails.street2 ? `<p>${shippingDetails.street2}</p>` : ''}
     <p>${shippingDetails.city}, ${shippingDetails.state}, ${
-    shippingDetails.zip
-  }</p>
+      shippingDetails.zip
+    }</p>
     <p>${shippingDetails.country}</p>
   `;
 
@@ -131,19 +131,19 @@ function generateSellerEmailContent(
   sellerPayout?: number
 ) {
   const itemsHtml = items
-    .map((item) => {
-      const isHoney = item.id === "honey-001";
-      const itemName = isHoney ? "Raw Sidr Honey (226g)" : item.title;
+    .map(item => {
+      const isHoney = item.id === 'honey-001';
+      const itemName = isHoney ? 'Raw Sidr Honey (226g)' : item.title;
       return `<li>${itemName} - Quantity: ${
         item.quantity
       } - $${item.price.toFixed(2)}</li>`;
     })
-    .join("");
+    .join('');
 
   const itemLinks = items
-    .map((item) => {
-      const isHoney = item.id === "honey-001";
-      const itemName = isHoney ? "Raw Sidr Honey (226g)" : item.title;
+    .map(item => {
+      const isHoney = item.id === 'honey-001';
+      const itemName = isHoney ? 'Raw Sidr Honey (226g)' : item.title;
       return `
         <p>
           <strong>Item:</strong> ${itemName} <br/>
@@ -154,16 +154,16 @@ function generateSellerEmailContent(
         </p>
       `;
     })
-    .join("");
+    .join('');
 
   const shippingAddress = `
     <p><strong>Shipping Details:</strong></p>
     <p>${shippingDetails.name}</p>
     <p>${shippingDetails.street1}</p>
-    ${shippingDetails.street2 ? `<p>${shippingDetails.street2}</p>` : ""}
+    ${shippingDetails.street2 ? `<p>${shippingDetails.street2}</p>` : ''}
     <p>${shippingDetails.city}, ${shippingDetails.state}, ${
-    shippingDetails.zip
-  }</p>
+      shippingDetails.zip
+    }</p>
     <p>${shippingDetails.country}</p>
   `;
 
@@ -180,13 +180,13 @@ function generateSellerEmailContent(
           2
         )}</p>
          <p>The amount has been adjusted for platform fees and will be transferred to your Stripe account.</p>`
-      : ""
+      : ''
   }
   
   ${
     shippingAddress
       ? `<p><strong>Shipping Address:</strong><br/>${shippingAddress}</p>`
-      : ""
+      : ''
   }
   
   <p><strong>Order ID:</strong> ${paymentIntentId}</p>
@@ -202,14 +202,13 @@ function generateSellerEmailContent(
 }
 
 export async function POST(req: Request) {
-  const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-  const sig = req.headers.get("stripe-signature");
+  const sig = req.headers.get('stripe-signature');
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!sig || !webhookSecret) {
-    console.error("Missing Stripe signature or webhook secret.");
+    console.error('Missing Stripe signature or webhook secret.');
     return NextResponse.json(
-      { error: "Missing Stripe signature or webhook secret." },
+      { error: 'Missing Stripe signature or webhook secret.' },
       { status: 400 }
     );
   }
@@ -218,14 +217,14 @@ export async function POST(req: Request) {
 
   try {
     const payload = await req.text();
-    event = stripe.webhooks.constructEvent(payload, sig, webhookSecret);
+    event = (stripe as any).webhooks.constructEvent(payload, sig, webhookSecret);
     console.log(event);
   } catch (error) {
     if (error instanceof Error) {
-      console.error("Webhook signature verification failed:", error.message);
+      console.error('Webhook signature verification failed:', error.message);
     }
     return NextResponse.json(
-      { error: "Webhook signature verification failed." },
+      { error: 'Webhook signature verification failed.' },
       { status: 400 }
     );
   }
@@ -233,309 +232,244 @@ export async function POST(req: Request) {
   try {
     // Dedupe webhook by event.id (idempotent processing)
     const start = await idemBegin(`stripe:webhook:${event.id}`, 60 * 60 * 1000);
-    if (start && start.status === "committed") {
+    if (start && start.status === 'committed') {
       return NextResponse.json(
         { received: true, deduped: true },
         { status: 200 }
       );
     }
     switch (event.type) {
-      case "payment_intent.succeeded":
-        await withLatency("/api/webhooks/stripe-webhook:pi_succeeded", () =>
+      case 'payment_intent.succeeded':
+        await withLatency('/api/webhooks/stripe-webhook:pi_succeeded', () =>
           handlePaymentIntentSucceeded(
             req,
             event.data.object as Stripe.PaymentIntent
           )
         );
-        counter("webhook_processed").inc({ event: event.type });
+        counter('webhook_processed').inc({ event: event.type });
         break;
 
-      case "payment_intent.payment_failed":
-        await withLatency("/api/webhooks/stripe-webhook:pi_failed", () =>
+      case 'payment_intent.payment_failed':
+        await withLatency('/api/webhooks/stripe-webhook:pi_failed', () =>
           handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent)
         );
-        counter("webhook_processed").inc({ event: event.type });
+        counter('webhook_processed').inc({ event: event.type });
         break;
 
-      case "charge.dispute.created":
+      case 'charge.dispute.created':
         await handleChargeDisputeCreated(event.data.object as Stripe.Dispute);
         break;
 
-      case "charge.dispute.updated":
+      case 'charge.dispute.updated':
         await handleChargeDisputeUpdated(event.data.object as Stripe.Dispute);
         break;
 
-      case "account.updated":
-        const accountUpdated = event.data.object;
+      case 'account.updated':
         // Then define and call a function to handle the event account.updated
         break;
-      case "balance.available":
-        const balanceAvailable = event.data.object;
+      case 'balance.available':
         // Then define and call a function to handle the event balance.available
         break;
-      case "billing.alert.triggered":
-        const billingAlertTriggered = event.data.object;
+      case 'billing.alert.triggered':
         // Then define and call a function to handle the event billing.alert.triggered
         break;
-      case "capability.updated":
-        const capabilityUpdated = event.data.object;
+      case 'capability.updated':
         // Then define and call a function to handle the event capability.updated
         break;
-      case "cash_balance.funds_available":
-        const cashBalanceFundsAvailable = event.data.object;
+      case 'cash_balance.funds_available':
         // Then define and call a function to handle the event cash_balance.funds_available
         break;
-      case "charge.captured":
-        const chargeCaptured = event.data.object;
+      case 'charge.captured':
         // Then define and call a function to handle the event charge.captured
         break;
-      case "charge.expired":
-        const chargeExpired = event.data.object;
+      case 'charge.expired':
         // Then define and call a function to handle the event charge.expired
         break;
-      case "charge.failed":
-        const chargeFailed = event.data.object;
+      case 'charge.failed':
         // Then define and call a function to handle the event charge.failed
         break;
-      case "charge.pending":
-        const chargePending = event.data.object;
+      case 'charge.pending':
         // Then define and call a function to handle the event charge.pending
         break;
-      case "charge.refunded":
-        const chargeRefunded = event.data.object;
+      case 'charge.refunded':
         // Then define and call a function to handle the event charge.refunded
         break;
-      case "charge.succeeded":
-        const chargeSucceeded = event.data.object;
+      case 'charge.succeeded':
         // Then define and call a function to handle the event charge.succeeded
         break;
-      case "charge.updated":
-        const chargeUpdated = event.data.object;
+      case 'charge.updated':
         // Then define and call a function to handle the event charge.updated
         break;
-      case "charge.dispute.closed":
-        const chargeDisputeClosed = event.data.object;
+      case 'charge.dispute.closed':
         // Then define and call a function to handle the event charge.dispute.closed
         break;
-      case "charge.dispute.created":
-        const chargeDisputeCreated = event.data.object;
+      case 'charge.dispute.created':
         // Then define and call a function to handle the event charge.dispute.created
         break;
-      case "charge.dispute.funds_reinstated":
-        const chargeDisputeFundsReinstated = event.data.object;
+      case 'charge.dispute.funds_reinstated':
         // Then define and call a function to handle the event charge.dispute.funds_reinstated
         break;
-      case "charge.dispute.funds_withdrawn":
-        const chargeDisputeFundsWithdrawn = event.data.object;
+      case 'charge.dispute.funds_withdrawn':
         // Then define and call a function to handle the event charge.dispute.funds_withdrawn
         break;
-      case "charge.dispute.updated":
-        const chargeDisputeUpdated = event.data.object;
+      case 'charge.dispute.updated':
         // Then define and call a function to handle the event charge.dispute.updated
         break;
-      case "charge.refund.updated":
-        const chargeRefundUpdated = event.data.object;
+      case 'charge.refund.updated':
         // Then define and call a function to handle the event charge.refund.updated
         break;
-      case "checkout.session.async_payment_failed":
-        const checkoutSessionAsyncPaymentFailed = event.data.object;
+      case 'checkout.session.async_payment_failed':
         // Then define and call a function to handle the event checkout.session.async_payment_failed
         break;
-      case "checkout.session.async_payment_succeeded":
-        const checkoutSessionAsyncPaymentSucceeded = event.data.object;
+      case 'checkout.session.async_payment_succeeded':
         // Then define and call a function to handle the event checkout.session.async_payment_succeeded
         break;
-      case "checkout.session.completed":
+      case 'checkout.session.completed':
         const checkoutSessionCompleted = event.data.object;
         // Add logic to fetch line items, check for honey
-        const lineItems = await stripe.checkout.sessions.listLineItems(
+        const lineItems = await (stripe as any).checkout.sessions.listLineItems(
           checkoutSessionCompleted.id,
           {
-            expand: ["data.price.product"],
+            expand: ['data.price.product'],
           }
         );
 
-        console.log("LINE ITEMS:", lineItems);
+        console.log('LINE ITEMS:', lineItems);
         break;
-      case "checkout.session.expired":
-        const checkoutSessionExpired = event.data.object;
+      case 'checkout.session.expired':
         // Then define and call a function to handle the event checkout.session.expired
         break;
-      case "customer.created":
-        const customerCreated = event.data.object;
+      case 'customer.created':
         // Then define and call a function to handle the event customer.created
         break;
-      case "customer.deleted":
-        const customerDeleted = event.data.object;
+      case 'customer.deleted':
         // Then define and call a function to handle the event customer.deleted
         break;
-      case "customer.updated":
-        const customerUpdated = event.data.object;
+      case 'customer.updated':
         // Then define and call a function to handle the event customer.updated
         break;
-      case "identity.verification_session.canceled":
-        const identityVerificationSessionCanceled = event.data.object;
+      case 'identity.verification_session.canceled':
         // Then define and call a function to handle the event identity.verification_session.canceled
         break;
-      case "identity.verification_session.created":
-        const identityVerificationSessionCreated = event.data.object;
+      case 'identity.verification_session.created':
         // Then define and call a function to handle the event identity.verification_session.created
         break;
-      case "identity.verification_session.processing":
-        const identityVerificationSessionProcessing = event.data.object;
+      case 'identity.verification_session.processing':
         // Then define and call a function to handle the event identity.verification_session.processing
         break;
-      case "identity.verification_session.requires_input":
-        const identityVerificationSessionRequiresInput = event.data.object;
+      case 'identity.verification_session.requires_input':
         // Then define and call a function to handle the event identity.verification_session.requires_input
         break;
-      case "identity.verification_session.verified":
-        const identityVerificationSessionVerified = event.data.object;
+      case 'identity.verification_session.verified':
         // Then define and call a function to handle the event identity.verification_session.verified
         break;
-      case "payment_intent.amount_capturable_updated":
-        const paymentIntentAmountCapturableUpdated = event.data.object;
+      case 'payment_intent.amount_capturable_updated':
         // Then define and call a function to handle the event payment_intent.amount_capturable_updated
         break;
-      case "payment_intent.canceled":
-        const paymentIntentCanceled = event.data.object;
+      case 'payment_intent.canceled':
         // Then define and call a function to handle the event payment_intent.canceled
         break;
-      case "payment_intent.created":
-        const paymentIntentCreated = event.data.object;
+      case 'payment_intent.created':
         // Then define and call a function to handle the event payment_intent.created
         break;
-      case "payment_intent.partially_funded":
-        const paymentIntentPartiallyFunded = event.data.object;
+      case 'payment_intent.partially_funded':
         // Then define and call a function to handle the event payment_intent.partially_funded
         break;
-      case "payment_intent.payment_failed":
-        const paymentIntentPaymentFailed = event.data.object;
+      case 'payment_intent.payment_failed':
         // Then define and call a function to handle the event payment_intent.payment_failed
         break;
-      case "payment_intent.processing":
-        const paymentIntentProcessing = event.data.object;
+      case 'payment_intent.processing':
         // Then define and call a function to handle the event payment_intent.processing
         break;
-      case "payment_intent.requires_action":
-        const paymentIntentRequiresAction = event.data.object;
+      case 'payment_intent.requires_action':
         // Then define and call a function to handle the event payment_intent.requires_action
         break;
-      case "payment_intent.succeeded":
-        const paymentIntentSucceeded = event.data.object;
+      case 'payment_intent.succeeded':
         // Then define and call a function to handle the event payment_intent.succeeded
         break;
-      case "payment_method.attached":
-        const paymentMethodAttached = event.data.object;
+      case 'payment_method.attached':
         // Then define and call a function to handle the event payment_method.attached
         break;
-      case "payment_method.automatically_updated":
-        const paymentMethodAutomaticallyUpdated = event.data.object;
+      case 'payment_method.automatically_updated':
         // Then define and call a function to handle the event payment_method.automatically_updated
         break;
-      case "payment_method.detached":
-        const paymentMethodDetached = event.data.object;
+      case 'payment_method.detached':
         // Then define and call a function to handle the event payment_method.detached
         break;
-      case "payment_method.updated":
-        const paymentMethodUpdated = event.data.object;
+      case 'payment_method.updated':
         // Then define and call a function to handle the event payment_method.updated
         break;
-      case "payout.canceled":
-        const payoutCanceled = event.data.object;
+      case 'payout.canceled':
         // Then define and call a function to handle the event payout.canceled
         break;
-      case "payout.created":
-        const payoutCreated = event.data.object;
+      case 'payout.created':
         // Then define and call a function to handle the event payout.created
         break;
-      case "payout.failed":
-        const payoutFailed = event.data.object;
+      case 'payout.failed':
         // Then define and call a function to handle the event payout.failed
         break;
-      case "payout.paid":
-        const payoutPaid = event.data.object;
+      case 'payout.paid':
         // Then define and call a function to handle the event payout.paid
         break;
-      case "payout.reconciliation_completed":
-        const payoutReconciliationCompleted = event.data.object;
+      case 'payout.reconciliation_completed':
         // Then define and call a function to handle the event payout.reconciliation_completed
         break;
-      case "payout.updated":
-        const payoutUpdated = event.data.object;
+      case 'payout.updated':
         // Then define and call a function to handle the event payout.updated
         break;
-      case "person.created":
-        const personCreated = event.data.object;
+      case 'person.created':
         // Then define and call a function to handle the event person.created
         break;
-      case "person.deleted":
-        const personDeleted = event.data.object;
+      case 'person.deleted':
         // Then define and call a function to handle the event person.deleted
         break;
-      case "person.updated":
-        const personUpdated = event.data.object;
+      case 'person.updated':
         // Then define and call a function to handle the event person.updated
         break;
-      case "radar.early_fraud_warning.created":
-        const radarEarlyFraudWarningCreated = event.data.object;
+      case 'radar.early_fraud_warning.created':
         // Then define and call a function to handle the event radar.early_fraud_warning.created
         break;
-      case "radar.early_fraud_warning.updated":
-        const radarEarlyFraudWarningUpdated = event.data.object;
+      case 'radar.early_fraud_warning.updated':
         // Then define and call a function to handle the event radar.early_fraud_warning.updated
         break;
-      case "refund.created":
-        const refundCreated = event.data.object;
+      case 'refund.created':
         // Then define and call a function to handle the event refund.created
         break;
-      case "refund.failed":
-        const refundFailed = event.data.object;
+      case 'refund.failed':
         // Then define and call a function to handle the event refund.failed
         break;
-      case "refund.updated":
-        const refundUpdated = event.data.object;
+      case 'refund.updated':
         // Then define and call a function to handle the event refund.updated
         break;
-      case "review.closed":
-        const reviewClosed = event.data.object;
+      case 'review.closed':
         // Then define and call a function to handle the event review.closed
         break;
-      case "review.opened":
-        const reviewOpened = event.data.object;
+      case 'review.opened':
         // Then define and call a function to handle the event review.opened
         break;
-      case "setup_intent.canceled":
-        const setupIntentCanceled = event.data.object;
+      case 'setup_intent.canceled':
         // Then define and call a function to handle the event setup_intent.canceled
         break;
-      case "setup_intent.created":
-        const setupIntentCreated = event.data.object;
+      case 'setup_intent.created':
         // Then define and call a function to handle the event setup_intent.created
         break;
-      case "setup_intent.requires_action":
-        const setupIntentRequiresAction = event.data.object;
+      case 'setup_intent.requires_action':
         // Then define and call a function to handle the event setup_intent.requires_action
         break;
-      case "setup_intent.setup_failed":
-        const setupIntentSetupFailed = event.data.object;
+      case 'setup_intent.setup_failed':
         // Then define and call a function to handle the event setup_intent.setup_failed
         break;
-      case "setup_intent.succeeded":
-        const setupIntentSucceeded = event.data.object;
+      case 'setup_intent.succeeded':
         // Then define and call a function to handle the event setup_intent.succeeded
         break;
 
-      case "transfer.created":
-        const transferCreated = event.data.object;
+      case 'transfer.created':
         // Then define and call a function to handle the event transfer.created
         break;
-      case "transfer.reversed":
-        const transferReversed = event.data.object;
+      case 'transfer.reversed':
         // Then define and call a function to handle the event transfer.reversed
         break;
-      case "transfer.updated":
-        const transferUpdated = event.data.object;
+      case 'transfer.updated':
         // Then define and call a function to handle the event transfer.updated
         break;
       // ... handle other event types
@@ -552,11 +486,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {
-      console.error("Error handling webhook event:", error.message);
-      reportError(error, { where: "stripe-webhook" });
+      console.error('Error handling webhook event:', error.message);
+      reportError(error, { where: 'stripe-webhook' });
     }
     return NextResponse.json(
-      { error: "Webhook handler error." },
+      { error: 'Webhook handler error.' },
       { status: 500 }
     );
   }
@@ -581,12 +515,12 @@ async function handlePaymentIntentSucceeded(
       : null;
 
     if (!userEmail) {
-      console.error("User email is missing in PaymentIntent metadata.");
+      console.error('User email is missing in PaymentIntent metadata.');
       return;
     }
 
     if (!shippingDetails) {
-      console.error("Shipping details are missing or invalid in metadata.");
+      console.error('Shipping details are missing or invalid in metadata.');
       return;
     }
 
@@ -601,21 +535,21 @@ async function handlePaymentIntentSucceeded(
       (acc: Record<string, CartItem[]>, item: CartItem) => {
         let sellerId;
 
-        if (item.id === "honey-001") {
+        if (item.id === 'honey-001') {
           // Fixed seller ID for honey products
-          sellerId = "MH7kyac4DmuRU6j51iL0It";
+          sellerId = 'MH7kyac4DmuRU6j51iL0It';
           // Add mock user object for honey products
           item.user = {
-            _id: "MH7kyac4DmuRU6j51iL0It",
-            email: "contact@m4ktaba.com",
-            stripeAccountId: "acct_1QST64IpRAmWbte3",
+            _id: 'MH7kyac4DmuRU6j51iL0It',
+            email: 'contact@m4ktaba.com',
+            stripeAccountId: 'acct_1QST64IpRAmWbte3',
           };
         } else {
           sellerId = item.user?._id;
         }
 
         if (!sellerId) {
-          console.warn("Item is missing seller ID. Skipping item:", item);
+          console.warn('Item is missing seller ID. Skipping item:', item);
           return acc;
         }
 
@@ -629,19 +563,19 @@ async function handlePaymentIntentSucceeded(
       {}
     );
 
-    console.log("Grouped Sellers:", groupedSellers);
+    console.log('Grouped Sellers:', groupedSellers);
 
     for (const [sellerId, items] of Object.entries(groupedSellers) as [
       string,
-      CartItem[]
+      CartItem[],
     ][]) {
       const sellerStripeAccountId = items[0]?.user?.stripeAccountId;
 
       // Skip the seller with ID 'MH7kyac4DmuRU6j51iL0It' if it doesn't have a Stripe account ID
-      if (sellerId === "MH7kyac4DmuRU6j51iL0It") {
+      if (sellerId === 'MH7kyac4DmuRU6j51iL0It') {
         await sendEmail({
-          to: "contact@m4ktaba.com",
-          subject: "New Order Received",
+          to: 'contact@m4ktaba.com',
+          subject: 'New Order Received',
           html: generateSellerEmailContent(
             items,
             shippingDetails,
@@ -663,7 +597,7 @@ async function handlePaymentIntentSucceeded(
       let platformFee = sellerTotal * platformFeePercentage;
 
       // Skip platform fee for specific Stripe account
-      if (sellerStripeAccountId === "acct_1QST64IpRAmWbte3") {
+      if (sellerStripeAccountId === 'acct_1QST64IpRAmWbte3') {
         platformFee = 0;
       }
 
@@ -678,31 +612,31 @@ async function handlePaymentIntentSucceeded(
       }
 
       try {
-        if (sellerStripeAccountId !== "acct_1QST64IpRAmWbte3") {
+        if (sellerStripeAccountId !== 'acct_1QST64IpRAmWbte3') {
           if (
             paymentIntent.latest_charge &&
-            typeof paymentIntent.latest_charge === "string"
+            typeof paymentIntent.latest_charge === 'string'
           ) {
             // Create a transfer using the latest charge
-            const transfer = await stripe.transfers.create({
+            const transfer = await (stripe as any).transfers.create({
               amount: Math.round(sellerPayout * 100), // Convert to cents
-              currency: "usd",
+              currency: 'usd',
               destination: sellerStripeAccountId,
               source_transaction: paymentIntent.latest_charge,
               description: `Payout for PaymentIntent: ${paymentIntent.id}`,
             });
-            console.log("Transfer successful:", transfer);
+            console.log('Transfer successful:', transfer);
           } else {
-            console.error("No valid charge found for PaymentIntent");
+            console.error('No valid charge found for PaymentIntent');
           }
         }
 
-        const sellerEmail = items[0]?.user?.email || "";
+        const sellerEmail = items[0]?.user?.email || '';
 
         if (sellerEmail) {
           await sendEmail({
             to: sellerEmail,
-            subject: "New Order Received",
+            subject: 'New Order Received',
             html: generateSellerEmailContent(
               items,
               shippingDetails,
@@ -730,7 +664,7 @@ async function handlePaymentIntentSucceeded(
       try {
         await sendEmail({
           to: buyerEmail,
-          subject: "Your Order Confirmation",
+          subject: 'Your Order Confirmation',
           html: generateBuyerEmailContent(
             user.cart,
             shippingDetails,
@@ -739,28 +673,28 @@ async function handlePaymentIntentSucceeded(
         });
         console.log(`Order confirmation email sent to buyer: ${buyerEmail}`);
       } catch (error) {
-        console.error("Error sending email to buyer:", error);
+        console.error('Error sending email to buyer:', error);
       }
     } else {
-      console.warn("No buyer email provided. Skipping buyer email.");
+      console.warn('No buyer email provided. Skipping buyer email.');
     }
 
-    console.log("All transfers and notifications completed.");
+    console.log('All transfers and notifications completed.');
   } catch (error) {
-    console.error("Error processing PaymentIntent succeeded event:", error);
+    console.error('Error processing PaymentIntent succeeded event:', error);
   }
 }
 
 // Handler for failed payments
 async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
   console.log(
-    "PaymentIntent failed:",
+    'PaymentIntent failed:',
     paymentIntent.id,
     paymentIntent.last_payment_error
   );
 
   // Optionally update order status in your database
-  await updateOrderStatus(paymentIntent.id, "failed");
+  await updateOrderStatus(paymentIntent.id, 'failed');
 
   // Optionally notify the customer via email or UI
   await notifyCustomerPaymentFailed(paymentIntent);
@@ -768,12 +702,12 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
 
 // Handler for dispute creation
 async function handleChargeDisputeCreated(dispute: Stripe.Dispute) {
-  console.log("Dispute created:", dispute.id, dispute.amount);
+  console.log('Dispute created:', dispute.id, dispute.amount);
 
   // Optionally update order or transaction status in your database
   await updateOrderStatusByCharge(
-    typeof dispute.charge === "string" ? dispute.charge : dispute.charge.id,
-    "disputed"
+    typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id,
+    'disputed'
   );
 
   // Optionally notify the seller and/or customer
@@ -782,12 +716,12 @@ async function handleChargeDisputeCreated(dispute: Stripe.Dispute) {
 
 // Handler for dispute updates
 async function handleChargeDisputeUpdated(dispute: Stripe.Dispute) {
-  console.log("Dispute updated:", dispute.id, dispute.status);
+  console.log('Dispute updated:', dispute.id, dispute.status);
 
   // Optionally update order or transaction status based on dispute resolution
   await updateOrderStatusByCharge(
-    typeof dispute.charge === "string" ? dispute.charge : dispute.charge.id,
-    "dispute_updated"
+    typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id,
+    'dispute_updated'
   );
 
   // Optionally notify the seller and/or customer about the update

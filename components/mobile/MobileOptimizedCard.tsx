@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Heart, Share2, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface MobileOptimizedCardProps {
   title: string;
@@ -90,11 +91,7 @@ export function MobileOptimizedCard({
       {isProduct && image && (
         <div className='px-4 pb-2'>
           <div className='relative aspect-square w-full overflow-hidden rounded-lg bg-muted'>
-            <img
-              src={image}
-              alt={title}
-              className='h-full w-full object-cover'
-            />
+            <Image src={image} alt={title} fill className='object-cover' />
           </div>
         </div>
       )}

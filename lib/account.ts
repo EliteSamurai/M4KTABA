@@ -6,7 +6,7 @@ export async function getOrCreateStripeAccount(userId: string) {
     
   try {
     // Fetch user based on userId from session
-    const user = await readClient.fetch(
+    const user = await (readClient as any).fetch(
       `*[_type == "user" && _id == $userId][0]`,
       { userId }
     );
@@ -21,7 +21,7 @@ export async function getOrCreateStripeAccount(userId: string) {
     }
 
     // If no stripeAccountId, create a new Stripe account
-    const account = await stripe.accounts.create({
+    const account = await (stripe as any).accounts.create({
       type: "express",
       country: "US",
       business_type: "individual",
@@ -38,7 +38,7 @@ export async function getOrCreateStripeAccount(userId: string) {
     });
 
     // Store the stripe account ID for the user
-    await writeClient
+    await (writeClient as any)
       .patch(userId)
       .set({ stripeAccountId: account.id })
       .commit();

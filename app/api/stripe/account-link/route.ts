@@ -18,7 +18,7 @@ console.log(accountId);
 
   if (!stripeAccountId) {
     // No stripe account -> Onboarding
-    const accountLink = await stripe.accountLinks.create({
+    const accountLink = await (stripe as any).accountLinks.create({
       account: accountId,
       refresh_url: `${process.env.NEXT_PUBLIC_BASE_URL}/billing`,
       return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/billing`,
@@ -29,7 +29,7 @@ console.log(accountId);
   }
 
   // User has stripe account -> Dashboard
-  const loginLink = await stripe.accounts.createLoginLink(stripeAccountId);
+  const loginLink = await (stripe as any).accounts.createLoginLink(stripeAccountId);
 
   return NextResponse.json({ url: loginLink.url });
 }

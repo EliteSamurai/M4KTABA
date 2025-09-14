@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      await writeClient
+      await (writeClient as any)
         .patch(userId.toString())
         .set({
           bio: bio

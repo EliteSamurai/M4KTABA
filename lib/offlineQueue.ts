@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 // Offline banner + retry queue (flag: offline_queue)
 // Queues POST/PUT/DELETE requests while navigator.onLine is false.
@@ -20,22 +20,22 @@ export function subscribeOnlineStatus(cb: (online: boolean) => void) {
 }
 
 function notify(online: boolean) {
-  listeners.forEach((l) => {
+  listeners.forEach(l => {
     try {
       l(online);
     } catch {}
   });
 }
 
-if (typeof window !== "undefined") {
-  window.addEventListener("online", () => notify(true));
-  window.addEventListener("offline", () => notify(false));
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => notify(true));
+  window.addEventListener('offline', () => notify(false));
 }
 
 const queue: QueuedRequest[] = [];
 
 export function isOnline() {
-  return typeof navigator === "undefined" ? true : navigator.onLine !== false;
+  return typeof navigator === 'undefined' ? true : navigator.onLine !== false;
 }
 
 export function enqueueRequest(input: RequestInfo | URL, init?: RequestInit) {
@@ -60,21 +60,46 @@ export async function safeFetch(
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<Response> {
-  const method = (init?.method || "GET").toUpperCase();
-  const isMutating = method !== "GET" && method !== "HEAD";
+  const method = (init?.method || 'GET').toUpperCase();
+  const isMutating = method !== 'GET' && method !== 'HEAD';
   const offline = (() => {
     try {
-      if (typeof window !== "undefined" && (window as any).navigator?.onLine === false) return true;
-      if (typeof navigator !== "undefined" && (navigator as any).onLine === false) return true;
-      if (typeof (globalThis as any).navigator !== "undefined" && (globalThis as any).navigator.onLine === false) return true;
-      if (typeof (global as any) !== "undefined" && (global as any).navigator?.onLine === false) return true;
+      if (
+        typeof window !== 'undefined' &&
+        (window as { navigator?: { onLine?: boolean } }).navigator?.onLine ===
+          false
+      )
+        return true;
+      if (
+        typeof navigator !== 'undefined' &&
+        (navigator as { onLine?: boolean }).onLine === false
+      )
+        return true;
+      if (
+        typeof (globalThis as { navigator?: { onLine?: boolean } })
+          .navigator !== 'undefined' &&
+        (globalThis as unknown as { navigator?: { onLine?: boolean } })
+          .navigator?.onLine === false
+      )
+        return true;
+      if (
+        typeof (global as { navigator?: { onLine?: boolean } }) !==
+          'undefined' &&
+        (global as { navigator?: { onLine?: boolean } }).navigator?.onLine ===
+          false
+      )
+        return true;
     } catch {}
     return false;
   })();
   if (isMutating && offline) {
     enqueueRequest(input, init);
     // return a synthetic 202 Accepted-like response
-    return Promise.resolve({ status: 202, statusText: "Queued", ok: false } as any);
+    return Promise.resolve({
+      status: 202,
+      statusText: 'Queued',
+      ok: false,
+    } as Response);
   }
   const res = await fetch(input, init);
   if (isMutating && isOnline()) {
@@ -83,5 +108,3 @@ export async function safeFetch(
   }
   return res;
 }
-
-

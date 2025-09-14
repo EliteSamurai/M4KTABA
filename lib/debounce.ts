@@ -1,8 +1,8 @@
-export type DebouncedFunction<TArgs extends any[]> = ((
+export type DebouncedFunction<TArgs extends unknown[]> = ((
   ...args: TArgs
 ) => void) & { cancel: () => void };
 
-export function debounce<TArgs extends any[]>(
+export function debounce<TArgs extends unknown[]>(
   fn: (...args: TArgs) => void,
   waitMs: number
 ): DebouncedFunction<TArgs> {
@@ -27,5 +27,3 @@ export function debounce<TArgs extends any[]>(
 
   return wrapped;
 }
-
-

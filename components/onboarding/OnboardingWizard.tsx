@@ -52,7 +52,7 @@ const steps: OnboardingStep[] = [
         </div>
         <h3 className='text-xl font-semibold'>Welcome to M4ktaba!</h3>
         <p className='text-muted-foreground'>
-          We&apos;re excited to have you join our community of book lovers. Let&apos;s get
+          We're excited to have you join our community of book lovers. Let's get
           you started with a quick tour.
         </p>
         <div className='flex flex-wrap gap-2 justify-center'>

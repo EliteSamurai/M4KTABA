@@ -60,8 +60,8 @@ export function CheckoutForm({ cart }: CheckoutFormProps) {
     const cartData = encodeURIComponent(JSON.stringify(cart));
 
     try {
-      // Call stripe.confirmPayment here and store the result
-      const result = await stripe.confirmPayment({
+      // Call (stripe as any).confirmPayment here and store the result
+      const result = await (stripe as any).confirmPayment({
         elements,
         confirmParams: {
           return_url: `${window.location.origin}/success?cart=${cartData}`,

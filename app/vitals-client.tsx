@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 declare global {
   interface Navigator {
@@ -15,18 +15,17 @@ declare global {
  * - Uses sendBeacon with fetch keepalive fallback
  */
 export default function VitalsClient() {
-  if (process.env.NEXT_PUBLIC_DISABLE_VITALS === "true") return null;
-
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (process.env.NEXT_PUBLIC_DISABLE_VITALS === 'true') return;
+    if (typeof window === 'undefined') return;
 
     let stopped = false;
 
-    import("web-vitals")
+    import('web-vitals')
       .then(({ onCLS, onINP, onLCP }) => {
         const uid = (() => {
           try {
-            const k = "uid";
+            const k = 'uid';
             let v = localStorage.getItem(k);
             if (!v) {
               v = crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2);
@@ -34,11 +33,17 @@ export default function VitalsClient() {
             }
             return v;
           } catch {
-            return "anon";
+            return 'anon';
           }
         })();
 
-        const send = (metric: any) => {
+        const send = (metric: {
+          id: string;
+          name: string;
+          value: number;
+          delta: number;
+          rating: string;
+        }) => {
           if (stopped) return;
           try {
             const body = JSON.stringify({
@@ -51,18 +56,18 @@ export default function VitalsClient() {
               ua: navigator.userAgent,
               effectiveType: navigator.connection?.effectiveType,
               variant:
-                document.documentElement.getAttribute("data-variant") ??
-                "default",
+                document.documentElement.getAttribute('data-variant') ??
+                'default',
               uid,
               ts: Date.now(),
             });
 
             if (navigator.sendBeacon) {
-              navigator.sendBeacon("/api/vitals", body);
+              navigator.sendBeacon('/api/vitals', body);
             } else {
-              fetch("/api/vitals", {
-                method: "POST",
-                headers: { "content-type": "application/json" },
+              fetch('/api/vitals', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
                 body,
                 keepalive: true,
               }).catch(() => {});

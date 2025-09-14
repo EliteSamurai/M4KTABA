@@ -10,27 +10,27 @@ export async function POST(req: Request) {
     const items = await dlqList(1);
     const item = items.find((x) => x._id === id);
     if (item) {
-      await writeClient.create({
+      await (writeClient as any).create({
         _type: "event_outbox",
         type: item.queue || "unknown",
         payload: item.payload,
         created_at: new Date().toISOString(),
         attempts: 0,
       });
-      await writeClient.delete(id);
+      await (writeClient as any).delete(id);
       affected = 1;
     }
   } else {
     const items = await dlqList(100);
     for (const item of items) {
-      await writeClient.create({
+      await (writeClient as any).create({
         _type: "event_outbox",
         type: item.queue || "unknown",
         payload: item.payload,
         created_at: new Date().toISOString(),
         attempts: 0,
       });
-      await writeClient.delete(item._id);
+      await (writeClient as any).delete(item._id);
       affected++;
     }
   }
