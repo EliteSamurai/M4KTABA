@@ -2,7 +2,9 @@ import React, { StrictMode } from "react";
 import { render } from "@testing-library/react";
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => (
-  <StrictMode>{children}</StrictMode>
+  <StrictMode>
+    {children}
+  </StrictMode>
 );
 
 const customRender = (ui: React.ReactElement, options = {}) =>
