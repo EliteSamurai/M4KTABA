@@ -68,7 +68,7 @@ jobs:
         with:
           status: ${{ job.status }}
           channel: '#deployments'
-          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
         if: always()
 
   # Deploy to Production
@@ -144,7 +144,7 @@ jobs:
         with:
           status: ${{ job.status }}
           channel: '#deployments'
-          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
         if: always()
 
   # Rollback
@@ -163,5 +163,5 @@ jobs:
         with:
           status: failure
           channel: '#deployments'
-          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
         if: always()

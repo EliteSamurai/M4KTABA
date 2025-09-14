@@ -35,7 +35,13 @@ export default defineConfig({
   },
 
   /* Configure projects for major browsers */
-  projects: [
+  projects: process.env.CI ? [
+    // Only run Chrome in CI to speed up tests
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ] : [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
@@ -77,7 +83,7 @@ export default defineConfig({
     command: 'pnpm dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    timeout: process.env.CI ? 60 * 1000 : 120 * 1000, // 60s in CI, 120s locally
   },
 
   /* Global setup and teardown */
