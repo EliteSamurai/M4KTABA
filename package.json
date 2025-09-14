@@ -28,6 +28,7 @@
     "seed:queues": "tsx scripts/seeds/seed-queues.ts",
     "cleanup:queues": "tsx scripts/seeds/cleanup-queues.ts",
     "sanity:check": "tsx scripts/sanity/check-perms.ts",
+    "sanity:patch:honey": "tsx scripts/sanity/patch-honey-price.ts",
     "audit": "pnpm audit --audit-level moderate",
     "audit:fix": "pnpm audit --fix",
     "outdated": "pnpm outdated",
@@ -37,6 +38,7 @@
     "lighthouse": "lighthouse-ci autorun",
     "analyze": "ANALYZE=true next build",
     "clean": "rm -rf .next out dist coverage",
+    "clean:all": "rimraf .next && rimraf node_modules && echo 'Cleaned caches. Run npm install next.'",
     "prepare": "husky",
     "validate:env": "tsx scripts/deploy/validate-env.ts",
     "validate:env:strict": "tsx scripts/deploy/validate-env.ts --throw",
@@ -108,7 +110,8 @@
     "uuid": "^11.0.3",
     "uuidv4": "^6.2.13",
     "web-vitals": "^4.2.4",
-    "zod": "^3.24.1"
+    "zod": "^3.24.1",
+    "debug": "4.4.3"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.9.1",
@@ -164,5 +167,9 @@
   },
   "resolutions": {
     "@sanity/types": "3.64.2"
+  },
+  "overrides": {
+    "@sanity/client": "6.29.1",
+    "debug": "4.4.3"
   }
 }

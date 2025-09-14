@@ -22,6 +22,7 @@ module.exports = {
     '^@test-utils$': '<rootDir>/tests/helpers/test-utils.tsx',
     '^next-auth-mock$': '<rootDir>/tests/helpers/next-auth-mock',
     '^tests/helpers/next-auth-mock$': '<rootDir>/tests/helpers/next-auth-mock',
+    '^@/(.*)$': '<rootDir>/$1',
     '^@/tests/helpers/next-auth-mock$':
       '<rootDir>/tests/helpers/next-auth-mock',
     '^@tests/helpers/next-auth-mock$': '<rootDir>/tests/helpers/next-auth-mock',
@@ -43,8 +44,23 @@ module.exports = {
   modulePathIgnorePatterns: ['<rootDir>/studio-m4ktaba/'],
 
   transform: {
-    '^.+\\.tsx?$': ['@swc/jest'],
-    '^.+\\.jsx?$': ['babel-jest', { configFile: './babel.config.jest.js' }],
+    '^.+\\.(ts|tsx)$': ['@swc/jest'],
+    '^.+\\.(js|jsx)$': [
+      '@swc/jest',
+      {
+        jsc: {
+          parser: {
+            syntax: 'ecmascript',
+            jsx: true,
+          },
+          transform: {
+            react: {
+              runtime: 'automatic',
+            },
+          },
+        },
+      },
+    ],
   },
   transformIgnorePatterns: ['/node_modules/'],
   // Skip Playwright a11y test in Jest

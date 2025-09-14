@@ -1,11 +1,8 @@
 import NextAuth, { NextAuthOptions, User } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
-import { writeClient, readClient } from '@/studio-m4ktaba/client';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
-import { urlFor } from '@/utils/imageUrlBuilder';
-import { uploadImageToSanity } from '@/utils/uploadImageToSanity';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -31,6 +28,9 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Missing email or password.');
         }
 
+        // Dynamic import of Sanity client
+        const { writeClient } = await import('@/studio-m4ktaba/client');
+
         // Fetch user from database based on email
         const query = `*[_type == "user" && email == $email][0]`;
         const user = await (writeClient as any).fetch(query, { email });
@@ -46,6 +46,9 @@ export const authOptions: NextAuthOptions = {
           console.error('Invalid password attempt'); // Removed email from log
           throw new Error('Invalid email or password.');
         }
+
+        // Dynamic import of urlFor utility
+        const { urlFor } = await import('@/utils/imageUrlBuilder');
 
         return {
           _id: user._id,
@@ -71,6 +74,14 @@ export const authOptions: NextAuthOptions = {
 
         if (account?.provider === 'google') {
           try {
+            // Dynamic import of Sanity clients and utilities
+            const { readClient, writeClient } = await import(
+              '@/studio-m4ktaba/client'
+            );
+            const { uploadImageToSanity } = await import(
+              '@/utils/uploadImageToSanity'
+            );
+
             let existingUser = await (readClient as any).fetch(
               `*[_type == "user" && email == $email][0]`,
               { email: token.email }
@@ -117,6 +128,9 @@ export const authOptions: NextAuthOptions = {
       session.user.stripeAccountId = token.stripeAccountId || null;
 
       try {
+        // Dynamic import of readClient
+        const { readClient } = await import('@/studio-m4ktaba/client');
+
         const latestUser = await (readClient as any).fetch(
           `*[_type == "user" && _id == $_id][0]{email, image, location, stripeAccountId}`,
           { _id: token._id }

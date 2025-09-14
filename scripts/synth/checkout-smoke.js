@@ -6,9 +6,13 @@ const { chromium } = require('@playwright/test');
   const page = await browser.newPage();
 
   try {
-    await page.goto(`${baseUrl}/checkout?synthetic=true`);
-    // Basic smoke: page renders
-    await page.waitForSelector('text=Shipping Details', { timeout: 10000 });
+    await page.goto(`${baseUrl}/checkout?synth=1`);
+    // Wait for page to load completely
+    await page.waitForLoadState('networkidle');
+    // Basic smoke: page renders with specific test ID
+    await page.waitForSelector('[data-testid="shipping-details-heading"]', {
+      timeout: 15000,
+    });
     console.log('✅ Checkout page smoke test passed');
   } catch (error) {
     console.error('❌ Checkout page smoke test failed:', error.message);

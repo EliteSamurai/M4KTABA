@@ -2,6 +2,10 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  experimental: {
+    // disable auto vendor-chunk tinkering that's producing missing files in dev
+    optimizePackageImports: [],
+  },
   images: {
     remotePatterns: [
       {

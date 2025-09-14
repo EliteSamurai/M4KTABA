@@ -52,7 +52,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
 
       try {
         const response = await fetch(
-          `/api/books/related?bookId=${book._id}&categoryId=${(book as any).selectedCategory._id}`
+          `/api/related-books?bookId=${book._id}&categoryId=${(book as any).selectedCategory._id}`
         );
         if (response.ok) {
           const data = await response.json();

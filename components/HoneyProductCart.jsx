@@ -25,7 +25,7 @@ export default function HoneyProductCard() {
   const product = {
     id: 'honey-001',
     title: 'Raw Sidr Honey',
-    price: 47.99,
+    price: 59.99, // TODO: Import from constants
     image: HoneyPortrait,
     user: {
       _id: 'MH7kyac4DmuRU6j51iL0It',

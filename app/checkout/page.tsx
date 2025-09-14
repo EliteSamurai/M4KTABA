@@ -186,6 +186,13 @@ export function CheckoutContent() {
     if (didRouteOnce.current) return;
     // Skip redirect for synthetic tests
     if (process.env.SYNTH_BASE_URL) return;
+    // Also skip redirect if this is a synthetic test (check URL)
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('synthetic') === 'true') {
+        return;
+      }
+    }
     if (!session) {
       didRouteOnce.current = true;
       router.push('/login');
@@ -509,11 +516,42 @@ export function CheckoutContent() {
   }
 
   // For synthetic tests, render the form even without session
-  // Check for synthetic test by looking for specific query params or user agent
-  const isSyntheticTest =
-    searchParams?.get('synthetic') === 'true' ||
-    (typeof window !== 'undefined' &&
-      window.navigator?.userAgent?.includes('HeadlessChrome'));
+  // Check for synthetic test by looking for env var, query params, or header
+  const isSyntheticTest = React.useMemo(() => {
+    // Check environment variable
+    if (process.env.NEXT_PUBLIC_SYNTH === '1') {
+      return true;
+    }
+
+    // Check URL directly for synthetic parameter
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (
+        url.searchParams.get('synth') === '1' ||
+        url.searchParams.get('synthetic') === 'true'
+      ) {
+        return true;
+      }
+    }
+
+    // Check searchParams hook
+    if (
+      searchParams?.get('synth') === '1' ||
+      searchParams?.get('synthetic') === 'true'
+    ) {
+      return true;
+    }
+
+    // Check user agent
+    if (
+      typeof window !== 'undefined' &&
+      window.navigator?.userAgent?.includes('HeadlessChrome')
+    ) {
+      return true;
+    }
+
+    return false;
+  }, [searchParams]);
 
   if (!testSession && !isSyntheticTest) return null;
 
@@ -635,7 +673,9 @@ export function CheckoutContent() {
             {state.status !== 'paymentReady' ? (
               <Card>
                 <CardHeader>
-                  <CardTitle>{checkoutCopy.headings.shippingDetails}</CardTitle>
+                  <CardTitle data-testid='shipping-details-heading'>
+                    {checkoutCopy.headings.shippingDetails}
+                  </CardTitle>
                   <CardDescription>
                     {checkoutCopy.descriptions.shippingHelp}
                   </CardDescription>

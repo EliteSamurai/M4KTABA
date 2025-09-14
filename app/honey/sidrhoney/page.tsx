@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { readClient } from '@/studio-m4ktaba/client';
 import AddToCartButton from '@/components/AddToCartButton';
 import QuantitySelector from '@/components/QuantitySelector';
-import ThumbnailSwitcher from '@/components/ThumbnailSwitcher';
+import HoneyImageGallery from '@/components/HoneyImageGallery';
+import { HONEY_PRICE } from '@/app/lib/constants/pricing';
 import { Badge } from '@/components/ui/badge';
 import {
   Card,
@@ -48,8 +49,8 @@ export default function HoneyProductPage() {
         <div className='grid gap-8 lg:grid-cols-2'>
           {/* Product Images */}
           <div className='top-24'>
-            <ThumbnailSwitcher
-              photos={[mainHoneyImage, honey1, honey2, honey3] as any}
+            <HoneyImageGallery
+              images={[mainHoneyImage, honey1, honey2, honey3]}
             />
           </div>
 
@@ -95,7 +96,9 @@ export default function HoneyProductPage() {
               <CardContent className='p-6'>
                 <div className='mb-4 flex items-center justify-between'>
                   <span className='text-lg font-medium'>Price</span>
-                  <span className='text-3xl font-bold'>$29.99</span>
+                  <span className='text-3xl font-bold'>
+                    ${HONEY_PRICE.toFixed(2)}
+                  </span>
                 </div>
                 <Separator className='mb-4' />
                 <div className='space-y-4'>
@@ -117,7 +120,7 @@ export default function HoneyProductPage() {
                     bookId='honey-001'
                     isAvailable={true}
                     bookTitle='Raw Sidr Honey'
-                    bookPrice={47.99}
+                    bookPrice={HONEY_PRICE}
                   />
                 </div>
               </CardContent>
