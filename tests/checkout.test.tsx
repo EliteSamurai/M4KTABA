@@ -1,4 +1,26 @@
-// MUST be first so it’s hoisted before SUT import
+// MUST be first so it's hoisted before SUT import
+// Mock next-auth/react first
+jest.mock("next-auth/react", () => ({
+  useSession: jest.fn(() => ({
+    data: {
+      user: {
+        _id: "u1",
+        name: "T",
+        location: {
+          street: "123 Main",
+          city: "NYC",
+          state: "NY",
+          zip: "10001",
+          country: "US",
+        },
+      },
+    },
+    status: "authenticated",
+  })),
+  signIn: jest.fn(),
+  signOut: jest.fn(),
+}));
+
 jest.mock("@/app/checkout/cart-summary", () => {
   const React = require("react");
   return {

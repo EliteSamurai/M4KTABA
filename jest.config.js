@@ -35,7 +35,7 @@ module.exports = {
     '^@stripe/react-stripe-js$': '<rootDir>/tests/mocks/stripe-react.js',
     '^@stripe/stripe-js$': '<rootDir>/tests/mocks/stripe-js.js',
     '^lib/stripe$': '<rootDir>/tests/mocks/stripe-server.js',
-    '^next-auth/react$': '<rootDir>/tests/mocks/next-auth-react.js',
+    '^next-auth/react$': '<rootDir>/tests/__mocks__/next-auth/react.js',
     '^tests/(.*)$': '<rootDir>/tests/$1',
     '^@tests/(.*)$': '<rootDir>/tests/$1',
   },

@@ -1,5 +1,5 @@
 // CommonJS-style mock for next-auth/react
-console.log('Loading next-auth/react mock');
+console.log('Loading next-auth/react mock from __mocks__');
 
 const useSession = () => {
   console.log('useSession mock called');
