@@ -16,4 +16,7 @@ jobs:
       - run: corepack enable
       - run: pnpm install --no-frozen-lockfile
       - run: npx playwright install chromium
-      - run: SYNTH_BASE_URL=${{ secrets.SYNTH_BASE_URL }} node scripts/synth/checkout-smoke.js
+      - run: |
+          export NEXT_PUBLIC_SYNTH=1
+          export SYNTH_BASE_URL=${{ secrets.SYNTH_PROD_BASE_URL }}
+          node scripts/synth/checkout-smoke.js

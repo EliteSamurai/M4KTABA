@@ -261,5 +261,5 @@ jobs:
         with:
           status: ${{ job.status }}
           channel: '#maintenance'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
         if: always()

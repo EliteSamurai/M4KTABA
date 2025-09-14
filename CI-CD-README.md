@@ -139,7 +139,7 @@ The CI/CD pipeline includes:
 - `VERCEL_PROJECT_ID`: Vercel project ID
 - `SNYK_TOKEN`: Snyk security scanning token
 - `SONAR_TOKEN`: SonarCloud analysis token
-- `SLACK_WEBHOOK`: Slack notification webhook
+- `SLACK_WEBHOOK_URL`: Slack notification webhook
 - `NEXT_PUBLIC_SENTRY_DSN`: Sentry client DSN
 - `SENTRY_DSN`: Sentry server DSN
 
