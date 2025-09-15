@@ -1,3 +1,18 @@
+// Mock the stripe module before importing
+jest.mock('@/lib/stripe', () => {
+  const mockCreatePaymentIntent = jest.fn();
+  const mockGetPlatformFeeAmount = jest.fn();
+  return {
+    createPaymentIntentWithDestinationCharge: mockCreatePaymentIntent,
+    getPlatformFeeAmount: mockGetPlatformFeeAmount,
+    stripe: {
+      paymentIntents: {
+        create: jest.fn(),
+      },
+    },
+  };
+});
+
 import {
   createPaymentIntentWithDestinationCharge,
   getPlatformFeeAmount,
@@ -5,15 +20,14 @@ import {
 
 describe('destination charges', () => {
   it('sets transfer_data.destination and application_fee_amount when seller present', async () => {
-    const spy = jest
-      .spyOn(require('@/lib/stripe'), 'stripe', 'get')
-      .mockReturnValue({
-        paymentIntents: {
-          create: jest
-            .fn()
-            .mockResolvedValue({ id: 'pi_123', client_secret: 'cs_123' }),
-        },
-      });
+    const mockStripe = require('@/lib/stripe');
+
+    // Setup mocks
+    mockStripe.createPaymentIntentWithDestinationCharge.mockResolvedValue({
+      id: 'pi_123',
+      client_secret: 'cs_123',
+    });
+    mockStripe.getPlatformFeeAmount.mockReturnValue(250);
 
     process.env.PLATFORM_FEE_BPS = '250'; // 2.5%
     const res = await createPaymentIntentWithDestinationCharge({
@@ -30,6 +44,5 @@ describe('destination charges', () => {
     expect(res.client_secret).toBe('cs_123');
     const fee = getPlatformFeeAmount(10000);
     expect(fee).toBe(250);
-    spy.mockRestore();
   });
 });

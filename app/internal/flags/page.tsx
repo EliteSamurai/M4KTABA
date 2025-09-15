@@ -17,7 +17,6 @@ export default function FlagsAdmin() {
 
   useEffect(() => {
     // Warn if no DB backend, env-only flags
-    // eslint-disable-next-line no-console
     console.warn(
       'Flags admin is running in env-backed mode. Changes here are not persisted.'
     );

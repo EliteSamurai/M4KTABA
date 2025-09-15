@@ -4,7 +4,6 @@ type IdempotencyStatus = 'pending' | 'committed' | 'failed';
 
 type InMemoryEntry = {
   status: IdempotencyStatus;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   result?: any;
   expiresAt: number; // epoch ms
 };
@@ -26,7 +25,6 @@ async function getRedis() {
   try {
     const { Redis } = await import('ioredis');
     // ioredis supports redis:// URLs
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     redis = new (Redis as any)(process.env.REDIS_URL);
   } catch {
     redis = null;
@@ -63,7 +61,7 @@ export async function begin(key: string, ttlMs: number = DEFAULT_TTL_MS) {
 }
 
 export async function commit(
-  key: string, // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  key: string,
   result: any,
   ttlMs: number = DEFAULT_TTL_MS
 ) {

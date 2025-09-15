@@ -6,16 +6,27 @@ let writeClient: any = null;
 
 export function getSanityClients() {
   // Only initialize if not already done and environment variables are available
-  if (!readClient && !writeClient && process.env.SANITY_PROJECT_ID && process.env.SANITY_DATASET) {
+  if (
+    !readClient &&
+    !writeClient &&
+    process.env.SANITY_PROJECT_ID &&
+    process.env.SANITY_DATASET
+  ) {
     try {
-      const { readClient: rc, writeClient: wc } = require('@/studio-m4ktaba/client');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const {
+        readClient: rc,
+        writeClient: wc,
+      } = require('@/studio-m4ktaba/client');
       readClient = rc;
       writeClient = wc;
-    } catch (error) {
-      console.warn('Sanity client not available - missing environment variables');
+    } catch {
+      console.warn(
+        'Sanity client not available - missing environment variables'
+      );
     }
   }
-  
+
   return { readClient, writeClient };
 }
 
