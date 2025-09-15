@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readClient } from '@/studio-m4ktaba/client';
+import { getSanityClients, isSanityConfigured } from '@/lib/sanity-client-conditional';
 
 const POSTS_QUERY = `*[
   _type == "post" && defined(slug.current) && publishedAt <= now()
@@ -22,12 +22,17 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '6');
     const offset = (page - 1) * limit;
 
-    // Check if Sanity is configured
-    if (!process.env.SANITY_PROJECT_ID || !process.env.SANITY_DATASET) {
+    // Check if Sanity is configured and client is available
+    if (!isSanityConfigured()) {
       return NextResponse.json({ posts: [], hasMore: false });
     }
 
-    const allPosts = await (readClient as any).fetch(
+    const { readClient } = getSanityClients();
+    if (!readClient) {
+      return NextResponse.json({ posts: [], hasMore: false });
+    }
+
+    const allPosts = await readClient.fetch(
       POSTS_QUERY,
       {},
       { next: { revalidate: 30 } }

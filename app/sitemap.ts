@@ -1,15 +1,5 @@
 import { MetadataRoute } from 'next';
-
-// Conditionally import Sanity client only if environment variables are available
-let readClient: any = null;
-if (process.env.SANITY_PROJECT_ID && process.env.SANITY_DATASET) {
-  try {
-    const { readClient: client } = require('@/studio-m4ktaba/client');
-    readClient = client;
-  } catch (error) {
-    console.warn('Sanity client not available for sitemap generation');
-  }
-}
+import { getSanityClients, isSanityConfigured } from '@/lib/sanity-client-conditional';
 
 // Base URL for the site - replace with your actual domain
 const BASE_URL = process.env.SITE_URL || 'https://m4ktaba.com';
@@ -36,7 +26,12 @@ const getLastModified = (date?: string) => {
 // Replace this with your actual data fetching logic
 async function getAllBlogPosts(): Promise<BlogPost[]> {
   // Check if Sanity is configured and client is available
-  if (!process.env.SANITY_PROJECT_ID || !process.env.SANITY_DATASET || !readClient) {
+  if (!isSanityConfigured()) {
+    return [];
+  }
+
+  const { readClient } = getSanityClients();
+  if (!readClient) {
     return [];
   }
 
