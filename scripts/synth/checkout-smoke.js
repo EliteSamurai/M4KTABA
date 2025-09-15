@@ -10,15 +10,15 @@ const { chromium } = require('@playwright/test');
     await page.goto(`${baseUrl}/checkout?synth=1`);
     // Wait for page to load completely
     await page.waitForLoadState('networkidle');
-    
+
     // Debug: Check if the page loaded correctly
     const title = await page.title();
     console.log(`📄 Page title: ${title}`);
-    
+
     // Check if we're on the right page
     const url = page.url();
     console.log(`🌐 Current URL: ${url}`);
-    
+
     // Try to find the element
     console.log('🔍 Looking for shipping-details-heading element...');
     try {

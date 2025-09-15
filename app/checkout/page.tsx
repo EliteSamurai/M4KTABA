@@ -184,13 +184,13 @@ export function CheckoutContent() {
   const didRouteOnce = React.useRef(false);
   useEffect(() => {
     if (didRouteOnce.current) return;
-    
+
     // Skip redirect for synthetic tests
     if (process.env.SYNTH_BASE_URL) {
       console.log('🔍 Skipping redirect: SYNTH_BASE_URL detected');
       return;
     }
-    
+
     // Also skip redirect if this is a synthetic test (check URL)
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
@@ -198,11 +198,14 @@ export function CheckoutContent() {
         url.searchParams.get('synth') === '1' ||
         url.searchParams.get('synthetic') === 'true'
       ) {
-        console.log('🔍 Skipping redirect: synthetic URL parameter detected', url.searchParams.get('synth') || url.searchParams.get('synthetic'));
+        console.log(
+          '🔍 Skipping redirect: synthetic URL parameter detected',
+          url.searchParams.get('synth') || url.searchParams.get('synthetic')
+        );
         return;
       }
     }
-    
+
     if (!session) {
       console.log('🔍 No session found, redirecting to login');
       didRouteOnce.current = true;
@@ -542,7 +545,10 @@ export function CheckoutContent() {
         url.searchParams.get('synth') === '1' ||
         url.searchParams.get('synthetic') === 'true'
       ) {
-        console.log('🔍 Synthetic test detected: URL parameter', url.searchParams.get('synth') || url.searchParams.get('synthetic'));
+        console.log(
+          '🔍 Synthetic test detected: URL parameter',
+          url.searchParams.get('synth') || url.searchParams.get('synthetic')
+        );
         return true;
       }
     }
@@ -552,7 +558,10 @@ export function CheckoutContent() {
       searchParams?.get('synth') === '1' ||
       searchParams?.get('synthetic') === 'true'
     ) {
-      console.log('🔍 Synthetic test detected: searchParams', searchParams?.get('synth') || searchParams?.get('synthetic'));
+      console.log(
+        '🔍 Synthetic test detected: searchParams',
+        searchParams?.get('synth') || searchParams?.get('synthetic')
+      );
       return true;
     }
 
