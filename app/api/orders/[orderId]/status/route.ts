@@ -109,7 +109,15 @@ export async function PATCH(
       try {
         const baseUrl =
           process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        await fetch(`${baseUrl}/api/email/send`, {
+        
+        console.log('📧 Attempting to send email notification:', {
+          template: status === OrderStatus.SHIPPED ? 'shipping-update' : 'delivery-confirmation',
+          orderId,
+          trackingNumber,
+          baseUrl,
+        });
+
+        const emailResponse = await fetch(`${baseUrl}/api/email/send`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -124,8 +132,20 @@ export async function PATCH(
             trackingNumber,
           }),
         });
+
+        if (emailResponse.ok) {
+          const emailResult = await emailResponse.json();
+          console.log('✅ Email sent successfully:', emailResult);
+        } else {
+          const errorText = await emailResponse.text();
+          console.error('❌ Email sending failed:', {
+            status: emailResponse.status,
+            statusText: emailResponse.statusText,
+            error: errorText,
+          });
+        }
       } catch (emailError) {
-        console.error('Failed to send email notification:', emailError);
+        console.error('❌ Failed to send email notification:', emailError);
         // Don't fail the request if email fails
       }
     }
