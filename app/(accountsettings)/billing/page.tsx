@@ -141,7 +141,7 @@ export default function BillingPage() {
           const csrfResponse = await fetch('/api/csrf-token');
           if (csrfResponse.ok) {
             const csrfData = await csrfResponse.json();
-            csrfToken = csrfData.token;
+            csrfToken = csrfData.csrfToken;
           }
         } catch (error) {
           console.warn('Failed to fetch CSRF token from API:', error);
@@ -229,7 +229,7 @@ export default function BillingPage() {
           const csrfResponse = await fetch('/api/csrf-token');
           if (csrfResponse.ok) {
             const csrfData = await csrfResponse.json();
-            csrfToken = csrfData.token;
+            csrfToken = csrfData.csrfToken;
           }
         } catch (error) {
           console.warn('Failed to fetch CSRF token from API:', error);
