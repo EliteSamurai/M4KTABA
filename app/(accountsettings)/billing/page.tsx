@@ -41,6 +41,7 @@ interface Order {
   _createdAt: string;
   status: string;
   cart: CartItem[];
+  userEmail?: string;
 }
 
 export default function BillingPage() {

@@ -4,7 +4,11 @@ export interface CartItem {
   price: number;
   quantity: number;
   weight?: number; // weight in lbs
-  user: {
+  shippingStatus?: string;
+  refundDetails?: {
+    refundStatus?: string;
+  };
+  user?: {
     location?: {
       street?: string;
       city?: string;

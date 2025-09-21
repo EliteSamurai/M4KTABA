@@ -31,12 +31,27 @@ export default function AddToCartButton({
     if (!isAvailable || isInCart2) return;
 
     if (!isInCart(bookId)) {
+      // Ensure user is an object, not an array
+      const validUser = Array.isArray(bookUser)
+        ? null
+        : bookUser && typeof bookUser === 'object'
+          ? bookUser
+          : null;
+
+      console.log('Adding to cart:', {
+        id: bookId,
+        title: bookTitle,
+        price: bookPrice,
+        quantity: quantity,
+        user: validUser || undefined,
+      });
+
       addToCart({
         id: bookId,
         title: bookTitle,
         price: bookPrice,
         quantity: quantity,
-        user: bookUser,
+        user: validUser || undefined,
       });
     }
   };

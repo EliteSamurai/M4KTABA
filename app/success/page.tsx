@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   CheckCircle2,
@@ -65,6 +65,7 @@ const SkeletonFallback = () => {
 
 export function SuccessContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const paymentIntentId = searchParams.get('payment_intent');
   const cartData = searchParams.get('cart');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -113,6 +114,33 @@ export function SuccessContent() {
             if (data.success) {
               setReceiptUrl(data.receiptUrl);
 
+              // Extract shipping details from metadata
+              let shippingDetails;
+              try {
+                shippingDetails = data.metadata?.shippingDetails
+                  ? JSON.parse(data.metadata.shippingDetails)
+                  : {
+                      name: 'N/A',
+                      street1: 'N/A',
+                      city: 'N/A',
+                      state: 'N/A',
+                      zip: 'N/A',
+                      country: 'N/A',
+                    };
+              } catch (parseError) {
+                console.error('Failed to parse shipping details:', parseError);
+                shippingDetails = {
+                  name: 'N/A',
+                  street1: 'N/A',
+                  city: 'N/A',
+                  state: 'N/A',
+                  zip: 'N/A',
+                  country: 'N/A',
+                };
+              }
+
+              console.log('Extracted shipping details:', shippingDetails);
+
               const orderPayload = {
                 cart: parsedCartData.map((item: CartItem) => {
                   // Special handling for honey products
@@ -141,11 +169,12 @@ export function SuccessContent() {
                     title: item.title,
                     price: item.price,
                     quantity: item.quantity,
-                    user: {
+                    user: item.user ? {
                       _id: item.user._id,
                       email: item.user.email,
                       location: item.user.location,
-                    },
+                      stripeAccountId: item.user.stripeAccountId,
+                    } : undefined,
                     shippingStatus: 'pending',
                     refundDetails: {
                       refundStatus: 'not_requested',
@@ -155,26 +184,76 @@ export function SuccessContent() {
                 status: 'pending',
                 paymentId: paymentIntentId,
                 userId: session.user._id,
+                shippingDetails,
               };
 
-              const saveOrderRes = await fetch('/api/orders', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(orderPayload),
+              console.log('Order payload being sent:', {
+                cartLength: orderPayload.cart.length,
+                status: orderPayload.status,
+                userId: orderPayload.userId,
+                paymentId: orderPayload.paymentId,
+                shippingDetails: orderPayload.shippingDetails,
+                firstCartItem: orderPayload.cart[0],
               });
 
-              if (saveOrderRes.ok) {
-                const savedOrder = await saveOrderRes.json();
-                console.log('Order saved:', savedOrder);
-                setOrderSaved(true);
-                clearCart();
-              } else {
-                const errorData = await saveOrderRes.json();
-                setError(errorData.message || 'Failed to save order');
+              try {
+                // Get CSRF token
+                const csrfResponse = await fetch('/api/csrf-token');
+                const { token: csrfToken } = await csrfResponse.json();
+
+                const saveOrderRes = await fetch('/api/orders', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-csrf-token': csrfToken,
+                  },
+                  body: JSON.stringify(orderPayload),
+                });
+
+                if (saveOrderRes.ok) {
+                  const savedOrder = await saveOrderRes.json();
+                  console.log('Order saved:', savedOrder);
+                  setOrderSaved(true);
+
+                  // Redirect to order confirmation page after a short delay
+                  setTimeout(() => {
+                    router.push(
+                      `/order-confirmation/${savedOrder.order?._id || paymentIntentId}`
+                    );
+                  }, 2000);
+                } else {
+                  const errorData = await saveOrderRes.json();
+                  console.error('Order saving failed:', errorData);
+                  setError(errorData.message || 'Failed to save order');
+                  setOrderSaved(false);
+                }
+              } catch (orderError) {
+                console.error('Error saving order:', orderError);
+                setError('Failed to save order. Please contact support.');
                 setOrderSaved(false);
               }
+
+              // Always clear the cart after payment is successful, regardless of order saving
+              try {
+                // Get CSRF token for cart clearing
+                const csrfResponse = await fetch('/api/csrf-token');
+                const { token: csrfToken } = await csrfResponse.json();
+
+                // Clear cart on server
+                await fetch('/api/cart', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-csrf-token': csrfToken,
+                  },
+                  body: JSON.stringify({ cart: [] }),
+                });
+              } catch (cartError) {
+                console.error('Error clearing cart on server:', cartError);
+              }
+
+              // Clear cart locally
+              clearCart();
             } else {
               throw new Error(
                 data.error || 'Failed to retrieve payment details'
