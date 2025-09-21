@@ -78,7 +78,7 @@ export default function BillingPage() {
       try {
         console.log('🔍 Starting order fetch process...');
         // Ensure CSRF token is available
-        const csrfResponse = await fetch('/api/csrf');
+        const csrfResponse = await fetch('/api/csrf-token');
         if (csrfResponse.ok) {
           const csrfData = await csrfResponse.json();
           console.log('CSRF token fetched:', csrfData.token);
