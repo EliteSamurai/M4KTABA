@@ -1,4 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
+import crypto from 'crypto';
 
 // Attach CSRF token cookie on GET navigations to pages
 export function middleware(req: NextRequest) {
@@ -9,8 +10,9 @@ export function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const hasToken = req.cookies.get('csrf_token');
   if (!hasToken) {
-    // mint a token by setting an empty cookie; lib/csrf.ts will fill when read
-    res.cookies.set('csrf_token', 'seed', {
+    // Generate a proper CSRF token instead of using 'seed'
+    const token = crypto.randomBytes(16).toString('hex');
+    res.cookies.set('csrf_token', token, {
       httpOnly: false,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
