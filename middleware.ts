@@ -1,5 +1,4 @@
 import { NextResponse, NextRequest } from 'next/server';
-import crypto from 'crypto';
 
 // Attach CSRF token cookie on GET navigations to pages
 export function middleware(req: NextRequest) {
@@ -12,15 +11,14 @@ export function middleware(req: NextRequest) {
   
   // Force regenerate token if it's 'seed' or doesn't exist
   if (!existingToken || existingToken.value === 'seed') {
-    // Generate a proper CSRF token instead of using 'seed'
-    const token = crypto.randomBytes(16).toString('hex');
+    // Generate a simple random token (avoid crypto import in middleware)
+    const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
     res.cookies.set('csrf_token', token, {
       httpOnly: false,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
     });
-    console.log('🔄 Regenerated CSRF token (was seed or missing)');
   }
   return res;
 }
