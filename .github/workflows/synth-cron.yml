@@ -19,4 +19,7 @@ jobs:
       - run: |
           export NEXT_PUBLIC_SYNTH=1
           export SYNTH_BASE_URL=${{ secrets.SYNTH_PROD_BASE_URL }}
+          echo "🔍 Environment variables:"
+          echo "NEXT_PUBLIC_SYNTH=$NEXT_PUBLIC_SYNTH"
+          echo "SYNTH_BASE_URL=$SYNTH_BASE_URL"
           node scripts/synth/checkout-smoke.js
