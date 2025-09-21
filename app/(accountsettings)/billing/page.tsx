@@ -133,13 +133,24 @@ export default function BillingPage() {
 
     setLoading(true);
     try {
-      // Always fetch a fresh CSRF token
-      const csrfResponse = await fetch('/api/csrf');
-      if (!csrfResponse.ok) {
+      // Try to get CSRF token from cookies first, then API
+      let csrfToken = document.cookie.match(/(?:^|; )csrf_token=([^;]+)/)?.[1];
+      
+      if (!csrfToken) {
+        try {
+          const csrfResponse = await fetch('/api/csrf-token');
+          if (csrfResponse.ok) {
+            const csrfData = await csrfResponse.json();
+            csrfToken = csrfData.token;
+          }
+        } catch (error) {
+          console.warn('Failed to fetch CSRF token from API:', error);
+        }
+      }
+      
+      if (!csrfToken) {
         throw new Error('Failed to get CSRF token');
       }
-      const csrfData = await csrfResponse.json();
-      const csrfToken = csrfData.token;
 
       console.log('Using CSRF token:', csrfToken);
 
@@ -209,13 +220,24 @@ export default function BillingPage() {
   const handleConfirmDelivery = async (orderId: string, itemId: string) => {
     setLoading(true);
     try {
-      // Always fetch a fresh CSRF token
-      const csrfResponse = await fetch('/api/csrf');
-      if (!csrfResponse.ok) {
+      // Try to get CSRF token from cookies first, then API
+      let csrfToken = document.cookie.match(/(?:^|; )csrf_token=([^;]+)/)?.[1];
+      
+      if (!csrfToken) {
+        try {
+          const csrfResponse = await fetch('/api/csrf-token');
+          if (csrfResponse.ok) {
+            const csrfData = await csrfResponse.json();
+            csrfToken = csrfData.token;
+          }
+        } catch (error) {
+          console.warn('Failed to fetch CSRF token from API:', error);
+        }
+      }
+      
+      if (!csrfToken) {
         throw new Error('Failed to get CSRF token');
       }
-      const csrfData = await csrfResponse.json();
-      const csrfToken = csrfData.token;
 
       console.log('Using CSRF token for delivery:', csrfToken);
 
