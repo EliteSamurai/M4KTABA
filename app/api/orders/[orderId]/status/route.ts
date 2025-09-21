@@ -24,10 +24,15 @@ export async function PATCH(
       hasSession: !!session,
       userId: session?.user?._id,
       userEmail: session?.user?.email,
+      sessionKeys: session ? Object.keys(session) : [],
     });
 
     if (!session?.user?._id) {
       console.log('❌ No session or user ID');
+      console.log('🔍 Auth options:', {
+        providers: authOptions.providers?.map(p => p.id) || [],
+        callbacks: Object.keys(authOptions.callbacks || {}),
+      });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -109,9 +114,12 @@ export async function PATCH(
       try {
         const baseUrl =
           process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        
+
         console.log('📧 Attempting to send email notification:', {
-          template: status === OrderStatus.SHIPPED ? 'shipping-update' : 'delivery-confirmation',
+          template:
+            status === OrderStatus.SHIPPED
+              ? 'shipping-update'
+              : 'delivery-confirmation',
           orderId,
           trackingNumber,
           baseUrl,
