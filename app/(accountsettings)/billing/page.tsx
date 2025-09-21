@@ -44,6 +44,7 @@ interface Order {
 }
 
 export default function BillingPage() {
+  console.log('🎯 BILLING PAGE COMPONENT RENDERED');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -51,6 +52,7 @@ export default function BillingPage() {
   const [reviewText, setReviewText] = useState('');
   const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [isOrdersLoading, setIsOrdersLoading] = useState(false);
   const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedCartItemId, setSelectedCartItemId] = useState<string | null>(
@@ -63,34 +65,225 @@ export default function BillingPage() {
   const { data: session } = useSession();
 
   useEffect(() => {
+    console.log('🔄 Billing page useEffect triggered');
     const fetchOrderHistory = async () => {
-      if (!session?.user?.stripeAccountId) {
-        console.warn(
-          'Stripe account ID is missing. Skipping order history fetch.'
-        );
+      if (!session?.user?._id) {
+        console.warn('User not authenticated. Skipping order history fetch.');
         return;
       }
+      console.log('✅ User authenticated, starting order fetch...');
 
+      setIsOrdersLoading(true);
       try {
-        const response = await fetch('/api/orders');
-        if (!response.ok) {
-          throw new Error('Failed to fetch order history');
+        console.log('🔍 Starting order fetch process...');
+        // Ensure CSRF token is available
+        const csrfResponse = await fetch('/api/csrf');
+        if (csrfResponse.ok) {
+          const csrfData = await csrfResponse.json();
+          console.log('CSRF token fetched:', csrfData.token);
         }
-        const data = await response.json();
-        setOrders(data.orders || []);
+
+        // Fetch seller orders (orders where user is the seller)
+        console.log('📞 Calling /api/orders/seller...');
+        const sellerResponse = await fetch('/api/orders/seller');
+        if (!sellerResponse.ok) {
+          throw new Error('Failed to fetch seller orders');
+        }
+        const sellerData = await sellerResponse.json();
+        const sellerOrders = sellerData.orders || [];
+
+        // Fetch buyer orders (orders where user is the buyer)
+        const buyerResponse = await fetch('/api/orders');
+        if (!buyerResponse.ok) {
+          throw new Error('Failed to fetch buyer orders');
+        }
+        const buyerData = await buyerResponse.json();
+        const buyerOrders = buyerData.orders || [];
+
+        // Combine and sort all orders by creation date
+        const allOrders = [...sellerOrders, ...buyerOrders].sort(
+          (a, b) =>
+            new Date(b._createdAt).getTime() - new Date(a._createdAt).getTime()
+        );
+
+        setOrders(allOrders);
       } catch (err) {
+        console.error('❌ Error in fetchOrderHistory:', err);
         if (err instanceof Error) {
           setError(err.message || 'An error occurred while fetching orders.');
         }
+      } finally {
+        setIsOrdersLoading(false);
       }
     };
 
     fetchOrderHistory();
-  }, [session?.user?.stripeAccountId]);
+  }, [session?.user?._id]);
 
   const handleLeaveReview = (sellerId: string) => {
     setSelectedSellerId(sellerId);
     setIsReviewModalOpen(true);
+  };
+
+  const handleConfirmShipment = async (orderId: string, itemId: string) => {
+    // Show tracking number modal
+    const trackingNumber = prompt('Enter tracking number (optional):');
+    if (trackingNumber === null) return; // User cancelled
+
+    setLoading(true);
+    try {
+      // Get CSRF token from cookies or fetch new one
+      let csrfToken = document.cookie.match(/(?:^|; )csrf_token=([^;]+)/)?.[1];
+
+      if (!csrfToken) {
+        const csrfResponse = await fetch('/api/csrf');
+        if (csrfResponse.ok) {
+          const csrfData = await csrfResponse.json();
+          csrfToken = csrfData.token;
+        }
+      }
+
+      console.log('Using CSRF token:', csrfToken);
+
+      const response = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken || '',
+        },
+        body: JSON.stringify({
+          status: 'shipped',
+          trackingNumber: trackingNumber || undefined,
+          notes: `Item ${itemId} marked as shipped`,
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Success',
+          description: 'Item marked as shipped successfully.',
+        });
+        // Refresh orders instead of full page reload
+        setIsOrdersLoading(true);
+        try {
+          const sellerResponse = await fetch('/api/orders/seller');
+          const buyerResponse = await fetch('/api/orders');
+
+          if (sellerResponse.ok && buyerResponse.ok) {
+            const sellerData = await sellerResponse.json();
+            const buyerData = await buyerResponse.json();
+            const sellerOrders = sellerData.orders || [];
+            const buyerOrders = buyerData.orders || [];
+
+            const allOrders = [...sellerOrders, ...buyerOrders].sort(
+              (a, b) =>
+                new Date(b._createdAt).getTime() -
+                new Date(a._createdAt).getTime()
+            );
+
+            setOrders(allOrders);
+          }
+        } catch (error) {
+          console.error('Error refreshing orders:', error);
+        } finally {
+          setIsOrdersLoading(false);
+        }
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: 'Error',
+          description: errorData.error || 'Failed to mark item as shipped.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error marking item as shipped:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to mark item as shipped.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmDelivery = async (orderId: string, itemId: string) => {
+    setLoading(true);
+    try {
+      // Get CSRF token from cookies or fetch new one
+      let csrfToken = document.cookie.match(/(?:^|; )csrf_token=([^;]+)/)?.[1];
+
+      if (!csrfToken) {
+        const csrfResponse = await fetch('/api/csrf');
+        if (csrfResponse.ok) {
+          const csrfData = await csrfResponse.json();
+          csrfToken = csrfData.token;
+        }
+      }
+
+      console.log('Using CSRF token for delivery:', csrfToken);
+
+      const response = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken || '',
+        },
+        body: JSON.stringify({
+          status: 'delivered',
+          notes: `Item ${itemId} marked as delivered`,
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Success',
+          description: 'Item marked as delivered successfully.',
+        });
+        // Refresh orders instead of full page reload
+        setIsOrdersLoading(true);
+        try {
+          const sellerResponse = await fetch('/api/orders/seller');
+          const buyerResponse = await fetch('/api/orders');
+
+          if (sellerResponse.ok && buyerResponse.ok) {
+            const sellerData = await sellerResponse.json();
+            const buyerData = await buyerResponse.json();
+            const sellerOrders = sellerData.orders || [];
+            const buyerOrders = buyerData.orders || [];
+
+            const allOrders = [...sellerOrders, ...buyerOrders].sort(
+              (a, b) =>
+                new Date(b._createdAt).getTime() -
+                new Date(a._createdAt).getTime()
+            );
+
+            setOrders(allOrders);
+          }
+        } catch (error) {
+          console.error('Error refreshing orders:', error);
+        } finally {
+          setIsOrdersLoading(false);
+        }
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: 'Error',
+          description: errorData.error || 'Failed to mark item as delivered.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error marking item as delivered:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to mark item as delivered.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmitReview = async () => {
@@ -337,121 +530,262 @@ export default function BillingPage() {
           <Separator className='my-4' />
 
           <div className='space-y-4'>
-            {orders.map(order => (
-              <Card key={order._id}>
-                <CardHeader className='pb-3'>
-                  <div className='flex items-center justify-between'>
-                    <div className='space-y-1'>
-                      <CardTitle className='text-base'>
-                        Order #{order._id.slice(-8)}
-                      </CardTitle>
-                      <CardDescription>
-                        {format(new Date(order._createdAt), 'PPP')}
-                      </CardDescription>
-                    </div>
-                    <Badge
-                      variant={
-                        order.status === 'completed'
-                          ? 'default'
-                          : order.status === 'pending'
-                            ? 'secondary'
-                            : order.status === 'refunded'
-                              ? 'outline'
-                              : 'destructive'
-                      }
-                    >
-                      {order.status.charAt(0).toUpperCase() +
-                        order.status.slice(1)}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className='pb-1'>
-                  <Accordion type='single' collapsible>
-                    <AccordionItem value='items'>
-                      <AccordionTrigger className='text-sm'>
-                        View Order Items
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Item</TableHead>
-                              <TableHead className='w-[100px] text-right'>
-                                Quantity
-                              </TableHead>
-                              <TableHead className='w-[100px] text-right'>
-                                Price
-                              </TableHead>
-                              <TableHead className='w-[200px] text-right'>
-                                Actions
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {order.cart.map((item, index) => (
-                              <TableRow key={index}>
-                                <TableCell className='font-medium'>
-                                  {item.title}
-                                </TableCell>
-                                <TableCell className='text-right'>
-                                  {item.quantity}
-                                </TableCell>
-                                <TableCell className='text-right'>
-                                  ${item.price.toFixed(2)}
-                                </TableCell>
-                                <TableCell className='text-right'>
-                                  <div className='flex justify-end gap-2'>
-                                    <Button
-                                      variant='outline'
-                                      size='sm'
-                                      onClick={() => {
-                                        if (item?.user?._id) {
-                                          handleLeaveReview(item.user._id);
-                                        } else {
-                                          console.error('User ID is missing');
-                                        }
-                                      }}
-                                    >
-                                      Rate Seller
-                                    </Button>
-                                    <Button
-                                      variant='outline'
-                                      size='sm'
-                                      onClick={() =>
-                                        handleRefundClick(
-                                          order._id,
-                                          item.id,
-                                          item.price,
-                                          item.title
-                                        )
-                                      }
-                                    >
-                                      Refund
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                        <div className='mt-4 flex justify-between border-t pt-4'>
-                          <span className='text-sm font-medium'>Total</span>
-                          <span className='text-sm font-medium'>
-                            $
-                            {order.cart
-                              .reduce(
-                                (acc, item) => acc + item.price * item.quantity,
-                                0
-                              )
-                              .toFixed(2)}
-                          </span>
+            {isOrdersLoading ? (
+              <div className='flex items-center justify-center py-8'>
+                <Loader2 className='h-8 w-8 animate-spin' />
+                <span className='ml-2'>Loading orders...</span>
+              </div>
+            ) : (
+              orders.map(order => {
+                // Determine if this is a seller order (has items where user is seller) or buyer order
+                const isSellerOrder = order.cart.some(
+                  (item: any) => item.user?._id === session?.user?._id
+                );
+                const isBuyerOrder = order.userEmail === session?.user?.email;
+
+                return (
+                  <Card key={order._id}>
+                    <CardHeader className='pb-3'>
+                      <div className='flex items-center justify-between'>
+                        <div className='space-y-1'>
+                          <CardTitle className='text-base'>
+                            Order #{order._id.slice(-8)}
+                          </CardTitle>
+                          <CardDescription>
+                            {format(new Date(order._createdAt), 'PPP')}
+                            {isSellerOrder && isBuyerOrder && (
+                              <span className='ml-2 text-blue-600'>
+                                • You are both buyer and seller
+                              </span>
+                            )}
+                            {isSellerOrder && !isBuyerOrder && (
+                              <span className='ml-2 text-green-600'>
+                                • You are the seller
+                              </span>
+                            )}
+                            {!isSellerOrder && isBuyerOrder && (
+                              <span className='ml-2 text-purple-600'>
+                                • You are the buyer
+                              </span>
+                            )}
+                          </CardDescription>
                         </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </CardContent>
-              </Card>
-            ))}
+                        <div className='flex flex-col items-end gap-2'>
+                          <Badge
+                            variant={
+                              order.status === 'completed'
+                                ? 'default'
+                                : order.status === 'pending'
+                                  ? 'secondary'
+                                  : order.status === 'refunded'
+                                    ? 'outline'
+                                    : 'destructive'
+                            }
+                          >
+                            {order.status.charAt(0).toUpperCase() +
+                              order.status.slice(1)}
+                          </Badge>
+                          {isSellerOrder && (
+                            <Badge
+                              variant='outline'
+                              className='bg-green-50 text-green-700 border-green-200'
+                            >
+                              Seller Order
+                            </Badge>
+                          )}
+                          {isBuyerOrder && (
+                            <Badge
+                              variant='outline'
+                              className='bg-blue-50 text-blue-700 border-blue-200'
+                            >
+                              Buyer Order
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className='pb-1'>
+                      <Accordion type='single' collapsible>
+                        <AccordionItem value='items'>
+                          <AccordionTrigger className='text-sm'>
+                            View Order Items
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Item</TableHead>
+                                  <TableHead className='w-[100px] text-right'>
+                                    Quantity
+                                  </TableHead>
+                                  <TableHead className='w-[100px] text-right'>
+                                    Price
+                                  </TableHead>
+                                  <TableHead className='w-[200px] text-right'>
+                                    Actions
+                                  </TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {order.cart.map((item, index) => (
+                                  <TableRow key={index}>
+                                    <TableCell className='font-medium'>
+                                      {item.title}
+                                    </TableCell>
+                                    <TableCell className='text-right'>
+                                      {item.quantity}
+                                    </TableCell>
+                                    <TableCell className='text-right'>
+                                      ${item.price.toFixed(2)}
+                                    </TableCell>
+                                    <TableCell className='text-right'>
+                                      <div className='flex justify-end gap-2'>
+                                        {/* Show different actions based on user role for this specific item */}
+                                        {item.user?._id ===
+                                        session?.user?._id ? (
+                                          // Seller actions for their own items
+                                          <>
+                                            {(item.shippingStatus ===
+                                              'pending' ||
+                                              !item.shippingStatus) && (
+                                              <Button
+                                                variant='outline'
+                                                size='sm'
+                                                onClick={() =>
+                                                  handleConfirmShipment(
+                                                    order._id,
+                                                    item.id
+                                                  )
+                                                }
+                                                disabled={loading}
+                                              >
+                                                {loading ? (
+                                                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                ) : (
+                                                  'Mark Shipped'
+                                                )}
+                                              </Button>
+                                            )}
+                                            {item.shippingStatus ===
+                                              'shipped' && (
+                                              <Badge variant='secondary'>
+                                                Awaiting Delivery
+                                              </Badge>
+                                            )}
+                                            {item.shippingStatus ===
+                                              'delivered' && (
+                                              <Badge variant='default'>
+                                                Delivered
+                                              </Badge>
+                                            )}
+                                          </>
+                                        ) : isBuyerOrder ? (
+                                          // Buyer actions for items they bought
+                                          <>
+                                            {item.shippingStatus ===
+                                              'shipped' && (
+                                              <Button
+                                                variant='outline'
+                                                size='sm'
+                                                onClick={() =>
+                                                  handleConfirmDelivery(
+                                                    order._id,
+                                                    item.id
+                                                  )
+                                                }
+                                                disabled={loading}
+                                              >
+                                                {loading ? (
+                                                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                ) : (
+                                                  'Confirm Delivery'
+                                                )}
+                                              </Button>
+                                            )}
+                                            {item.shippingStatus ===
+                                              'delivered' && (
+                                              <Button
+                                                variant='outline'
+                                                size='sm'
+                                                onClick={() => {
+                                                  if (item?.user?._id) {
+                                                    handleLeaveReview(
+                                                      item.user._id
+                                                    );
+                                                  } else {
+                                                    console.error(
+                                                      'User ID is missing'
+                                                    );
+                                                  }
+                                                }}
+                                              >
+                                                Rate Seller
+                                              </Button>
+                                            )}
+                                            {item.refundDetails
+                                              ?.refundStatus ===
+                                              'not_requested' && (
+                                              <Button
+                                                variant='destructive'
+                                                size='sm'
+                                                onClick={() =>
+                                                  handleRefundClick(
+                                                    order._id,
+                                                    item.id,
+                                                    item.price,
+                                                    item.title
+                                                  )
+                                                }
+                                              >
+                                                Request Refund
+                                              </Button>
+                                            )}
+                                            {item.refundDetails
+                                              ?.refundStatus === 'pending' && (
+                                              <Badge variant='secondary'>
+                                                Refund Pending
+                                              </Badge>
+                                            )}
+                                            {item.refundDetails
+                                              ?.refundStatus === 'approved' && (
+                                              <Badge variant='default'>
+                                                Refund Approved
+                                              </Badge>
+                                            )}
+                                          </>
+                                        ) : (
+                                          // Default view for other cases
+                                          <span className='text-sm text-muted-foreground'>
+                                            No actions available
+                                          </span>
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                            <div className='mt-4 flex justify-between border-t pt-4'>
+                              <span className='text-sm font-medium'>Total</span>
+                              <span className='text-sm font-medium'>
+                                $
+                                {order.cart
+                                  .reduce(
+                                    (acc, item) =>
+                                      acc + item.price * item.quantity,
+                                    0
+                                  )
+                                  .toFixed(2)}
+                              </span>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
           </div>
 
           {orders.length === 0 && (

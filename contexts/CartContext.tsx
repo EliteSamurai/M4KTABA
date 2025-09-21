@@ -36,14 +36,57 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const syncCartWithBackend = async (updatedCart: CartItem[]) => {
     try {
+      // Get CSRF token
+      const csrfResponse = await fetch('/api/csrf-token');
+      const { token: csrfToken } = await csrfResponse.json();
+
+      // Filter out invalid cart items and fix user data before sending
+      const validCart = updatedCart
+        .filter(
+          item =>
+            item.id &&
+            item.title &&
+            typeof item.price === 'number' &&
+            typeof item.quantity === 'number' &&
+            item.quantity > 0
+        )
+        .map(item => ({
+          ...item,
+          // Fix user data: convert empty arrays to undefined
+          user:
+            Array.isArray(item.user) && item.user.length === 0
+              ? undefined
+              : item.user,
+        }));
+
+      const cartData = { cart: validCart };
+      console.log('Syncing cart with data:', cartData);
+      console.log('Cart data type check:', {
+        cartDataType: typeof cartData,
+        cartType: typeof cartData.cart,
+        isCartArray: Array.isArray(cartData.cart),
+        cartLength: cartData.cart.length,
+      });
+
+      // Update local cart with only valid items
+      if (validCart.length !== updatedCart.length) {
+        setCart(validCart);
+        updateLocalStorage(validCart);
+      }
+
       const response = await fetch('/api/cart', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart: updatedCart }),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
+        },
+        body: JSON.stringify(cartData),
       });
 
       if (!response.ok) {
-        console.error('Error syncing cart:', await response.text());
+        const errorText = await response.text();
+        console.error('Error syncing cart:', errorText);
+        console.error('Cart data that failed:', cartData);
       } else {
         console.log('Cart synced successfully');
       }
@@ -57,6 +100,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const addToCart = (item: CartItem) => {
+    console.log('CartContext.addToCart called with item:', item);
+    console.log(
+      'Item user type:',
+      typeof item.user,
+      'Is array:',
+      Array.isArray(item.user)
+    );
+
     setCart(prevCart => {
       const existingItem = prevCart.find(cartItem => cartItem.id === item.id);
       const updatedCart = existingItem
