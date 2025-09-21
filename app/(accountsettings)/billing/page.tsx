@@ -135,7 +135,7 @@ export default function BillingPage() {
     try {
       // Try to get CSRF token from cookies first, then API
       let csrfToken = document.cookie.match(/(?:^|; )csrf_token=([^;]+)/)?.[1];
-      
+
       if (!csrfToken) {
         try {
           const csrfResponse = await fetch('/api/csrf-token');
@@ -147,7 +147,7 @@ export default function BillingPage() {
           console.warn('Failed to fetch CSRF token from API:', error);
         }
       }
-      
+
       if (!csrfToken) {
         throw new Error('Failed to get CSRF token');
       }
@@ -156,6 +156,7 @@ export default function BillingPage() {
 
       const response = await fetch(`/api/orders/${orderId}/status`, {
         method: 'PATCH',
+        credentials: 'include', // Include cookies for session authentication
         headers: {
           'Content-Type': 'application/json',
           'x-csrf-token': csrfToken || '',
@@ -222,7 +223,7 @@ export default function BillingPage() {
     try {
       // Try to get CSRF token from cookies first, then API
       let csrfToken = document.cookie.match(/(?:^|; )csrf_token=([^;]+)/)?.[1];
-      
+
       if (!csrfToken) {
         try {
           const csrfResponse = await fetch('/api/csrf-token');
@@ -234,7 +235,7 @@ export default function BillingPage() {
           console.warn('Failed to fetch CSRF token from API:', error);
         }
       }
-      
+
       if (!csrfToken) {
         throw new Error('Failed to get CSRF token');
       }
@@ -243,6 +244,7 @@ export default function BillingPage() {
 
       const response = await fetch(`/api/orders/${orderId}/status`, {
         method: 'PATCH',
+        credentials: 'include', // Include cookies for session authentication
         headers: {
           'Content-Type': 'application/json',
           'x-csrf-token': csrfToken || '',
