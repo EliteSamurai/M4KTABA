@@ -8,8 +8,10 @@ export function middleware(req: NextRequest) {
   if (!isPageGet) return NextResponse.next();
 
   const res = NextResponse.next();
-  const hasToken = req.cookies.get('csrf_token');
-  if (!hasToken) {
+  const existingToken = req.cookies.get('csrf_token');
+  
+  // Force regenerate token if it's 'seed' or doesn't exist
+  if (!existingToken || existingToken.value === 'seed') {
     // Generate a proper CSRF token instead of using 'seed'
     const token = crypto.randomBytes(16).toString('hex');
     res.cookies.set('csrf_token', token, {
@@ -18,6 +20,7 @@ export function middleware(req: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       path: '/',
     });
+    console.log('🔄 Regenerated CSRF token (was seed or missing)');
   }
   return res;
 }
