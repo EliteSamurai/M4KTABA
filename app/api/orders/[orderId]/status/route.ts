@@ -112,46 +112,53 @@ export async function PATCH(
     // Send email notification to buyer if status changed to shipped or delivered
     if (status === OrderStatus.SHIPPED || status === OrderStatus.DELIVERED) {
       try {
-        const baseUrl =
-          process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-
-        console.log('📧 Attempting to send email notification:', {
+        console.log('📧 Attempting to send email notification directly:', {
           template:
             status === OrderStatus.SHIPPED
               ? 'shipping-update'
               : 'delivery-confirmation',
           orderId,
           trackingNumber,
-          baseUrl,
         });
 
-        const emailResponse = await fetch(`${baseUrl}/api/email/send`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-internal-call': 'true',
-          },
-          body: JSON.stringify({
-            template:
-              status === OrderStatus.SHIPPED
-                ? 'shipping-update'
-                : 'delivery-confirmation',
-            orderId,
-            trackingNumber,
-          }),
+        // Send email directly instead of making API call
+        const { emailTemplates, sendEmail } = await import('@/lib/email');
+        
+        // Prepare order data for email template
+        const orderData = {
+          _id: order._id,
+          createdAt: order._createdAt || new Date().toISOString(),
+          items:
+            order.cart?.map((item: any) => ({
+              title: item.title,
+              quantity: item.quantity,
+              price: item.price,
+            })) || [],
+          total:
+            order.cart?.reduce(
+              (sum: number, item: any) => sum + item.price * item.quantity,
+              0
+            ) || 0,
+          shippingDetails: order.shippingDetails,
+        };
+
+        // Generate email template
+        const emailTemplate = emailTemplates.shippingUpdate(
+          orderData,
+          trackingNumber || order.trackingNumber
+        );
+
+        // Send email
+        const recipientEmail = order.userEmail || order.user?.email;
+        console.log('📧 Sending email directly to:', recipientEmail);
+
+        await sendEmail({
+          to: recipientEmail || 'test@example.com',
+          subject: emailTemplate.subject,
+          html: emailTemplate.html,
         });
 
-        if (emailResponse.ok) {
-          const emailResult = await emailResponse.json();
-          console.log('✅ Email sent successfully:', emailResult);
-        } else {
-          const errorText = await emailResponse.text();
-          console.error('❌ Email sending failed:', {
-            status: emailResponse.status,
-            statusText: emailResponse.statusText,
-            error: errorText,
-          });
-        }
+        console.log('✅ Email sent successfully via direct call');
       } catch (emailError) {
         console.error('❌ Failed to send email notification:', emailError);
         // Don't fail the request if email fails
