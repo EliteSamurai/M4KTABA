@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/email';
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     console.log('📧 Testing direct email sending...');
 

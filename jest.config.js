@@ -62,7 +62,9 @@ module.exports = {
       },
     ],
   },
-  transformIgnorePatterns: ['/node_modules/'],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(nanoid|@sanity)/)',
+  ],
   // Skip Playwright a11y test in Jest
   testPathIgnorePatterns: [
     '<rootDir>/tests/a11y\\.checkout\\.axe\\.test\\.ts$',

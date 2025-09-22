@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { readClient } from '@/studio-m4ktaba/client';
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     console.log('🔍 DEBUG SHIPPING FLOW - Starting comprehensive test...');
 

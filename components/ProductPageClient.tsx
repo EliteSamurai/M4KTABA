@@ -31,7 +31,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
   const [loadingRelated, setLoadingRelated] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
-  const [bookViews, setBookViews] = useState((book as any)?.views || 0);
+  // const [bookViews, setBookViews] = useState((book as any)?.views || 0);
   const { data: session } = useSession();
   const { toast } = useToast();
   const searchParams = useSearchParams();

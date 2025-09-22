@@ -2,11 +2,7 @@ import { stripe } from '@/lib/stripe';
 import { NextResponse } from 'next/server';
 import type { Stripe } from 'stripe';
 import { createTransport } from 'nodemailer';
-import { CartItem, User } from '@/types/shipping-types';
 import { readClient, writeClient } from '@/studio-m4ktaba/client';
-import { begin as idemBegin, commit as idemCommit } from '@/lib/idempotency';
-import { reportError } from '@/lib/sentry';
-import { counter, withLatency } from '@/lib/metrics';
 import { emailTemplates } from '@/lib/email';
 
 async function sendEmail({
@@ -384,9 +380,9 @@ export async function handlePaymentIntentSucceeded(
       const cart = paymentIntent.metadata.cart
         ? JSON.parse(paymentIntent.metadata.cart)
         : [];
-      const shippingDetails = paymentIntent.metadata.shippingDetails
-        ? JSON.parse(paymentIntent.metadata.shippingDetails)
-        : null;
+      // const shippingDetails = paymentIntent.metadata.shippingDetails
+      //   ? JSON.parse(paymentIntent.metadata.shippingDetails)
+      //   : null;
 
       console.log(
         '🛒 Raw shipping details metadata:',
@@ -447,7 +443,7 @@ export async function POST(req: Request) {
         });
       });
     } else if (event.type === 'charge.succeeded') {
-      console.log(
+  console.log(
         '🔄 Charge succeeded event received, but skipping to avoid duplicate emails'
       );
     }

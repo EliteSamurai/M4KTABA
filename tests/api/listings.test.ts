@@ -49,6 +49,9 @@ jest.mock('@/app/api/auth/[...nextauth]/options', () => ({
   default: jest.fn(),
 }));
 
+// Mock the session
+const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
+
 // Set environment variables for Sanity
 process.env.SANITY_PROJECT_ID = 'test-project';
 process.env.SANITY_DATASET = 'test-dataset';
@@ -63,13 +66,18 @@ const mockIsSanityConfigured = require('@/lib/sanityClient').isSanityConfigured;
 describe('/api/listings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Mock authenticated session for all tests
+    mockGetServerSession.mockResolvedValue({
+      user: { 
+        id: 'test-user',
+        _id: 'test-user',
+        email: 'test@example.com'
+      },
+    } as any);
   });
 
   describe('POST /api/listings', () => {
     test('creates listing successfully', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'test-user' },
-      } as any);
 
       const mockWriteClient = {
         create: jest.fn().mockResolvedValue({ _id: 'listing-123' }),

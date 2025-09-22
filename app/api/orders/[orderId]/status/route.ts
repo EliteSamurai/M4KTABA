@@ -195,7 +195,8 @@ export async function PATCH(
             order.paymentId
           );
           try {
-            const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+            const { default: Stripe } = await import('stripe');
+            const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
             const paymentIntent = await stripe.paymentIntents.retrieve(
               order.paymentId
             );
@@ -204,7 +205,7 @@ export async function PATCH(
               '📧 Found receipt email from payment intent:',
               recipientEmail
             );
-          } catch (error) {
+          } catch {
             console.log('📧 Could not fetch payment intent, using fallback');
             recipientEmail = 'customer@example.com';
           }

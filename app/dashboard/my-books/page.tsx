@@ -11,12 +11,10 @@ import {
   EyeOff,
   MoreVertical,
   Search,
-  Filter,
   SortAsc,
   SortDesc,
   BookOpen,
   DollarSign,
-  Calendar,
   TrendingUp,
   Package,
 } from 'lucide-react';

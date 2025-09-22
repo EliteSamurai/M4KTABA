@@ -41,7 +41,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Prepare update data based on action
-    let updateData: any = {
+    const updateData: any = {
       _updatedAt: new Date().toISOString(),
     };
 

@@ -88,10 +88,10 @@ export async function POST(req: NextRequest) {
 
     console.log('🔍 Updating order with data:', updateData);
 
-    const updatedOrder = await (writeClient as any)
-      .patch(orderId)
-      .set(updateData)
-      .commit();
+    // const updatedOrder = await (writeClient as any)
+    //   .patch(orderId)
+    //   .set(updateData)
+    //   .commit();
 
     console.log('✅ Order updated successfully');
 

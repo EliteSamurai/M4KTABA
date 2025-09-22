@@ -5,7 +5,6 @@ import { readClient } from '@/studio-m4ktaba/client';
 import {
   OrderStatus,
   OrderTrackingInfo,
-  OrderTimeline,
 } from '@/lib/order-status';
 
 export async function GET(

@@ -1,6 +1,6 @@
 'use client';
 
-import { calculateShipping } from '@/lib/shipping';
+// import { calculateShipping } from '@/lib/shipping';
 import { ShoppingCart } from 'lucide-react';
 
 interface FreeShippingBannerProps {
@@ -11,7 +11,7 @@ interface FreeShippingBannerProps {
 
 export function FreeShippingBanner({
   cartTotal,
-  itemCount,
+  // itemCount,
   className = '',
 }: FreeShippingBannerProps) {
   // Always show free shipping banner since shipping is always free

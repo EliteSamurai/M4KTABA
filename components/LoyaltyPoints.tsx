@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import {
-  getLoyaltyTier,
-  getNextTier,
-  getPointsToNextTier,
   formatLoyaltyPoints,
   LoyaltyTier,
 } from '@/lib/loyalty';
