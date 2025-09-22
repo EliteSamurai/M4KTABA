@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Simple curl-based health check
-BASE_URL="${SYNTH_BASE_URL:-https://m4ktaba.com}"
+BASE_URL="${SYNTH_BASE_URL:-https://www.m4ktaba.com}"
 
 echo "🔍 Starting curl-based health check for: $BASE_URL"
 echo "🕐 Test started at: $(date -u)"
@@ -27,7 +27,8 @@ fi
 # Test 3: Response time check
 echo "🔍 Test 3: Response time check"
 RESPONSE_TIME=$(curl -s -o /dev/null -w "%{time_total}" "$BASE_URL")
-if (( $(echo "$RESPONSE_TIME < 10" | bc -l) )); then
+# Use awk for floating point comparison (more reliable than bc)
+if awk "BEGIN {exit !($RESPONSE_TIME < 10)}"; then
     echo "✅ Response time is acceptable (${RESPONSE_TIME}s)"
 else
     echo "⚠️  Response time is slow (${RESPONSE_TIME}s) but continuing..."
