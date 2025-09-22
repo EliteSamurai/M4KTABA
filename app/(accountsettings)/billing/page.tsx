@@ -171,8 +171,13 @@ export default function BillingPage() {
       if (response.ok) {
         toast({
           title: 'Success',
-          description: 'Item marked as shipped successfully.',
+          description: 'Item marked as shipped successfully. Email notification will be sent.',
         });
+        
+        // Wait for email sending to complete before refreshing orders
+        console.log('📧 Waiting for email sending to complete...');
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
+        
         // Refresh orders instead of full page reload
         setIsOrdersLoading(true);
         try {
@@ -258,8 +263,13 @@ export default function BillingPage() {
       if (response.ok) {
         toast({
           title: 'Success',
-          description: 'Item marked as delivered successfully.',
+          description: 'Item marked as delivered successfully. Email notification will be sent.',
         });
+        
+        // Wait for email sending to complete before refreshing orders
+        console.log('📧 Waiting for email sending to complete...');
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
+        
         // Refresh orders instead of full page reload
         setIsOrdersLoading(true);
         try {
