@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         emailTemplate = emailTemplates.orderConfirmation(orderData);
         break;
       case 'new-order-notification':
-        emailTemplate = emailTemplates.newOrderNotification(orderData);
+        emailTemplate = emailTemplates.newOrderNotification(orderData, 'Seller');
         break;
       case 'shipping-update':
         emailTemplate = emailTemplates.shippingUpdate(
