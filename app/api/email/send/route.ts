@@ -1,29 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { readClient } from '@/studio-m4ktaba/client';
 import { emailTemplates } from '@/lib/email';
+import { sendEmail } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
-    // Check if this is an internal API call (from order status update)
-    const isInternalCall = req.headers.get('x-internal-call') === 'true';
-
-    if (!isInternalCall) {
-      const session = await getServerSession(authOptions);
-      if (!session?.user?._id) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+    // Check if this is an internal call
+    const internalCall = req.headers.get('x-internal-call');
+    if (!internalCall) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { template, orderId, trackingNumber } = await req.json();
 
     if (!template || !orderId) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing template or orderId' },
         { status: 400 }
       );
     }
+
+    console.log('📧 Email send endpoint called:', {
+      template,
+      orderId,
+      trackingNumber,
+    });
 
     // Fetch order details
     const order = await (readClient as any).fetch(
@@ -45,20 +46,8 @@ export async function POST(req: NextRequest) {
     );
 
     if (!order) {
+      console.log('❌ Order not found:', orderId);
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
-
-    // Check if user has access to this order (skip for internal calls)
-    if (!isInternalCall) {
-      const session = await getServerSession(authOptions);
-      const isOwner = order.user?._id === session?.user?._id;
-      const isSeller = order.cart?.some(
-        (item: any) => item.user?._id === session?.user?._id
-      );
-
-      if (!isOwner && !isSeller) {
-        return NextResponse.json({ error: 'Access denied' }, { status: 403 });
-      }
     }
 
     // Prepare email data
@@ -79,6 +68,13 @@ export async function POST(req: NextRequest) {
       shippingDetails: order.shippingDetails,
     };
 
+    console.log('📧 Order data prepared:', {
+      orderId: orderData._id,
+      itemCount: orderData.items.length,
+      total: orderData.total,
+      hasShippingDetails: !!orderData.shippingDetails,
+    });
+
     // Get appropriate template and send email
     let emailTemplate;
     switch (template) {
@@ -86,12 +82,7 @@ export async function POST(req: NextRequest) {
         emailTemplate = emailTemplates.orderConfirmation(orderData);
         break;
       case 'new-order-notification':
-        // For seller notifications, we need to get the seller name
-        const sellerName = order.cart?.[0]?.user?.name || 'Seller';
-        emailTemplate = emailTemplates.newOrderNotification(
-          orderData,
-          sellerName
-        );
+        emailTemplate = emailTemplates.newOrderNotification(orderData);
         break;
       case 'shipping-update':
         emailTemplate = emailTemplates.shippingUpdate(
@@ -117,17 +108,10 @@ export async function POST(req: NextRequest) {
       template,
       orderId,
       trackingNumber: trackingNumber || order.trackingNumber,
-      orderData: {
-        hasItems: orderData.items.length > 0,
-        hasShippingDetails: !!orderData.shippingDetails,
-        total: orderData.total,
-      },
     });
 
-    // Import and use the sendEmail function
-    const { sendEmail } = await import('@/lib/email');
     await sendEmail({
-      to: order.userEmail || order.user?.email || 'test@example.com',
+      to: recipientEmail || 'test@example.com',
       subject: emailTemplate.subject,
       html: emailTemplate.html,
     });
@@ -137,11 +121,12 @@ export async function POST(req: NextRequest) {
       message: 'Email sent successfully',
       template,
       orderId,
+      recipientEmail,
     });
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('❌ Error sending email:', error);
     return NextResponse.json(
-      { error: 'Failed to send email' },
+      { error: 'Failed to send email', details: error },
       { status: 500 }
     );
   }
