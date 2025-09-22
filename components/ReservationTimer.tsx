@@ -17,6 +17,14 @@ export function ReservationTimer({
       if (saved) {
         const until = Number(saved);
         const rem = Math.max(0, Math.floor((until - Date.now()) / 1000));
+        // If the saved time has expired, start fresh
+        if (rem <= 0) {
+          const until = Date.now() + seconds * 1000;
+          try {
+            localStorage.setItem(storageKey, String(until));
+          } catch {}
+          return seconds;
+        }
         return rem;
       }
     } catch {}

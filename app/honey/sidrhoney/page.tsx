@@ -36,7 +36,18 @@ export default function HoneyProductPage() {
       const data = await (readClient as any).fetch(
         `*[_type == "user" && _id == "MH7kyac4DmuRU6j51iL0It"][0]`
       );
-      setHoneyOwner(data);
+      console.log('Fetched honey owner data:', data);
+      console.log('Data type:', typeof data, 'Is array:', Array.isArray(data));
+      console.log('Data keys:', data ? Object.keys(data) : 'null');
+
+      // Ensure we have a single object, not an array
+      if (Array.isArray(data)) {
+        console.log('Data is array, taking first element:', data[0]);
+        setHoneyOwner(data[0] || null);
+      } else {
+        console.log('Data is object, setting directly:', data);
+        setHoneyOwner(data);
+      }
       hasFetched.current = true;
     }
 
@@ -108,14 +119,28 @@ export default function HoneyProductPage() {
                     quantity={quantity}
                   />
                   <AddToCartButton
-                    bookUser={
-                      honeyOwner || {
-                        _id: '',
-                        email: '',
-                        name: '',
-                        stripeAccountId: '',
-                      }
-                    }
+                    bookUser={(() => {
+                      const userData =
+                        honeyOwner && !Array.isArray(honeyOwner)
+                          ? honeyOwner
+                          : {
+                              _id: 'honey-seller',
+                              email: 'honey@m4ktaba.com',
+                              name: 'M4KTABA Honey',
+                              stripeAccountId: '',
+                            };
+                      console.log(
+                        'Passing user data to AddToCartButton:',
+                        userData
+                      );
+                      console.log(
+                        'User data type:',
+                        typeof userData,
+                        'Is array:',
+                        Array.isArray(userData)
+                      );
+                      return userData;
+                    })()}
                     quantity={quantity}
                     bookId='honey-001'
                     isAvailable={true}

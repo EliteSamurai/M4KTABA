@@ -19,6 +19,7 @@ import { urlFor } from '@/utils/imageUrlBuilder';
 import Link from 'next/link';
 import EditableThumbnailManager from './EditableThumbnailManager';
 import { useToast } from '@/hooks/use-toast';
+import { useSearchParams } from 'next/navigation';
 
 interface ProductPageClientProps {
   book: { _id?: string; [key: string]: unknown };
@@ -30,8 +31,10 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
   const [loadingRelated, setLoadingRelated] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+  const [bookViews, setBookViews] = useState((book as any)?.views || 0);
   const { data: session } = useSession();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
 
   // Move all hooks to the top before any conditional returns
   const [photos, setPhotos] = useState(book?.photos || []);
@@ -41,6 +44,47 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
       setPhotos(book.photos);
     }
   }, [book?.photos]);
+
+  // Check for edit parameter and auto-open edit form
+  useEffect(() => {
+    const editParam = searchParams.get('edit');
+
+    // If edit=true and user owns this book, auto-open the edit form
+    if (
+      editParam === 'true' &&
+      session?.user?._id === (book as any)?.user?._id
+    ) {
+      console.log('Auto-opening edit form for book:', book._id);
+      setIsEditFormOpen(true);
+    }
+  }, [searchParams, book._id, (book as any)?.user?._id, session?.user?._id]);
+
+  // Track view when component mounts
+  useEffect(() => {
+    async function trackView() {
+      if (!book?._id || !session?.user?._id) return;
+
+      try {
+        const response = await fetch(`/api/books/${book._id}/view`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.isNewView) {
+            setBookViews(data.views);
+          }
+        }
+      } catch (error) {
+        console.error('Error tracking view:', error);
+      }
+    }
+
+    trackView();
+  }, [book?._id, session?.user?._id]);
 
   // Fetch related products
   useEffect(() => {
@@ -148,6 +192,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
             {isOwner ? (
               <EditableThumbnailManager
                 photos={photos as any}
+                bookId={book._id || ''}
                 onChange={handleImageUpdate}
                 isLoading={isUpdating}
               />

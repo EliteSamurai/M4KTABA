@@ -173,7 +173,7 @@ async function processRealOrder(
             price: item.price,
             user: item.user || undefined,
           })),
-          userEmail: paymentIntent.receipt_email || 'customer@example.com',
+          userEmail: userEmail,
           shippingDetails: shippingDetails,
         };
 

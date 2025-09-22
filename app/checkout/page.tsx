@@ -87,7 +87,12 @@ const SkeletonLoader = () => (
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-);
+).catch(error => {
+  console.error('Failed to load Stripe.js:', error);
+  throw new Error(
+    'Failed to load Stripe.js. Please check your internet connection and try again.'
+  );
+});
 
 const shippingSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -206,12 +211,13 @@ export function CheckoutContent() {
       }
     }
 
-    if (!session) {
+    // Only redirect if session is explicitly null/undefined and not loading
+    if (sessionResult?.status === 'unauthenticated' && !session) {
       console.log('🔍 No session found, redirecting to login');
       didRouteOnce.current = true;
       router.push('/login');
     }
-  }, [session, router]);
+  }, [session, sessionResult?.status, router]);
 
   const form = useForm<ShippingFormValues>({
     resolver: zodResolver(shippingSchema),

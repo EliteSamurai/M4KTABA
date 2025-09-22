@@ -71,6 +71,9 @@ const LoginButton = () => {
             <Link href='/profile'>Profile</Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
+            <Link href='/dashboard/my-books'>My Books</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
             <Link href='/billing'>Billing</Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>

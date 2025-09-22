@@ -57,7 +57,10 @@ export async function POST(req: NextRequest) {
 
     // Test shipping update template generation
     const trackingNumber = order.trackingNumber || 'TEST-TRACKING-123';
-    const emailTemplate = emailTemplates.shippingUpdate(orderData, trackingNumber);
+    const emailTemplate = emailTemplates.shippingUpdate(
+      orderData,
+      trackingNumber
+    );
 
     console.log('🧪 Email template generated:', {
       subject: emailTemplate.subject,

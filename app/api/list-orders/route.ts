@@ -35,12 +35,13 @@ export async function GET(req: NextRequest) {
         userEmail: order.userEmail,
         itemCount: order.cart?.length || 0,
         createdAt: order._createdAt,
-        items: order.cart?.map((item: any) => ({
-          title: item.title,
-          quantity: item.quantity,
-          price: item.price,
-          sellerEmail: item.user?.email,
-        })) || [],
+        items:
+          order.cart?.map((item: any) => ({
+            title: item.title,
+            quantity: item.quantity,
+            price: item.price,
+            sellerEmail: item.user?.email,
+          })) || [],
       })),
     });
   } catch (error) {

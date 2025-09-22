@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(req: NextRequest) {
   try {
     console.log('🔍 CHECKING EMAIL CONFIGURATION...');
-    
+
     const smtpHost = process.env.SMTP_HOST;
     const smtpPort = process.env.SMTP_PORT;
     const smtpUser = process.env.SMTP_USER;
@@ -28,11 +28,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       success: true,
       emailConfig,
-      message: emailConfig.hasHost && emailConfig.hasPort && emailConfig.hasUser && emailConfig.hasPass 
-        ? 'Email configuration appears complete' 
-        : 'Email configuration is missing required fields'
+      message:
+        emailConfig.hasHost &&
+        emailConfig.hasPort &&
+        emailConfig.hasUser &&
+        emailConfig.hasPass
+          ? 'Email configuration appears complete'
+          : 'Email configuration is missing required fields',
     });
-
   } catch (error) {
     console.error('❌ Email config check error:', error);
     return NextResponse.json(

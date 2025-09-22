@@ -10,7 +10,12 @@ interface SettingsLayoutProps {
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
-);
+).catch(error => {
+  console.error('Failed to load Stripe.js:', error);
+  throw new Error(
+    'Failed to load Stripe.js. Please check your internet connection and try again.'
+  );
+});
 
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
   return (

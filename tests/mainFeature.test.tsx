@@ -23,7 +23,7 @@ jest.doMock('@/hooks/use-toast', () => ({
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@test-utils';
 import '@testing-library/jest-dom';
-import ItemListingForm from '@/components/itemListingForm';
+import UnifiedSellingFlow from '@/components/UnifiedSellingFlow';
 import { useToast } from '@/hooks/use-toast';
 
 // Avoid react-hook-form internals causing instanceof errors in JSDOM
@@ -54,12 +54,14 @@ jest.mock('react-hook-form', () => {
         notify();
       },
       getValues: () => ({ ...store.values }),
+      watch: (name?: string) => (name ? store.values[name] : store.values),
       formState: { isValid: true },
     }),
     useFormContext: () => ({
       getFieldState: () => ({}),
       formState: { isValid: true },
       getValues: () => ({ ...store.values }),
+      watch: (name?: string) => (name ? store.values[name] : store.values),
       setValue: (name: string, value: any) => {
         store.values[name] = value;
         notify();
@@ -117,24 +119,31 @@ function createFile(name: string, type: string) {
   return new File(['(⌐□_□)'], name, { type });
 }
 
-test('listing CTA disabled until at least one photo, shows inline error and toast', async () => {
+test('unified selling flow renders correctly and shows basic information section', async () => {
   render(
-    <ItemListingForm bookData={{ title: 't', author: 'a', description: 'd' }} />
+    <UnifiedSellingFlow
+      initialData={{ title: 't', author: 'a', description: 'd' }}
+    />
   );
 
-  const button = screen.getByRole('button', { name: /list item/i });
-  expect(button).toBeDisabled();
+  // Check that the component renders with the basic information section
+  expect(screen.getByText('List Your Book')).toBeInTheDocument();
+  expect(screen.getByText('Book Information')).toBeInTheDocument();
+  expect(
+    screen.getByText('Tell us about the book you want to sell')
+  ).toBeInTheDocument();
 
-  // Upload one image
-  const fileInput = document.querySelector(
-    "input[type='file']"
-  ) as HTMLInputElement;
-  const file = createFile('a.jpg', 'image/jpeg');
-  fireEvent.change(fileInput, { target: { files: [file] } });
+  // Check that form fields are present
+  expect(screen.getByLabelText('Book Title *')).toBeInTheDocument();
+  expect(screen.getByLabelText('Author *')).toBeInTheDocument();
+  expect(screen.getByLabelText('Description *')).toBeInTheDocument();
 
-  await waitFor(() => expect(button).not.toBeDisabled());
+  // Check that navigation buttons are present
+  expect(
+    screen.getByRole('button', { name: /save draft/i })
+  ).toBeInTheDocument();
+  expect(screen.getAllByRole('button', { name: /next/i })).toHaveLength(2); // There are 2 Next buttons
 
-  fireEvent.click(button);
-  // Just check that the component renders and the button becomes enabled
-  expect(button).not.toBeDisabled();
+  // Check that the progress indicator shows section 1 of 4
+  expect(screen.getByText('Section 1 of 4')).toBeInTheDocument();
 });

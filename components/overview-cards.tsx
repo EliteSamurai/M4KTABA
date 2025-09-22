@@ -15,8 +15,11 @@ interface OverviewCardsProps {
 }
 
 export function OverviewCards({ balance, volume }: OverviewCardsProps) {
+  // Handle cases where volume might be undefined or previous is 0
   const volumeChange =
-    ((volume.current - volume.previous) / volume.previous) * 100;
+    volume && volume.previous > 0
+      ? ((volume.current - volume.previous) / volume.previous) * 100
+      : 0;
   const isPositiveChange = volumeChange > 0;
 
   const formatCurrency = (amount: number, currency: string) => {
@@ -51,15 +54,21 @@ export function OverviewCards({ balance, volume }: OverviewCardsProps) {
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold'>
-            {formatCurrency(volume.current, volume.currency)}
+            {volume ? formatCurrency(volume.current, volume.currency) : '$0.00'}
           </div>
           <p className='flex items-center text-xs text-muted-foreground'>
-            {isPositiveChange ? (
-              <ArrowUpIcon className='mr-1 h-4 w-4 text-green-500' />
+            {volume && volume.previous > 0 ? (
+              <>
+                {isPositiveChange ? (
+                  <ArrowUpIcon className='mr-1 h-4 w-4 text-green-500' />
+                ) : (
+                  <ArrowDownIcon className='mr-1 h-4 w-4 text-red-500' />
+                )}
+                {Math.abs(volumeChange).toFixed(1)}% from last month
+              </>
             ) : (
-              <ArrowDownIcon className='mr-1 h-4 w-4 text-red-500' />
+              'No previous data available'
             )}
-            {Math.abs(volumeChange).toFixed(1)}% from last month
           </p>
         </CardContent>
       </Card>

@@ -28,10 +28,12 @@ export async function POST(req: Request) {
         );
       }
 
-      const stream = file.stream() as unknown as NodeJS.ReadableStream;
+      // Convert file to buffer for Next.js 15 compatibility
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
 
       // Upload the file as an asset to the media store
-      const asset = await (writeClient as any).assets.upload('image', stream, {
+      const asset = await (writeClient as any).assets.upload('image', buffer, {
         filename: file.name,
         contentType: file.type,
       });

@@ -56,11 +56,48 @@ export async function GET(req: NextRequest) {
       currency: payout.currency,
     }));
 
-    // Return response with balance, transactions, and payouts
+    // Calculate volume data
+    const currentMonth = new Date();
+    const previousMonth = new Date();
+    previousMonth.setMonth(previousMonth.getMonth() - 1);
+
+    const currentMonthCharges = charges.data.filter((charge: any) => {
+      const chargeDate = new Date(charge.created * 1000);
+      return (
+        chargeDate >=
+        new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
+      );
+    });
+
+    const previousMonthCharges = charges.data.filter((charge: any) => {
+      const chargeDate = new Date(charge.created * 1000);
+      return (
+        chargeDate >=
+          new Date(previousMonth.getFullYear(), previousMonth.getMonth(), 1) &&
+        chargeDate <
+          new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
+      );
+    });
+
+    const currentVolume = currentMonthCharges.reduce(
+      (sum: number, charge: any) => sum + charge.amount,
+      0
+    );
+    const previousVolume = previousMonthCharges.reduce(
+      (sum: number, charge: any) => sum + charge.amount,
+      0
+    );
+
+    // Return response with balance, transactions, payouts, and volume
     return NextResponse.json({
       balance: {
         available: balance.available[0]?.amount || 0,
         pending: balance.pending[0]?.amount || 0,
+        currency: balance.available[0]?.currency || 'usd',
+      },
+      volume: {
+        current: currentVolume,
+        previous: previousVolume,
         currency: balance.available[0]?.currency || 'usd',
       },
       transactions,

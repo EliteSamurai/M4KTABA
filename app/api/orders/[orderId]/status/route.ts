@@ -111,6 +111,11 @@ export async function PATCH(
 
     // Send email notification to buyer if status changed to shipped or delivered
     if (status === OrderStatus.SHIPPED || status === OrderStatus.DELIVERED) {
+      console.log('🎯 ENTERING EMAIL SENDING BLOCK');
+      console.log('🎯 Status:', status);
+      console.log('🎯 OrderStatus.SHIPPED:', OrderStatus.SHIPPED);
+      console.log('🎯 OrderStatus.DELIVERED:', OrderStatus.DELIVERED);
+
       try {
         console.log('📧 Attempting to send email notification directly:', {
           template:
@@ -122,9 +127,12 @@ export async function PATCH(
         });
 
         // Send email directly instead of making API call
+        console.log('📧 Importing email functions...');
         const { emailTemplates, sendEmail } = await import('@/lib/email');
-        
+        console.log('📧 Email functions imported successfully');
+
         // Prepare order data for email template
+        console.log('📧 Preparing order data...');
         const orderData = {
           _id: order._id,
           createdAt: order._createdAt || new Date().toISOString(),
@@ -141,28 +149,52 @@ export async function PATCH(
             ) || 0,
           shippingDetails: order.shippingDetails,
         };
+        console.log('📧 Order data prepared:', {
+          id: orderData._id,
+          itemCount: orderData.items.length,
+          total: orderData.total,
+          hasShippingDetails: !!orderData.shippingDetails,
+        });
 
         // Generate email template
+        console.log('📧 Generating email template...');
         const emailTemplate = emailTemplates.shippingUpdate(
           orderData,
           trackingNumber || order.trackingNumber
         );
+        console.log('📧 Email template generated:', {
+          subject: emailTemplate.subject,
+          htmlLength: emailTemplate.html.length,
+        });
 
         // Send email
         const recipientEmail = order.userEmail || order.user?.email;
         console.log('📧 Sending email directly to:', recipientEmail);
 
-        await sendEmail({
+        const emailResult = await sendEmail({
           to: recipientEmail || 'test@example.com',
           subject: emailTemplate.subject,
           html: emailTemplate.html,
         });
 
-        console.log('✅ Email sent successfully via direct call');
+        console.log('✅ Email sent successfully via direct call:', emailResult);
       } catch (emailError) {
         console.error('❌ Failed to send email notification:', emailError);
+        console.error('❌ Email error details:', {
+          message:
+            emailError instanceof Error
+              ? emailError.message
+              : String(emailError),
+          stack: emailError instanceof Error ? emailError.stack : undefined,
+          name: emailError instanceof Error ? emailError.name : undefined,
+        });
         // Don't fail the request if email fails
       }
+    } else {
+      console.log(
+        '🎯 NOT SENDING EMAIL - Status is not shipped or delivered:',
+        status
+      );
     }
 
     return NextResponse.json({

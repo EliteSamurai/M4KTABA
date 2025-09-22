@@ -169,12 +169,14 @@ export function SuccessContent() {
                     title: item.title,
                     price: item.price,
                     quantity: item.quantity,
-                    user: item.user ? {
-                      _id: item.user._id,
-                      email: item.user.email,
-                      location: item.user.location,
-                      stripeAccountId: item.user.stripeAccountId,
-                    } : undefined,
+                    user: item.user
+                      ? {
+                          _id: item.user._id,
+                          email: item.user.email,
+                          location: item.user.location,
+                          stripeAccountId: item.user.stripeAccountId,
+                        }
+                      : undefined,
                     shippingStatus: 'pending',
                     refundDetails: {
                       refundStatus: 'not_requested',

@@ -4,10 +4,10 @@ import { cookies } from 'next/headers';
 export async function GET(req: NextRequest) {
   try {
     console.log('🔍 CSRF token endpoint called');
-    
+
     const cookieStore = await cookies();
     const existingToken = cookieStore.get('csrf_token');
-    
+
     console.log('🔍 Existing CSRF token:', {
       exists: !!existingToken,
       value: existingToken?.value?.substring(0, 10) + '...',
@@ -15,20 +15,24 @@ export async function GET(req: NextRequest) {
 
     if (existingToken && existingToken.value !== 'seed') {
       console.log('✅ Returning existing CSRF token');
-      return NextResponse.json({ 
-        success: true, 
-        csrfToken: existingToken.value 
+      return NextResponse.json({
+        success: true,
+        csrfToken: existingToken.value,
       });
     }
 
     // Generate a new token if none exists or if it's 'seed'
-    const newToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
-    
-    console.log('🔄 Generating new CSRF token:', newToken.substring(0, 10) + '...');
+    const newToken =
+      Math.random().toString(36).substring(2) + Date.now().toString(36);
 
-    const response = NextResponse.json({ 
-      success: true, 
-      csrfToken: newToken 
+    console.log(
+      '🔄 Generating new CSRF token:',
+      newToken.substring(0, 10) + '...'
+    );
+
+    const response = NextResponse.json({
+      success: true,
+      csrfToken: newToken,
     });
 
     // Set the cookie

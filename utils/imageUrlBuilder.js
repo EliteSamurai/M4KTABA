@@ -19,6 +19,7 @@ export function urlFor(source) {
     return null;
   }
 
+  // Handle direct Sanity image references (string format)
   if (typeof source === 'string') {
     // Handle direct Sanity image references
     if (source.startsWith('image-')) {
@@ -37,21 +38,35 @@ export function urlFor(source) {
     if (source.startsWith('http')) {
       return source;
     }
+    return null;
   }
 
-  if (source?.asset?._ref) {
-    // Handle Sanity image references
-    try {
-      return builder.image(source).url();
-    } catch (error) {
-      console.warn(
-        'Failed to build image URL for Sanity asset:',
-        source,
-        error
-      );
-      return null;
+  // Handle Sanity image asset objects
+  if (source?.asset) {
+    // If we have a direct URL from Sanity, use it
+    if (source.asset.url) {
+      return source.asset.url;
+    }
+
+    // If we have a reference, build the URL
+    if (source.asset._ref) {
+      try {
+        return builder.image(source).url();
+      } catch (error) {
+        console.warn(
+          'Failed to build image URL for Sanity asset:',
+          source,
+          error
+        );
+        return null;
+      }
     }
   }
 
-  return null; // Return null instead of empty string for easier checking
+  // Handle array of photos (take the first one)
+  if (Array.isArray(source) && source.length > 0) {
+    return urlFor(source[0]);
+  }
+
+  return null;
 }

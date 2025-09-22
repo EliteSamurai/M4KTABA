@@ -7,10 +7,10 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 export default async function ProductPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const session = await getServerSession(authOptions);
-  const { id } = params;
+  const { id } = await params;
 
   const book = await (readClient as any).fetch(
     groq`*[_type == "book" && _id == $id][0]{

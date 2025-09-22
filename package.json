@@ -68,7 +68,7 @@
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-toast": "^1.2.2",
     "@radix-ui/react-tooltip": "^1.1.6",
-    "@sanity/client": "^6.22.5",
+    "@sanity/client": "^7.11.1",
     "@sanity/icons": "^3.4.0",
     "@sanity/image-url": "^1.1.0",
     "@sanity/vision": "^4.8.1",
@@ -82,6 +82,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "debug": "4.4.3",
     "formidable": "2.0.1",
     "heic2any": "^0.0.4",
     "hexoid": "^2.0.0",
@@ -101,7 +102,7 @@
     "react-hook-form": "^7.54.2",
     "recharts": "^2.14.1",
     "resend": "^4.6.0",
-    "sanity": "3",
+    "sanity": "3.81.0",
     "sharp": "^0.33.5",
     "stripe": "^17.4.0",
     "styled-components": "^6.1.13",
@@ -110,8 +111,7 @@
     "uuid": "^11.0.3",
     "uuidv4": "^6.2.13",
     "web-vitals": "^4.2.4",
-    "zod": "^3.24.1",
-    "debug": "4.4.3"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.9.1",
@@ -164,9 +164,6 @@
     "react": [
       "./node_modules/@types/react"
     ]
-  },
-  "resolutions": {
-    "@sanity/types": "3.64.2"
   },
   "overrides": {
     "@sanity/client": "6.29.1",

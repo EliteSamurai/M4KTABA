@@ -9,7 +9,6 @@ import { PayoutsList } from '@/components/payouts-list';
 import { BalanceData, Transaction, Payout } from '@/types/stripe';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useSession } from 'next-auth/react';
-import { getStripeAccountId } from '@/utils/getStripeId';
 
 export default function StripeDashboard() {
   const [loading, setLoading] = useState(true);
@@ -25,7 +24,12 @@ export default function StripeDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const stripeAccountId = await getStripeAccountId(session?.user?.id);
+        // Use stripeAccountId directly from session instead of fetching from database
+        const stripeAccountId = session?.user?.stripeAccountId;
+
+        if (!stripeAccountId) {
+          throw new Error('Stripe account ID is required');
+        }
 
         // Fetch data with the stripeAccountId as a query parameter
         const response = await fetch(
@@ -46,8 +50,15 @@ export default function StripeDashboard() {
       }
     };
 
-    fetchDashboardData();
-  }, [session?.user.stripeAccountId]);
+    if (session?.user?.stripeAccountId) {
+      fetchDashboardData();
+    } else {
+      setError(
+        'Please complete your Stripe setup in the Billing section to view your dashboard'
+      );
+      setLoading(false);
+    }
+  }, [session?.user?.stripeAccountId]);
 
   if (loading) {
     return (

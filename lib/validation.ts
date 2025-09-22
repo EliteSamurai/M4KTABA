@@ -5,11 +5,21 @@ export const CartItemSchema = z.object({
   title: z.string().min(1),
   quantity: z.number().int().min(1),
   price: z.number().min(0),
+  weight: z.number().optional(),
   user: z
     .object({
-      _id: z.string().min(1),
+      _id: z.string().min(1).optional(),
       email: z.string().email().optional(),
       stripeAccountId: z.string().optional(),
+      location: z
+        .object({
+          street: z.string().optional(),
+          city: z.string().optional(),
+          state: z.string().optional(),
+          zip: z.string().optional(),
+          country: z.string().optional(),
+        })
+        .optional(),
     })
     .optional(),
 });

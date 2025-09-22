@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Trash2, Star, Upload } from 'lucide-react';
+import { Trash2, Star, Upload, GripVertical } from 'lucide-react';
 import { urlFor } from '@/utils/imageUrlBuilder';
 import { cn } from '@/lib/utils';
 import { uploadImagesToSanity } from '@/utils/uploadImageToSanity';
@@ -25,12 +25,14 @@ interface EditableThumbnailManagerProps {
 
 export default function EditableThumbnailManager({
   photos,
+  bookId,
   onChange,
   isLoading = false,
-}: Omit<EditableThumbnailManagerProps, 'bookId'>) {
+}: EditableThumbnailManagerProps) {
   const [localPhotos, setLocalPhotos] = useState<
     { _key?: string; asset?: { _ref?: string } }[]
   >([]);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -60,18 +62,96 @@ export default function EditableThumbnailManager({
     onChange(updated);
   };
 
-  const handleMakeMain = (index: number) => {
+  const handleMakeMain = async (index: number) => {
     if (index === 0) return; // Prevent making the main image main again
 
     const newMain = localPhotos[index];
     const rest = localPhotos.filter((_, i) => i !== index);
     const reordered = [newMain, ...rest];
+
+    // Update local state immediately for better UX
     setLocalPhotos(reordered);
     onChange(reordered);
+
+    // Persist to database
+    try {
+      const response = await fetch(`/api/books/${bookId}/main-image`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageKey: newMain._key,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update main image');
+      }
+    } catch (error) {
+      console.error('Error updating main image:', error);
+      // Revert local state on error
+      setLocalPhotos(localPhotos);
+      onChange(localPhotos);
+    }
   };
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      return;
+    }
+
+    const newPhotos = [...localPhotos];
+    const draggedPhoto = newPhotos[draggedIndex];
+
+    // Remove the dragged item
+    newPhotos.splice(draggedIndex, 1);
+
+    // Insert it at the new position
+    newPhotos.splice(dropIndex, 0, draggedPhoto);
+
+    setLocalPhotos(newPhotos);
+    onChange(newPhotos);
+    setDraggedIndex(null);
+
+    // Persist the new order to the database
+    try {
+      const response = await fetch(`/api/my-books/${bookId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          photos: newPhotos,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update image order');
+      }
+    } catch (error) {
+      console.error('Error updating image order:', error);
+      // Revert on error
+      setLocalPhotos(localPhotos);
+      onChange(localPhotos);
+    }
   };
 
   const handleFileChange = async (
@@ -187,12 +267,24 @@ export default function EditableThumbnailManager({
           <div
             key={photo._key || index}
             className={cn(
-              'relative aspect-square overflow-hidden rounded-lg border bg-background',
+              'relative aspect-square overflow-hidden rounded-lg border bg-background cursor-move',
               'transition-all hover:border-primary',
               index === 0 && 'ring-2 ring-primary ring-offset-2', // Highlight the main image
-              isLoading && 'opacity-50'
+              isLoading && 'opacity-50',
+              draggedIndex === index && 'opacity-50 scale-95'
             )}
+            draggable={!isLoading}
+            onDragStart={e => handleDragStart(e, index)}
+            onDragOver={handleDragOver}
+            onDrop={e => handleDrop(e, index)}
           >
+            {/* Drag handle */}
+            <div className='absolute top-1 left-1 z-10'>
+              <div className='bg-black/50 rounded p-1'>
+                <GripVertical className='h-3 w-3 text-white' />
+              </div>
+            </div>
+
             <Image
               src={urlFor(photo?.asset?._ref) || '/placeholder.jpg'}
               alt={`Thumbnail ${index + 1}`}
@@ -204,7 +296,7 @@ export default function EditableThumbnailManager({
 
             {/* Show the 'Make Main' button only if it's not the main image */}
             {index !== 0 && (
-              <div className='absolute top-1 left-1'>
+              <div className='absolute top-1 right-1'>
                 <Button
                   size='icon'
                   variant='secondary'
@@ -221,7 +313,7 @@ export default function EditableThumbnailManager({
 
             {/* Only show delete button if there's more than 1 image */}
             {localPhotos.length > 1 && index !== 0 && (
-              <div className='absolute top-1 right-1'>
+              <div className='absolute bottom-1 right-1'>
                 <Button
                   size='icon'
                   variant='destructive'
@@ -233,6 +325,15 @@ export default function EditableThumbnailManager({
                 >
                   <Trash2 className='h-4 w-4' />
                 </Button>
+              </div>
+            )}
+
+            {/* Main image indicator */}
+            {index === 0 && (
+              <div className='absolute bottom-1 left-1'>
+                <div className='bg-primary text-primary-foreground text-xs px-2 py-1 rounded'>
+                  Main
+                </div>
               </div>
             )}
           </div>

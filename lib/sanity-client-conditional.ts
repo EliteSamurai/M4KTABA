@@ -4,7 +4,7 @@
 let readClient: any = null;
 let writeClient: any = null;
 
-export function getSanityClients() {
+export async function getSanityClients() {
   // Only initialize if not already done and environment variables are available
   if (
     !readClient &&
@@ -13,13 +13,10 @@ export function getSanityClients() {
     process.env.SANITY_DATASET
   ) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const {
-        readClient: rc,
-        writeClient: wc,
-      } = require('@/studio-m4ktaba/client');
-      readClient = rc;
-      writeClient = wc;
+      // Dynamic import to avoid build-time dependency issues
+      const clientModule = await import('@/studio-m4ktaba/client');
+      readClient = clientModule.readClient;
+      writeClient = clientModule.writeClient;
     } catch {
       console.warn(
         'Sanity client not available - missing environment variables'

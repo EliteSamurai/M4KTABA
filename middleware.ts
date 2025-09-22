@@ -8,11 +8,12 @@ export function middleware(req: NextRequest) {
 
   const res = NextResponse.next();
   const existingToken = req.cookies.get('csrf_token');
-  
+
   // Force regenerate token if it's 'seed' or doesn't exist
   if (!existingToken || existingToken.value === 'seed') {
     // Generate a simple random token (avoid crypto import in middleware)
-    const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    const token =
+      Math.random().toString(36).substring(2) + Date.now().toString(36);
     res.cookies.set('csrf_token', token, {
       httpOnly: false,
       sameSite: 'lax',

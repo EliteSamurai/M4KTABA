@@ -5,9 +5,9 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 export async function GET(req: NextRequest) {
   try {
     console.log('🔍 Testing session...');
-    
+
     const session = await getServerSession(authOptions);
-    
+
     console.log('🔍 Session test result:', {
       hasSession: !!session,
       userId: session?.user?._id,

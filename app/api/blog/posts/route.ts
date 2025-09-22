@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSanityClients, isSanityConfigured } from '@/lib/sanity-client-conditional';
+import {
+  getSanityClients,
+  isSanityConfigured,
+} from '@/lib/sanity-client-conditional';
 
 const POSTS_QUERY = `*[
   _type == "post" && defined(slug.current) && publishedAt <= now()
@@ -27,7 +30,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ posts: [], hasMore: false });
     }
 
-    const { readClient } = getSanityClients();
+    const { readClient } = await getSanityClients();
     if (!readClient) {
       return NextResponse.json({ posts: [], hasMore: false });
     }

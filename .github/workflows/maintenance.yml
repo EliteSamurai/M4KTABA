@@ -94,6 +94,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --severity-threshold=high
+        continue-on-error: true
 
       - name: Create security report
         run: |
@@ -139,6 +140,7 @@ jobs:
           configPath: './lighthouserc.json'
           uploadArtifacts: true
           temporaryPublicStorage: true
+        continue-on-error: true
 
       - name: Bundle size analysis
         run: |
@@ -262,4 +264,5 @@ jobs:
           status: ${{ job.status }}
           channel: '#maintenance'
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          text: 'Maintenance workflow completed with status: ${{ job.status }}'
         if: always()

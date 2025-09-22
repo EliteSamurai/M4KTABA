@@ -5,7 +5,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 export async function POST(req: NextRequest) {
   try {
     console.log('🔍 TEST ORDER STATUS ENDPOINT - Starting test...');
-    
+
     // Test session
     const session = await getServerSession(authOptions);
     console.log('🔍 Session test:', {
@@ -47,9 +47,8 @@ export async function POST(req: NextRequest) {
         bodyKeys: Object.keys(body),
         status: body.status,
         orderId: body.orderId,
-      }
+      },
     });
-
   } catch (error) {
     console.error('❌ Test order status endpoint error:', error);
     return NextResponse.json(

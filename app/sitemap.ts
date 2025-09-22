@@ -1,5 +1,8 @@
 import { MetadataRoute } from 'next';
-import { getSanityClients, isSanityConfigured } from '@/lib/sanity-client-conditional';
+import {
+  getSanityClients,
+  isSanityConfigured,
+} from '@/lib/sanity-client-conditional';
 
 // Base URL for the site - replace with your actual domain
 const BASE_URL = process.env.SITE_URL || 'https://m4ktaba.com';
@@ -30,7 +33,7 @@ async function getAllBlogPosts(): Promise<BlogPost[]> {
     return [];
   }
 
-  const { readClient } = getSanityClients();
+  const { readClient } = await getSanityClients();
   if (!readClient) {
     return [];
   }

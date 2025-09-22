@@ -25,7 +25,7 @@ export async function verifyCsrf(): Promise<NextResponse | null> {
   const cookieToken = store.get(CSRF_COOKIE)?.value;
   const headerStore = await headers();
   const headerToken = headerStore.get(CSRF_HEADER);
-  
+
   console.log('🔍 CSRF Verification:', {
     hasCookieToken: !!cookieToken,
     hasHeaderToken: !!headerToken,
@@ -33,12 +33,12 @@ export async function verifyCsrf(): Promise<NextResponse | null> {
     headerToken: headerToken?.substring(0, 10) + '...',
     tokensMatch: cookieToken === headerToken,
   });
-  
+
   if (!cookieToken || !headerToken || cookieToken !== headerToken) {
     console.log('❌ CSRF verification failed');
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
-  
+
   console.log('✅ CSRF verification passed');
   return null;
 }

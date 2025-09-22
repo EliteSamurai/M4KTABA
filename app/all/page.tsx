@@ -31,36 +31,47 @@ async function fetchInitialBooks(limit: number = 10) {
 export default async function AllBooksPage({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[]>;
+  searchParams?: Promise<Record<string, string | string[]>>;
 }) {
+  const resolvedSearchParams = await searchParams;
+
   const parsed = SearchQuerySchema.safeParse({
-    q: typeof searchParams?.q === 'string' ? searchParams?.q : undefined,
+    q:
+      typeof resolvedSearchParams?.q === 'string'
+        ? resolvedSearchParams?.q
+        : undefined,
     author:
-      typeof searchParams?.author === 'string'
-        ? searchParams?.author
+      typeof resolvedSearchParams?.author === 'string'
+        ? resolvedSearchParams?.author
         : undefined,
     language:
-      typeof searchParams?.language === 'string'
-        ? searchParams?.language
+      typeof resolvedSearchParams?.language === 'string'
+        ? resolvedSearchParams?.language
         : undefined,
     condition:
-      typeof searchParams?.condition === 'string'
-        ? searchParams?.condition
+      typeof resolvedSearchParams?.condition === 'string'
+        ? resolvedSearchParams?.condition
         : undefined,
     price_min:
-      typeof searchParams?.price_min === 'string'
-        ? searchParams?.price_min
+      typeof resolvedSearchParams?.price_min === 'string'
+        ? resolvedSearchParams?.price_min
         : undefined,
     price_max:
-      typeof searchParams?.price_max === 'string'
-        ? searchParams?.price_max
+      typeof resolvedSearchParams?.price_max === 'string'
+        ? resolvedSearchParams?.price_max
         : undefined,
     sort:
-      typeof searchParams?.sort === 'string' ? searchParams?.sort : undefined,
+      typeof resolvedSearchParams?.sort === 'string'
+        ? resolvedSearchParams?.sort
+        : undefined,
     page:
-      typeof searchParams?.page === 'string' ? searchParams?.page : undefined,
+      typeof resolvedSearchParams?.page === 'string'
+        ? resolvedSearchParams?.page
+        : undefined,
     limit:
-      typeof searchParams?.limit === 'string' ? searchParams?.limit : undefined,
+      typeof resolvedSearchParams?.limit === 'string'
+        ? resolvedSearchParams?.limit
+        : undefined,
   });
   if (!parsed.success) notFound();
 

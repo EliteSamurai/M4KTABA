@@ -86,8 +86,8 @@ export async function sendEmail({
 
 // Email templates
 const orderConfirmation = (order: Order) => ({
-    subject: `Order Confirmation - ${order._id}`,
-    html: `
+  subject: `Order Confirmation - ${order._id}`,
+  html: `
     <!DOCTYPE html>
     <html>
     <head>
@@ -164,8 +164,8 @@ const orderConfirmation = (order: Order) => ({
 });
 
 const newOrderNotification = (order: Order, sellerName: string) => ({
-    subject: `New Order Received - ${order._id}`,
-    html: `
+  subject: `New Order Received - ${order._id}`,
+  html: `
     <!DOCTYPE html>
     <html>
     <head>
@@ -275,7 +275,7 @@ const newOrderNotification = (order: Order, sellerName: string) => ({
 
 export const shippingUpdate = (order: Order, trackingNumber?: string) => ({
   subject: `🚚 Your order has been shipped! ${trackingNumber ? `Tracking: ${trackingNumber}` : ''}`,
-    html: `
+  html: `
     <!DOCTYPE html>
     <html>
     <head>

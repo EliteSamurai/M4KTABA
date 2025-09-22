@@ -4,7 +4,7 @@ import { readClient } from '@/studio-m4ktaba/client';
 export async function POST(req: NextRequest) {
   try {
     const { orderId } = await req.json();
-    
+
     if (!orderId) {
       return NextResponse.json({ error: 'Order ID required' }, { status: 400 });
     }
@@ -73,14 +73,17 @@ export async function POST(req: NextRequest) {
         statusText: emailResponse.statusText,
         error: errorText,
       });
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to send test email',
-        details: {
-          status: emailResponse.status,
-          error: errorText,
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to send test email',
+          details: {
+            status: emailResponse.status,
+            error: errorText,
+          },
         },
-      }, { status: 500 });
+        { status: 500 }
+      );
     }
   } catch (error) {
     console.error('❌ Test shipping email error:', error);
