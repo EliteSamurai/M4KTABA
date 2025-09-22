@@ -1,0 +1,112 @@
+name: Synthetic Tests
+
+on:
+  schedule:
+    - cron: '3/5 * * * *'  # Run every 5 minutes starting at minute 3
+  workflow_dispatch:
+
+jobs:
+  checkout-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    continue-on-error: true  # Don't fail the entire workflow if this fails
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          
+      - name: Enable corepack
+        run: corepack enable
+        
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+        
+      - name: Install Playwright
+        run: npx playwright install chromium
+        
+      - name: Run checkout smoke test
+        run: |
+          export NEXT_PUBLIC_SYNTH=1
+          export SYNTH_BASE_URL=${{ secrets.SYNTH_PROD_BASE_URL }}
+          echo "🔍 Running checkout smoke test..."
+          node scripts/synth/checkout-smoke.js
+        env:
+          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL }}
+          
+      - name: Upload checkout screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkout-test-screenshots
+          path: |
+            checkout-debug-*.png
+            checkout-failure-*.png
+          retention-days: 3
+
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    continue-on-error: true  # Don't fail the entire workflow if this fails
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          
+      - name: Enable corepack
+        run: corepack enable
+        
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+        
+      - name: Install Playwright
+        run: npx playwright install chromium
+        
+      - name: Run health check
+        run: |
+          export SYNTH_BASE_URL=${{ secrets.SYNTH_PROD_BASE_URL }}
+          echo "🔍 Running health check..."
+          node scripts/synth/health-check.js
+        env:
+          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL }}
+          
+      - name: Upload health check screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-check-screenshots
+          path: |
+            health-check-failure-*.png
+          retention-days: 3
+
+  # Summary job that runs after both tests
+  test-summary:
+    runs-on: ubuntu-latest
+    needs: [checkout-smoke, health-check]
+    if: always()  # Run even if previous jobs failed
+    
+    steps:
+      - name: Test Summary
+        run: |
+          echo "📊 Synthetic Test Summary:"
+          echo "Checkout Smoke Test: ${{ needs.checkout-smoke.result }}"
+          echo "Health Check: ${{ needs.health-check.result }}"
+          
+          if [[ "${{ needs.checkout-smoke.result }}" == "success" && "${{ needs.health-check.result }}" == "success" ]]; then
+            echo "✅ All synthetic tests passed"
+          elif [[ "${{ needs.checkout-smoke.result }}" == "success" || "${{ needs.health-check.result }}" == "success" ]]; then
+            echo "⚠️  Some synthetic tests passed - site partially operational"
+          else
+            echo "❌ All synthetic tests failed - site may be down"
+          fi

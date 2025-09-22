@@ -2,24 +2,51 @@ name: Synthetic Cron
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '3/5 * * * *'  # Run every 5 minutes starting at minute 3 (avoids top-of-hour traffic)
   workflow_dispatch:
 
 jobs:
   synthetic:
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Prevent hanging jobs
+    
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: corepack enable
-      - run: pnpm install --no-frozen-lockfile
-      - run: npx playwright install chromium
-      - run: |
+          cache: 'pnpm'
+          
+      - name: Enable corepack
+        run: corepack enable
+        
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+        
+      - name: Install Playwright
+        run: npx playwright install chromium
+        
+      - name: Run synthetic test
+        run: |
           export NEXT_PUBLIC_SYNTH=1
           export SYNTH_BASE_URL=${{ secrets.SYNTH_PROD_BASE_URL }}
           echo "🔍 Environment variables:"
           echo "NEXT_PUBLIC_SYNTH=$NEXT_PUBLIC_SYNTH"
           echo "SYNTH_BASE_URL=$SYNTH_BASE_URL"
+          echo "🕐 Test started at: $(date)"
           node scripts/synth/checkout-smoke.js
+        env:
+          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL }}
+          
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-test-screenshots
+          path: |
+            checkout-debug-*.png
+            checkout-failure-*.png
+          retention-days: 7
