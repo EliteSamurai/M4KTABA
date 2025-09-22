@@ -48,8 +48,18 @@ export async function PATCH(
     const order = await (readClient as any).fetch(
       `*[_type == "order" && _id == $orderId][0]{
         _id,
+        _createdAt,
         cart,
-        timeline
+        timeline,
+        userEmail,
+        paymentId,
+        trackingNumber,
+        shippingDetails,
+        "user": user->{
+          _id,
+          name,
+          email
+        }
       }`,
       { orderId }
     );
@@ -168,16 +178,32 @@ export async function PATCH(
         });
 
         // Send email - try multiple sources for recipient email
+        console.log('📧 Order email data:', {
+          userEmail: order.userEmail,
+          userEmailFromUser: order.user?.email,
+          paymentId: order.paymentId,
+          hasUser: !!order.user,
+          userObject: order.user,
+        });
+
         let recipientEmail = order.userEmail || order.user?.email;
-        
+
         // For old orders that might not have userEmail, try to get from payment intent
         if (!recipientEmail && order.paymentId) {
-          console.log('📧 No userEmail found, fetching from payment intent:', order.paymentId);
+          console.log(
+            '📧 No userEmail found, fetching from payment intent:',
+            order.paymentId
+          );
           try {
             const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-            const paymentIntent = await stripe.paymentIntents.retrieve(order.paymentId);
+            const paymentIntent = await stripe.paymentIntents.retrieve(
+              order.paymentId
+            );
             recipientEmail = paymentIntent.receipt_email;
-            console.log('📧 Found receipt email from payment intent:', recipientEmail);
+            console.log(
+              '📧 Found receipt email from payment intent:',
+              recipientEmail
+            );
           } catch (error) {
             console.log('📧 Could not fetch payment intent, using fallback');
             recipientEmail = 'customer@example.com';
@@ -186,7 +212,7 @@ export async function PATCH(
           console.log('📧 No userEmail and no paymentId, using fallback');
           recipientEmail = 'customer@example.com';
         }
-        
+
         console.log('📧 Sending email directly to:', recipientEmail);
 
         const emailResult = await sendEmail({
