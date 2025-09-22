@@ -167,8 +167,26 @@ export async function PATCH(
           htmlLength: emailTemplate.html.length,
         });
 
-        // Send email
-        const recipientEmail = order.userEmail || order.user?.email;
+        // Send email - try multiple sources for recipient email
+        let recipientEmail = order.userEmail || order.user?.email;
+        
+        // For old orders that might not have userEmail, try to get from payment intent
+        if (!recipientEmail && order.paymentId) {
+          console.log('📧 No userEmail found, fetching from payment intent:', order.paymentId);
+          try {
+            const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+            const paymentIntent = await stripe.paymentIntents.retrieve(order.paymentId);
+            recipientEmail = paymentIntent.receipt_email;
+            console.log('📧 Found receipt email from payment intent:', recipientEmail);
+          } catch (error) {
+            console.log('📧 Could not fetch payment intent, using fallback');
+            recipientEmail = 'customer@example.com';
+          }
+        } else if (!recipientEmail) {
+          console.log('📧 No userEmail and no paymentId, using fallback');
+          recipientEmail = 'customer@example.com';
+        }
+        
         console.log('📧 Sending email directly to:', recipientEmail);
 
         const emailResult = await sendEmail({

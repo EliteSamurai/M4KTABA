@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('❌ Debug test failed:', error);
     return NextResponse.json(
-      { error: 'Debug test failed', details: error.message },
+      { error: 'Debug test failed', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
