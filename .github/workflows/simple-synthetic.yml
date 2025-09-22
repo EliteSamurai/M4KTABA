@@ -1,0 +1,48 @@
+name: Simple Synthetic Test
+
+on:
+  schedule:
+    - cron: '5 * * * *'  # Run every hour at minute 5 (simpler schedule)
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5  # Shorter timeout
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          
+      - name: Enable corepack
+        run: corepack enable
+        
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+        
+      - name: Install Playwright
+        run: npx playwright install chromium
+        
+      - name: Run simple health check
+        run: |
+          echo "🔍 Starting simple synthetic test..."
+          echo "🕐 Test started at: $(date -u)"
+          echo "🌐 Base URL: ${{ secrets.SYNTH_PROD_BASE_URL || 'https://m4ktaba.com' }}"
+          node scripts/synth/simple-health-check.js
+        env:
+          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL }}
+          
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-test-failure
+          path: |
+            health-check-failure-*.png
+          retention-days: 3

@@ -1,0 +1,25 @@
+name: Curl Health Check
+
+on:
+  schedule:
+    - cron: '10 * * * *'  # Run every hour at minute 10
+  workflow_dispatch:
+
+jobs:
+  curl-health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3  # Very short timeout
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run curl health check
+        run: |
+          echo "🔍 Starting curl-based health check..."
+          echo "🕐 Test started at: $(date -u)"
+          echo "🌐 Base URL: ${{ secrets.SYNTH_PROD_BASE_URL || 'https://m4ktaba.com' }}"
+          chmod +x scripts/synth/curl-test.sh
+          ./scripts/synth/curl-test.sh
+        env:
+          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL }}
