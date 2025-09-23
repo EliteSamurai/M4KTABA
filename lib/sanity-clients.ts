@@ -15,14 +15,18 @@ function invariant(condition: unknown, message: string): asserts condition {
 }
 
 // Only validate during runtime, not during build
-if (typeof window === 'undefined' && process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV) {
+if (
+  typeof window === 'undefined' &&
+  process.env.NODE_ENV === 'production' &&
+  !process.env.VERCEL_ENV
+) {
   invariant(projectId, missing('SANITY_PROJECT_ID'));
   invariant(dataset, missing('SANITY_DATASET'));
 }
 
 // Create build-safe clients
 function createBuildSafeClient() {
-  if (!projectId || !dataset || projectId === 'dummy' || dataset === 'dummy' || process.env.NODE_ENV === 'development') {
+  if (!projectId || !dataset || projectId === 'dummy' || dataset === 'dummy') {
     // Return mock client during build time or when env vars are missing
     return {
       fetch: async () => [],
@@ -41,7 +45,7 @@ function createBuildSafeClient() {
 }
 
 function createBuildSafeWriteClient() {
-  if (!projectId || !dataset || projectId === 'dummy' || dataset === 'dummy' || process.env.NODE_ENV === 'development') {
+  if (!projectId || !dataset || projectId === 'dummy' || dataset === 'dummy') {
     // Return mock client during build time or when env vars are missing
     return {
       fetch: async () => [],

@@ -1,11 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
-  experimental: {
-    // disable auto vendor-chunk tinkering that's producing missing files in dev
-    optimizePackageImports: [],
-  },
+  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
   images: {
     remotePatterns: [
       {
@@ -67,3 +63,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
