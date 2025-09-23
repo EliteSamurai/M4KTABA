@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/options';
-import { readClient, writeClient } from '@/studio-m4ktaba/client';
+import { readClient } from '@/studio-m4ktaba/client';
 import { OrderStatus } from '@/lib/order-status';
 
 export async function POST(req: NextRequest) {

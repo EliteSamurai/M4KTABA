@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { readClient } from '@/studio-m4ktaba/client';
 
 export async function GET() {

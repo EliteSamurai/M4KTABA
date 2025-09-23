@@ -163,7 +163,7 @@ const orderConfirmation = (order: Order) => ({
     `,
 });
 
-const newOrderNotification = (order: Order, _sellerName: string) => ({
+const newOrderNotification = (order: Order) => ({
   subject: `New Order Received - ${order._id}`,
   html: `
     <!DOCTYPE html>
