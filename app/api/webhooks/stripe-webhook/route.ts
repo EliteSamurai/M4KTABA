@@ -144,8 +144,7 @@ async function processRealOrder(
         );
 
         const sellerEmailTemplate = emailTemplates.newOrderNotification(
-          orderData as any,
-          sellerName
+          orderData as any
         );
 
         await sendEmail({

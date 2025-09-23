@@ -104,8 +104,7 @@ export async function handlePaymentIntentSucceeded(event: StripeEvent) {
             total,
             shippingDetails: parsedShippingDetails,
             createdAt: new Date().toISOString(),
-          } as Order,
-          seller.name
+          } as Order
         ),
       });
     } catch (error) {

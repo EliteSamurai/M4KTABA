@@ -74,9 +74,9 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
 
         if (response.ok) {
           const data = await response.json();
-          if (data.isNewView) {
-            setBookViews(data.views);
-          }
+          // if (data.isNewView) {
+          //   setBookViews(data.views);
+          // }
         }
       } catch (error) {
         console.error('Error tracking view:', error);
