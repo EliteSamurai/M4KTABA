@@ -73,7 +73,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
         });
 
         if (response.ok) {
-          const data = await response.json();
+          // const data = await response.json();
           // if (data.isNewView) {
           //   setBookViews(data.views);
           // }

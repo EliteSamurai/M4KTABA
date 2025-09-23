@@ -116,7 +116,7 @@ async function processRealOrder(
 
     // Get seller info
     const sellerEmail = items[0]?.user?.email;
-    const sellerName = items[0]?.user?.name || 'Seller';
+    // const sellerName = items[0]?.user?.name || 'Seller';
     const sellerStripeAccountId = items[0]?.user?.stripeAccountId;
 
     console.log(`🛒 Seller email: ${sellerEmail}`);
