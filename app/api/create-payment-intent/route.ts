@@ -98,6 +98,8 @@ export async function POST(req: Request) {
         metadata: {
           shippingDetails: JSON.stringify(shippingDetails),
         },
+        // Enable Apple Pay and Google Pay
+        paymentMethodTypes: ['card', 'link'],
       })
     );
 

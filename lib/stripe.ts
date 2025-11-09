@@ -57,6 +57,8 @@ export type DestinationChargeParams = {
   // Optional idempotency key passthrough
   idempotencyKey?: string;
   metadata?: Record<string, string>;
+  // Payment method types (includes Apple Pay/Google Pay via 'link')
+  paymentMethodTypes?: string[];
 };
 
 export async function createPaymentIntentWithDestinationCharge(
@@ -65,7 +67,13 @@ export async function createPaymentIntentWithDestinationCharge(
   const base: Stripe.PaymentIntentCreateParams = {
     amount: p.amountCents,
     currency: p.currency,
-    automatic_payment_methods: { enabled: true },
+    // Enable automatic payment methods including Apple Pay, Google Pay, Link
+    automatic_payment_methods: {
+      enabled: true,
+      allow_redirects: 'always',
+    },
+    // Explicitly list payment method types if provided
+    ...(p.paymentMethodTypes && { payment_method_types: p.paymentMethodTypes }),
     receipt_email: p.buyerEmail,
     transfer_group: p.orderId,
     metadata: {

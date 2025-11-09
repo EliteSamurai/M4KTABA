@@ -1,374 +1,365 @@
-import { createTransport } from 'nodemailer';
+/**
+ * Email Notification System
+ * Handles sending emails via Resend API
+ */
 
-export interface OrderItem {
-  title: string;
-  quantity: number;
-  price: number;
-}
-
-export interface Order {
-  _id: string;
-  items: OrderItem[];
-  total?: number;
-  createdAt?: string;
-  shippingDetails?: {
-    name: string;
-    street1: string;
-    street2?: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
-  };
-}
-
-export async function sendEmail({
-  to,
-  subject,
-  html,
-}: {
-  to: string;
+interface EmailOptions {
+  to: string | string[];
   subject: string;
   html: string;
-}) {
-  // Check if SMTP is configured
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = process.env.SMTP_PORT;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
+  text?: string;
+  from?: string;
+}
 
-  console.log('📧 SMTP Configuration check:', {
-    hasHost: !!smtpHost,
-    hasPort: !!smtpPort,
-    hasUser: !!smtpUser,
-    hasPass: !!smtpPass,
-    host: smtpHost,
-    port: smtpPort,
-    user: smtpUser,
-  });
+const FROM_EMAIL = process.env.FROM_EMAIL || 'M4KTABA <noreply@m4ktaba.com>';
 
-  if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
-    console.log('📧 SMTP not configured, logging email instead:');
-    console.log('To:', to);
-    console.log('Subject:', subject);
-    console.log('HTML:', html.substring(0, 200) + '...');
-    return;
+/**
+ * Send email using Resend API
+ */
+export async function sendEmail(options: EmailOptions): Promise<boolean> {
+  const apiKey = process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
+    console.error('RESEND_API_KEY not configured');
+    return false;
   }
 
   try {
-    const transporter = createTransport({
-      host: smtpHost,
-      port: parseInt(smtpPort),
-      secure: parseInt(smtpPort) === 465,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
       },
+      body: JSON.stringify({
+        from: options.from || FROM_EMAIL,
+        to: Array.isArray(options.to) ? options.to : [options.to],
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+      }),
     });
 
-    await transporter.verify();
-    console.log('📧 SMTP connection verified');
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Email send failed:', error);
+      return false;
+    }
 
-    const result = await transporter.sendMail({
-      from: smtpUser,
-      to,
-      subject,
-      html,
-    });
-
-    console.log('📧 Email sent successfully:', result.messageId);
-    return result;
+    const data = await response.json();
+    console.log('Email sent successfully:', data.id);
+    return true;
   } catch (error) {
-    console.error('Failed to send email:', error);
-    throw error;
+    console.error('Error sending email:', error);
+    return false;
   }
 }
 
-// Email templates
-const orderConfirmation = (order: Order) => ({
-  subject: `Order Confirmation - ${order._id}`,
-  html: `
+/**
+ * Send order confirmation email to buyer
+ */
+export async function sendOrderConfirmationEmail(
+  to: string,
+  order: {
+    orderId: string;
+    items: Array<{ title: string; quantity: number; price: number }>;
+    totalAmount: number;
+    currency: string;
+    shippingAddress: string;
+  }
+) {
+  const itemsList = order.items
+    .map(
+      (item) =>
+        `<li>${item.title} x${item.quantity} - ${formatCurrency(item.price * item.quantity, order.currency)}</li>`
+    )
+    .join('');
+
+  const html = `
     <!DOCTYPE html>
     <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Order Confirmation</title>
-    </head>
-    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; line-height: 1.6;">
-      <div style="max-width: 600px; margin: 0 auto; background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 32px; text-align: center;">
-          <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">🎉 Order Confirmed!</h1>
-          <p style="margin: 8px 0 0 0; color: #cbd5e1; font-size: 16px;">Thank you for your purchase</p>
-        </div>
-
-        <!-- Content -->
-        <div style="padding: 32px;">
-
-          <!-- Order Summary -->
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-            <h3 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; font-weight: 600;">Order Summary</h3>
-            <p style="margin: 0 0 8px 0; color: #64748b; font-size: 14px;">Order #${order._id.slice(-8)}</p>
-            <p style="margin: 0 0 16px 0; color: #64748b; font-size: 14px;">Placed on ${new Date().toLocaleDateString()}</p>
-
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 16px;">
-            ${order.items
-              .map(
-                item =>
-                  '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">' +
-                  '<div>' +
-                  '<p style="margin: 0; color: #1e293b; font-weight: 600;">' +
-                  item.title +
-                  '</p>' +
-                  '<p style="margin: 4px 0 0 0; color: #64748b; font-size: 14px;">Quantity: ' +
-                  item.quantity +
-                  '</p>' +
-                  '</div>' +
-                  '<p style="margin: 0; color: #1e293b; font-weight: 600;">$' +
-                  item.price.toFixed(2) +
-                  '</p>' +
-                  '</div>'
-              )
-              .join('')}
-
-              <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <p style="margin: 0; color: #1e293b; font-weight: 600; font-size: 18px;">Total</p>
-                  <p style="margin: 0; color: #1e293b; font-weight: 700; font-size: 18px;">$${(order.total || 0).toFixed(2)}</p>
-        </div>
-        </div>
-      </div>
-        </div>
-
-          <!-- CTA Button -->
-          <div style="text-align: center; margin-bottom: 24px;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://m4ktaba.com'}/orders/${order._id}"
-               style="display: inline-block; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-              Track Your Order
-            </a>
-        </div>
-
-          <!-- Footer -->
-          <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e2e8f0;">
-            <p style="margin: 0 0 8px 0; color: #64748b; font-size: 14px;">Thank you for choosing M4KTABA!</p>
-            <p style="margin: 0; color: #64748b; font-size: 14px;">If you have any questions, please contact us at <a href="mailto:contact@m4ktaba.com" style="color: #1e293b; text-decoration: none;">contact@m4ktaba.com</a></p>
+      <head>
+        <meta charset="utf-8">
+        <title>Order Confirmation</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #10b981;">Order Confirmed! 🎉</h1>
+          
+          <p>Thank you for your order! We've received your payment and are processing your order.</p>
+          
+          <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h2 style="margin-top: 0;">Order #${order.orderId}</h2>
+            <ul style="padding-left: 20px;">
+              ${itemsList}
+            </ul>
+            <p style="font-weight: bold; font-size: 18px; margin-top: 15px;">
+              Total: ${formatCurrency(order.totalAmount, order.currency)}
+            </p>
           </div>
-
+          
+          <div style="background: #ecfdf5; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981;">
+            <p style="margin: 0; color: #065f46;">
+              <strong>💚 No Platform Fees</strong><br>
+              100% of your payment goes to the seller minus only payment processor fees.
+            </p>
+          </div>
+          
+          <h3>Shipping Address</h3>
+          <p>${order.shippingAddress}</p>
+          
+          <h3>What's Next?</h3>
+          <p>
+            1. The seller will prepare your order<br>
+            2. You'll receive a shipping notification with tracking<br>
+            3. Enjoy your books!
+          </p>
+          
+          <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
+            If you have any questions, reply to this email or contact our support team.
+          </p>
+          
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+          
+          <p style="text-align: center; color: #6b7280; font-size: 12px;">
+            M4KTABA - Your Global Islamic Book Marketplace<br>
+            <a href="https://m4ktaba.com" style="color: #10b981;">m4ktaba.com</a>
+          </p>
         </div>
-      </div>
-    </body>
+      </body>
     </html>
-    `,
-});
+  `;
 
-const newOrderNotification = (order: Order) => ({
-  subject: `New Order Received - ${order._id}`,
-  html: `
+  return sendEmail({
+    to,
+    subject: `Order Confirmation - ${order.orderId}`,
+    html,
+    text: `Thank you for your order! Order #${order.orderId} - Total: ${formatCurrency(order.totalAmount, order.currency)}`,
+  });
+}
+
+/**
+ * Send new order notification to seller
+ */
+export async function sendNewOrderNotificationToSeller(
+  to: string,
+  order: {
+    orderId: string;
+    buyerName: string;
+    items: Array<{ title: string; quantity: number; price: number }>;
+    totalAmount: number;
+    currency: string;
+    netAmount: number;
+  }
+) {
+  const itemsList = order.items
+    .map(
+      (item) =>
+        `<li>${item.title} x${item.quantity} - ${formatCurrency(item.price * item.quantity, order.currency)}</li>`
+    )
+    .join('');
+
+  const processorFee = order.totalAmount - order.netAmount;
+
+  const html = `
     <!DOCTYPE html>
     <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>New Order Notification</title>
-    </head>
-    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; line-height: 1.6;">
-      <div style="max-width: 600px; margin: 0 auto; background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center;">
-          <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">🛒 New Order!</h1>
-          <p style="margin: 8px 0 0 0; color: #d1fae5; font-size: 16px;">You have a new order to fulfill</p>
+      <head>
+        <meta charset="utf-8">
+        <title>New Order Received</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #10b981;">New Order Received! 📦</h1>
+          
+          <p>You have a new order from <strong>${order.buyerName}</strong>!</p>
+          
+          <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h2 style="margin-top: 0;">Order #${order.orderId}</h2>
+            <ul style="padding-left: 20px;">
+              ${itemsList}
+            </ul>
+          </div>
+          
+          <div style="background: #ecfdf5; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #065f46;">💰 Your Earnings</h3>
+            <table style="width: 100%; font-size: 14px;">
+              <tr>
+                <td>Order Total:</td>
+                <td style="text-align: right;">${formatCurrency(order.totalAmount, order.currency)}</td>
+              </tr>
+              <tr>
+                <td>Platform Fee:</td>
+                <td style="text-align: right; color: #10b981;"><strong>$0.00 (0%)</strong></td>
+              </tr>
+              <tr>
+                <td>Payment Processor:</td>
+                <td style="text-align: right;">-${formatCurrency(processorFee, order.currency)}</td>
+              </tr>
+              <tr style="border-top: 2px solid #10b981;">
+                <td><strong>You Receive:</strong></td>
+                <td style="text-align: right;"><strong>${formatCurrency(order.netAmount, order.currency)}</strong></td>
+              </tr>
+            </table>
+          </div>
+          
+          <h3>Next Steps</h3>
+          <p>
+            1. Log in to your seller dashboard<br>
+            2. Prepare the order for shipping<br>
+            3. Mark as shipped and add tracking info
+          </p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://m4ktaba.com/dashboard/seller" 
+               style="background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              View Order in Dashboard
+            </a>
+          </div>
+          
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+          
+          <p style="text-align: center; color: #6b7280; font-size: 12px;">
+            M4KTABA Seller Portal<br>
+            <a href="https://m4ktaba.com" style="color: #10b981;">m4ktaba.com</a>
+          </p>
         </div>
+      </body>
+    </html>
+  `;
 
-        <!-- Content -->
-        <div style="padding: 32px;">
+  return sendEmail({
+    to,
+    subject: `New Order - ${order.orderId}`,
+    html,
+    text: `New order received! Order #${order.orderId} - You'll receive ${formatCurrency(order.netAmount, order.currency)}`,
+  });
+}
 
-          <!-- Order Summary -->
-          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-            <h3 style="margin: 0 0 16px 0; color: #14532d; font-size: 18px; font-weight: 600;">Order Details</h3>
-            <p style="margin: 0 0 8px 0; color: #365314; font-size: 14px;">Order #${order._id.slice(-8)}</p>
-            <p style="margin: 0 0 16px 0; color: #365314; font-size: 14px;">Received on ${new Date().toLocaleDateString()}</p>
+/**
+ * Send refund confirmation email
+ */
+export async function sendRefundConfirmationEmail(
+  to: string,
+  order: {
+    orderId: string;
+    refundAmount: number;
+    currency: string;
+    refundReason?: string;
+  }
+) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Refund Processed</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #3b82f6;">Refund Processed</h1>
+          
+          <p>Your refund for order #${order.orderId} has been processed.</p>
+          
+          <div style="background: #dbeafe; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6; margin: 20px 0;">
+            <h3 style="margin-top: 0;">Refund Details</h3>
+            <p><strong>Amount:</strong> ${formatCurrency(order.refundAmount, order.currency)}</p>
+            ${order.refundReason ? `<p><strong>Reason:</strong> ${order.refundReason}</p>` : ''}
+          </div>
+          
+          <p>
+            The refund will appear in your account within 5-10 business days, depending on your payment method.
+          </p>
+          
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+          
+          <p style="text-align: center; color: #6b7280; font-size: 12px;">
+            M4KTABA<br>
+            <a href="https://m4ktaba.com" style="color: #10b981;">m4ktaba.com</a>
+          </p>
+        </div>
+      </body>
+    </html>
+  `;
 
-            <div style="border-top: 1px solid #bbf7d0; padding-top: 16px;">
-            ${order.items
-              .map(
-                item =>
-                  '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">' +
-                  '<div>' +
-                  '<p style="margin: 0; color: #14532d; font-weight: 600;">' +
-                  item.title +
-                  '</p>' +
-                  '<p style="margin: 4px 0 0 0; color: #365314; font-size: 14px;">Quantity: ' +
-                  item.quantity +
-                  '</p>' +
-                  '</div>' +
-                  '<p style="margin: 0; color: #14532d; font-weight: 600;">$' +
-                  item.price.toFixed(2) +
-                  '</p>' +
-                  '</div>'
-              )
-              .join('')}
+  return sendEmail({
+    to,
+    subject: `Refund Processed - ${order.orderId}`,
+    html,
+    text: `Your refund of ${formatCurrency(order.refundAmount, order.currency)} for order #${order.orderId} has been processed.`,
+  });
+}
 
-              <div style="border-top: 1px solid #bbf7d0; padding-top: 12px; margin-top: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <p style="margin: 0; color: #14532d; font-weight: 600; font-size: 18px;">Total</p>
-                  <p style="margin: 0; color: #14532d; font-weight: 700; font-size: 18px;">$${(order.total || 0).toFixed(2)}</p>
-                </div>
-              </div>
+/**
+ * Send payment failed notification
+ */
+export async function sendPaymentFailedEmail(
+  to: string,
+  order: {
+    orderId: string;
+    failureReason?: string;
+  }
+) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Payment Failed</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #ef4444;">Payment Failed</h1>
+          
+          <p>Unfortunately, your payment for order #${order.orderId} could not be processed.</p>
+          
+          ${order.failureReason ? `
+            <div style="background: #fee2e2; padding: 15px; border-radius: 8px; border-left: 4px solid #ef4444; margin: 20px 0;">
+              <p style="margin: 0;"><strong>Reason:</strong> ${order.failureReason}</p>
             </div>
-          </div>
-
-          <!-- Shipping Details -->
-          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-            <h3 style="margin: 0 0 16px 0; color: #14532d; font-size: 18px; font-weight: 600;">📦 Shipping Address</h3>
-            ${
-              order.shippingDetails
-                ? '<div style="color: #14532d;">' +
-                  '<p style="margin: 0 0 8px 0; font-weight: 600;">' +
-                  order.shippingDetails.name +
-                  '</p>' +
-                  '<p style="margin: 0 0 4px 0;">' +
-                  order.shippingDetails.street1 +
-                  '</p>' +
-                  (order.shippingDetails.street2
-                    ? '<p style="margin: 0 0 4px 0;">' +
-                      order.shippingDetails.street2 +
-                      '</p>'
-                    : '') +
-                  '<p style="margin: 0 0 4px 0;">' +
-                  order.shippingDetails.city +
-                  ', ' +
-                  order.shippingDetails.state +
-                  ' ' +
-                  order.shippingDetails.zip +
-                  '</p>' +
-                  '<p style="margin: 0;">' +
-                  order.shippingDetails.country +
-                  '</p>' +
-                  '</div>'
-                : '<p style="margin: 0; color: #365314;">Shipping address will be provided separately</p>'
-            }
-        </div>
-
-          <!-- CTA Button -->
-          <div style="text-align: center; margin-bottom: 24px;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://m4ktaba.com'}/billing"
-               style="display: inline-block; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-              Manage Orders
+          ` : ''}
+          
+          <h3>What to do next:</h3>
+          <p>
+            1. Check your payment method details<br>
+            2. Ensure you have sufficient funds<br>
+            3. Try placing the order again
+          </p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://m4ktaba.com/checkout" 
+               style="background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Try Again
             </a>
-        </div>
-
-          <!-- Footer -->
-          <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e2e8f0;">
-            <p style="margin: 0 0 8px 0; color: #64748b; font-size: 14px;">Thank you for selling on M4KTABA!</p>
-            <p style="margin: 0; color: #64748b; font-size: 14px;">If you have any questions, please contact us at <a href="mailto:contact@m4ktaba.com" style="color: #1e293b; text-decoration: none;">contact@m4ktaba.com</a></p>
           </div>
-
+          
+          <p>If you continue to experience issues, please contact our support team.</p>
+          
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+          
+          <p style="text-align: center; color: #6b7280; font-size: 12px;">
+            M4KTABA<br>
+            <a href="https://m4ktaba.com" style="color: #10b981;">m4ktaba.com</a>
+          </p>
         </div>
-      </div>
-    </body>
+      </body>
     </html>
-    `,
-});
+  `;
 
-export const shippingUpdate = (order: Order, trackingNumber?: string) => ({
-  subject: `🚚 Your order has been shipped! ${trackingNumber ? `Tracking: ${trackingNumber}` : ''}`,
-  html: `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Your Order Has Been Shipped</title>
-    </head>
-    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; line-height: 1.6;">
-      <div style="max-width: 600px; margin: 0 auto; background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+  return sendEmail({
+    to,
+    subject: `Payment Failed - ${order.orderId}`,
+    html,
+    text: `Your payment for order #${order.orderId} could not be processed. Please try again.`,
+  });
+}
 
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 32px; text-align: center;">
-          <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">🚚 Order Shipped!</h1>
-          <p style="margin: 8px 0 0 0; color: #cbd5e1; font-size: 16px;">Your order is on its way to you</p>
-        </div>
-
-        <!-- Content -->
-        <div style="padding: 32px;">
-
-          <!-- Shipping Info -->
-          <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-            <h2 style="margin: 0 0 16px 0; color: #0c4a6e; font-size: 20px; font-weight: 600;">📦 Shipping Information</h2>
-            ${
-              trackingNumber
-                ? '<div style="background: #ffffff; border-radius: 8px; padding: 16px; margin-bottom: 16px;">' +
-                  '<p style="margin: 0 0 8px 0; color: #374151; font-weight: 600;">Tracking Number:</p>' +
-                  '<p style="margin: 0; color: #1e293b; font-size: 18px; font-weight: 700; font-family: monospace; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; display: inline-block;">' +
-                  trackingNumber +
-                  '</p>' +
-                  '</div>'
-                : ''
-            }
-            <p style="margin: 0; color: #0c4a6e; font-size: 15px;">Your order has been shipped and is on its way to you. Expected delivery: 3-5 business days.</p>
-          </div>
-
-          <!-- Order Summary -->
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-            <h3 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; font-weight: 600;">Order Summary</h3>
-            <p style="margin: 0 0 8px 0; color: #64748b; font-size: 14px;">Order #${order._id.slice(-8)}</p>
-            <p style="margin: 0 0 16px 0; color: #64748b; font-size: 14px;">Shipped on ${new Date().toLocaleDateString()}</p>
-
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 16px;">
-            ${order.items
-              .map(
-                item =>
-                  '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">' +
-                  '<div>' +
-                  '<p style="margin: 0; color: #1e293b; font-weight: 600;">' +
-                  item.title +
-                  '</p>' +
-                  '<p style="margin: 4px 0 0 0; color: #64748b; font-size: 14px;">Quantity: ' +
-                  item.quantity +
-                  '</p>' +
-                  '</div>' +
-                  '<p style="margin: 0; color: #1e293b; font-weight: 600;">$' +
-                  item.price.toFixed(2) +
-                  '</p>' +
-                  '</div>'
-              )
-              .join('')}
-
-              <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <p style="margin: 0; color: #1e293b; font-weight: 600; font-size: 18px;">Total</p>
-                  <p style="margin: 0; color: #1e293b; font-weight: 700; font-size: 18px;">$${(order.total || 0).toFixed(2)}</p>
-                </div>
-        </div>
-        </div>
-      </div>
-
-          <!-- CTA Button -->
-          <div style="text-align: center; margin-bottom: 24px;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://m4ktaba.com'}/orders/${order._id}"
-               style="display: inline-block; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-              Track Your Order
-            </a>
-        </div>
-
-          <!-- Footer -->
-          <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e2e8f0;">
-            <p style="margin: 0 0 8px 0; color: #64748b; font-size: 14px;">Thank you for choosing M4KTABA!</p>
-            <p style="margin: 0; color: #64748b; font-size: 14px;">If you have any questions, please contact us at <a href="mailto:contact@m4ktaba.com" style="color: #1e293b; text-decoration: none;">contact@m4ktaba.com</a></p>
-          </div>
-
-        </div>
-      </div>
-    </body>
-    </html>
-  `,
-});
-
-export const emailTemplates = {
-  orderConfirmation,
-  newOrderNotification,
-  shippingUpdate,
-};
+/**
+ * Format currency helper
+ */
+function formatCurrency(amount: number, currency: string): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+  }).format(amount);
+}
