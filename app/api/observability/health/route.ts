@@ -10,6 +10,7 @@ export async function GET() {
 
     return NextResponse.json(health, { status: statusCode });
   } catch (error) {
+    console.error('Failed to generate observability health response', error);
     return NextResponse.json(
       {
         status: 'unhealthy',

@@ -41,6 +41,8 @@ export const config = {
  * @deprecated Platform fees are disabled
  */
 export function getPlatformFeeAmount(totalCents: number): number {
+  // Reference parameter to satisfy linting while keeping signature
+  void totalCents;
   // Always return 0 - no platform fees
   return 0;
 }

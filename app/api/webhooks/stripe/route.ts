@@ -11,16 +11,13 @@ import {
   trackDispute,
   trackGMV,
 } from '@/lib/observability/metrics';
-
-// Webhook events we handle
-const HANDLED_EVENTS = [
-  'payment_intent.succeeded',
-  'payment_intent.payment_failed',
-  'charge.refunded',
-  'charge.dispute.created',
-  'customer.subscription.updated',
-  'customer.subscription.deleted',
-] as const;
+import {
+  notifyAdmin,
+  notifySeller,
+  sendOrderConfirmationEmail,
+  sendPaymentFailedEmail,
+  sendRefundConfirmationEmail,
+} from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -106,7 +103,6 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   console.log('💰 Payment succeeded:', paymentIntent.id);
 
   const orderId = paymentIntent.metadata.orderId;
-  const buyerId = paymentIntent.metadata.buyerId;
   const buyerEmail = paymentIntent.receipt_email;
   const amount = paymentIntent.amount / 100; // Convert cents to dollars
   const currency = paymentIntent.currency.toUpperCase();
@@ -250,38 +246,5 @@ async function findOrderByChargeId(chargeId: string): Promise<{
   // TODO: Implement database query
   console.log(`Finding order by charge: ${chargeId}`);
   return null;
-}
-
-async function sendOrderConfirmationEmail(
-  email: string,
-  orderId: string,
-  details: { amount: number; currency: string }
-) {
-  // TODO: Implement email sending
-  console.log(`Sending confirmation email to ${email} for order ${orderId}`);
-}
-
-async function sendPaymentFailedEmail(email: string, orderId: string) {
-  console.log(`Sending payment failed email to ${email} for order ${orderId}`);
-}
-
-async function sendRefundConfirmationEmail(
-  email: string,
-  orderId: string,
-  details: { refundAmount: number; currency: string }
-) {
-  console.log(`Sending refund confirmation to ${email} for order ${orderId}`, details);
-}
-
-async function notifySeller(
-  sellerId: string,
-  event: string,
-  data: Record<string, any>
-) {
-  console.log(`Notifying seller ${sellerId} about ${event}`, data);
-}
-
-async function notifyAdmin(event: string, data: Record<string, any>) {
-  console.log(`Notifying admin about ${event}`, data);
 }
 

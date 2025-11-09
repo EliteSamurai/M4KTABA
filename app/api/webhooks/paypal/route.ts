@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { reportError } from '@/lib/sentry';
 import { counter } from '@/lib/metrics';
-import crypto from 'crypto';
+import {
+  trackWebhook,
+  trackConversion,
+  trackRefund,
+  trackDispute,
+  trackGMV,
+} from '@/lib/observability/metrics';
 
 // PayPal webhook events we handle
 const HANDLED_EVENTS = [
@@ -75,6 +81,12 @@ export async function POST(req: NextRequest) {
   }
 
   console.log(`✅ Received PayPal webhook: ${event.event_type}`);
+  const isHandledEvent = (HANDLED_EVENTS as readonly string[]).includes(
+    event.event_type
+  );
+  if (!isHandledEvent) {
+    console.log(`PayPal event not in handled list: ${event.event_type}`);
+  }
   counter('webhook_paypal_received').inc();
 
   try {
@@ -100,6 +112,7 @@ export async function POST(req: NextRequest) {
     }
 
     counter('webhook_paypal_processed').inc();
+    trackWebhook('paypal', event.event_type, true);
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('Error processing PayPal webhook:', error);
@@ -108,6 +121,7 @@ export async function POST(req: NextRequest) {
       type: event.event_type,
     });
     counter('webhook_paypal_error').inc();
+    trackWebhook('paypal', event.event_type, false);
 
     // Return 200 to prevent PayPal from retrying
     return NextResponse.json(
@@ -139,6 +153,8 @@ async function handlePaymentCaptureCompleted(event: PayPalWebhookEvent) {
   // await sendOrderConfirmationEmail(buyerEmail, orderId, { amount, currency });
 
   counter('order_completed').inc();
+  trackConversion('paypal', true);
+  trackGMV(amount, currency, 'US');
 }
 
 /**
@@ -155,6 +171,7 @@ async function handlePaymentCaptureDenied(event: PayPalWebhookEvent) {
   });
 
   counter('order_failed').inc();
+  trackConversion('paypal', false);
 }
 
 /**
@@ -172,6 +189,7 @@ async function handlePaymentCaptureRefunded(event: PayPalWebhookEvent) {
   });
 
   counter('order_refunded').inc();
+  trackRefund(refundAmount, event.resource.custom_id || event.resource.id);
 }
 
 /**
@@ -186,6 +204,11 @@ async function handleDisputeCreated(event: PayPalWebhookEvent) {
   });
 
   counter('dispute_created').inc();
+  trackDispute(
+    event.resource.custom_id || 'unknown',
+    parseFloat(event.resource.amount?.value || '0'),
+    event.summary
+  );
 }
 
 /**

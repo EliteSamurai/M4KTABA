@@ -39,6 +39,7 @@ module.exports = {
     '^next-auth/react$': '<rootDir>/tests/__mocks__/next-auth/react.js',
     '^tests/(.*)$': '<rootDir>/tests/$1',
     '^@tests/(.*)$': '<rootDir>/tests/$1',
+    '^nanoid$': '<rootDir>/tests/__mocks__/nanoidMock.ts',
   },
 
   modulePathIgnorePatterns: ['<rootDir>/studio-m4ktaba/'],

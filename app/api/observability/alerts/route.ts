@@ -19,6 +19,7 @@ export async function GET() {
       })),
     });
   } catch (error) {
+    console.error('Failed to fetch observability alerts', error);
     return NextResponse.json(
       { error: 'Failed to fetch alerts' },
       { status: 500 }

@@ -342,6 +342,11 @@ export async function reconcilePayouts(
   discrepancies: Array<{ type: string; description: string; amount: number }>;
 }> {
   // TODO: Fetch payouts and ledger entries from database
+  console.debug('Reconciling payouts (mock)', {
+    sellerId,
+    startDate,
+    endDate,
+  });
 
   const matched = 0;
   const unmatched = 0;
@@ -376,6 +381,7 @@ export async function getPayoutStatistics(
   timeRange: 'week' | 'month' | 'year'
 ): Promise<PayoutStatistics> {
   // TODO: Fetch from database
+  console.debug('Fetching payout statistics (mock)', { sellerId, timeRange });
 
   return {
     totalPayouts: 0,
@@ -402,10 +408,6 @@ export async function batchProcessPayouts(): Promise<{
   // TODO: Fetch all sellers eligible for payout
   // const eligibleSellers = await fetchEligibleSellers();
 
-  let processed = 0;
-  let succeeded = 0;
-  let failed = 0;
-
   // Process each seller
   // for (const seller of eligibleSellers) {
   //   try {
@@ -418,9 +420,17 @@ export async function batchProcessPayouts(): Promise<{
   //   }
   // }
 
-  console.log(`✅ Batch processing complete: ${processed} processed, ${succeeded} succeeded, ${failed} failed`);
+  const results = {
+    processed: 0,
+    succeeded: 0,
+    failed: 0,
+  };
 
-  return { processed, succeeded, failed };
+  console.log(
+    `✅ Batch processing complete: ${results.processed} processed, ${results.succeeded} succeeded, ${results.failed} failed`
+  );
+
+  return results;
 }
 
 /**
@@ -432,18 +442,22 @@ export async function retryPayout(
 ): Promise<PayoutRecord | null> {
   // TODO: Fetch payout from database
 
-  const payout: PayoutRecord | null = null;
+  const payout = await Promise.resolve<PayoutRecord | null>(null);
 
   if (!payout || payout.retryCount >= maxRetries) {
+    console.warn('No payout available for retry', { payoutId });
     return null;
   }
 
-  payout.retryCount++;
-  payout.status = 'pending';
+  const updated: PayoutRecord = {
+    ...payout,
+    retryCount: payout.retryCount + 1,
+    status: 'pending',
+  };
 
   // Retry processing
   // const updated = await processPayout(payout);
 
-  return payout;
+  return updated;
 }
 

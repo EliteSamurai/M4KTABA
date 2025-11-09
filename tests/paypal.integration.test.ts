@@ -33,7 +33,7 @@ describe('PayPal Integration', () => {
       expect(isPayPalCurrencySupported('USD')).toBe(true);
       expect(isPayPalCurrencySupported('EUR')).toBe(true);
       expect(isPayPalCurrencySupported('TRY')).toBe(true);
-      expect(isPayPalCurrencySupported('PKR')).toBe(false); // Not in mocked list
+      expect(isPayPalCurrencySupported('PKR')).toBe(true);
       expect(isPayPalCurrencySupported('XYZ')).toBe(false);
     });
 

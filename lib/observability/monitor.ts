@@ -13,7 +13,6 @@ import {
   calculatePaymentSuccessRate,
   calculateWebhookFailureRate,
   calculateRefundRate,
-  getDisputeCountPerSeller,
 } from './metrics';
 
 /**

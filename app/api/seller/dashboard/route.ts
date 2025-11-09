@@ -42,6 +42,8 @@ async function fetchTransactions(userId: string, timeRange: string) {
   // TODO: Implement database query
   // This would query your Sanity database for orders where seller matches userId
   
+  console.debug('Fetching seller transactions (mock)', { userId, timeRange });
+  
   /*
   const { readClient } = await import('@/studio-m4ktaba/client');
   

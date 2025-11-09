@@ -5,7 +5,6 @@ import { createPayPalOrder, type PayPalOrderItem } from '@/lib/paypal';
 import { CartItem } from '@/types/shipping-types';
 import { reportError } from '@/lib/sentry';
 import { counter } from '@/lib/metrics';
-import { trackConversion } from '@/lib/observability/metrics';
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);

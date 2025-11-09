@@ -38,6 +38,7 @@ export async function GET(req: NextRequest) {
   try {
     // Build and execute search query
     const groqQuery = buildSearchQuery(query, filters);
+    console.debug('Product search GROQ query', groqQuery);
 
     // TODO: Execute query against Sanity
     // const { readClient } = await import('@/studio-m4ktaba/client');

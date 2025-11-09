@@ -392,7 +392,6 @@ export interface DashboardMetrics {
 export async function getDashboardMetrics(
   window: string
 ): Promise<DashboardMetrics> {
-  const paymentAttempts = metrics.get('checkout_attempts', window);
   const paymentSuccesses = metrics.get('checkout_success', window);
 
   return {

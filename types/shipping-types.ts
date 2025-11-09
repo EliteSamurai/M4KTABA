@@ -10,6 +10,7 @@ export interface CartItem {
     refundStatus?: string;
   };
   user?: {
+    name?: string;
     location?: {
       street?: string;
       city?: string;

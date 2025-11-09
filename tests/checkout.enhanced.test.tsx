@@ -85,9 +85,8 @@ describe('Enhanced Checkout Components', () => {
       render(<CheckoutProgress currentStep="review" />);
 
       // Cart, Shipping, and Payment should be marked as completed
-      const completedSteps = screen.getAllByRole('img', { hidden: true });
-      // Check icons (completed steps have Check icons)
-      expect(completedSteps.length).toBeGreaterThan(0);
+      const completedLabels = screen.getAllByText('(Completed)');
+      expect(completedLabels.length).toBe(3);
     });
   });
 

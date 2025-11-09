@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { SUPPORTED_CURRENCIES, type CurrencyConfig } from '@/lib/i18n/config';
+import { SUPPORTED_CURRENCIES } from '@/lib/i18n/config';
 import { DollarSign } from 'lucide-react';
 
 const POPULAR_CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'TRY', 'PKR'];

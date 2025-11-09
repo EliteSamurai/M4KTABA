@@ -244,7 +244,8 @@ export function getEstimatedDelivery(
  */
 export function isShippingSupported(countryCode: string): boolean {
   // All countries are supported (fallback to rest-of-world)
-  return true;
+  // Using getShippingZone ensures future zone updates propagate here.
+  return Boolean(getShippingZone(countryCode));
 }
 
 /**

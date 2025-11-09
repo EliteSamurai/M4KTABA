@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Store, Package, TruckIcon, CreditCard, Info } from 'lucide-react';
 import {
   type MultiSellerCart,
-  type SellerGroup,
   createMultiSellerCart,
   getSellerCount,
 } from '@/lib/multi-seller-cart';
