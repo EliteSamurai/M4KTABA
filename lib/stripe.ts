@@ -34,10 +34,15 @@ export const config = {
   },
 };
 
+/**
+ * Platform fee calculation (DISABLED for no-fee marketplace)
+ * This marketplace operates with 0% platform fees.
+ * Sellers receive the full amount minus only payment processor fees.
+ * @deprecated Platform fees are disabled
+ */
 export function getPlatformFeeAmount(totalCents: number): number {
-  const bps = Number(process.env.PLATFORM_FEE_BPS || '0');
-  if (!Number.isFinite(bps) || bps <= 0) return 0;
-  return Math.floor((totalCents * bps) / 10_000);
+  // Always return 0 - no platform fees
+  return 0;
 }
 
 export type DestinationChargeParams = {
@@ -73,12 +78,12 @@ export async function createPaymentIntentWithDestinationCharge(
   };
 
   // Use destination charges only if there is a single seller with a connected account
+  // NO PLATFORM FEES: Sellers receive full amount minus payment processor fees only
   if (p.sellerStripeAccountId) {
-    const fee = getPlatformFeeAmount(p.amountCents);
     Object.assign(base, {
       transfer_data: { destination: p.sellerStripeAccountId },
     });
-    if (fee > 0) Object.assign(base, { application_fee_amount: fee });
+    // Platform fee is 0 - no application_fee_amount set
   }
 
   const opts: Stripe.RequestOptions = {};

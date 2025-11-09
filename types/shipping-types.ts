@@ -1,6 +1,7 @@
 export interface CartItem {
   id: string;
   title: string;
+  author?: string; // Book author
   price: number;
   quantity: number;
   weight?: number; // weight in lbs
