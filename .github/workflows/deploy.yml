@@ -42,7 +42,28 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Secrets preflight
+        id: staging_preflight
+        run: |
+          missing=0
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "::warning::Missing VERCEL_TOKEN secret. Staging deploy will be skipped."
+            missing=1
+          fi
+          if [ -z "${{ secrets.VERCEL_ORG_ID }}" ]; then
+            echo "::warning::Missing VERCEL_ORG_ID secret. Staging deploy will be skipped."
+            missing=1
+          fi
+          if [ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
+            echo "::warning::Missing VERCEL_PROJECT_ID secret. Staging deploy will be skipped."
+            missing=1
+          fi
+          if [ $missing -eq 1 ]; then
+            echo "skip_deploy=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build application
+        if: steps.staging_preflight.outputs.skip_deploy != 'true'
         run: pnpm build
         env:
           NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
@@ -50,6 +71,7 @@ jobs:
           NODE_ENV: production
 
       - name: Deploy to Vercel (Staging)
+        if: steps.staging_preflight.outputs.skip_deploy != 'true'
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -59,17 +81,18 @@ jobs:
           working-directory: ./
 
       - name: Run smoke tests
+        if: steps.staging_preflight.outputs.skip_deploy != 'true'
         run: |
           echo "Running smoke tests against staging environment"
           # Add smoke tests here
 
       - name: Notify deployment
         uses: 8398a7/action-slack@v3
+        if: always() && secrets.SLACK_WEBHOOK_URL != ''
         with:
           status: ${{ job.status }}
           channel: '#deployments'
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: always()
 
   # Deploy to Production
   deploy-production:
@@ -95,7 +118,28 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Secrets preflight
+        id: production_preflight
+        run: |
+          missing=0
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "::warning::Missing VERCEL_TOKEN secret. Production deploy will be skipped."
+            missing=1
+          fi
+          if [ -z "${{ secrets.VERCEL_ORG_ID }}" ]; then
+            echo "::warning::Missing VERCEL_ORG_ID secret. Production deploy will be skipped."
+            missing=1
+          fi
+          if [ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
+            echo "::warning::Missing VERCEL_PROJECT_ID secret. Production deploy will be skipped."
+            missing=1
+          fi
+          if [ $missing -eq 1 ]; then
+            echo "skip_deploy=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build application
+        if: steps.production_preflight.outputs.skip_deploy != 'true'
         run: pnpm build
         env:
           NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
@@ -103,6 +147,7 @@ jobs:
           NODE_ENV: production
 
       - name: Deploy to Vercel (Production)
+        if: steps.production_preflight.outputs.skip_deploy != 'true'
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -112,16 +157,19 @@ jobs:
           working-directory: ./
 
       - name: Deploy Fly.io Workers
+        if: steps.production_preflight.outputs.skip_deploy != 'true'
         run: |
           echo "Deploying Fly.io workers..."
           # Add Fly.io deployment commands here
 
       - name: Run production smoke tests
+        if: steps.production_preflight.outputs.skip_deploy != 'true'
         run: |
           echo "Running smoke tests against production environment"
           # Add production smoke tests here
 
       - name: Create GitHub Release
+        if: steps.production_preflight.outputs.skip_deploy != 'true'
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -141,11 +189,11 @@ jobs:
 
       - name: Notify deployment
         uses: 8398a7/action-slack@v3
+        if: always() && secrets.SLACK_WEBHOOK_URL != ''
         with:
           status: ${{ job.status }}
           channel: '#deployments'
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: always()
 
   # Rollback
   rollback:
@@ -160,8 +208,8 @@ jobs:
 
       - name: Notify rollback
         uses: 8398a7/action-slack@v3
+        if: always() && secrets.SLACK_WEBHOOK_URL != ''
         with:
           status: failure
           channel: '#deployments'
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: always()

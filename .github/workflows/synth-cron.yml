@@ -27,17 +27,45 @@ jobs:
         run: pnpm install --no-frozen-lockfile
         
       - name: Install Playwright
-        run: npx playwright install chromium
+        run: pnpm exec playwright install --with-deps chromium
+        
+      - name: Base URL preflight
+        id: synth_preflight
+        run: |
+          if [ -z "${{ secrets.SYNTH_PROD_BASE_URL }}" ]; then
+            echo "::warning::SYNTH_PROD_BASE_URL not configured. Falling back to https://m4ktaba.com"
+            echo "synth_base=https://m4ktaba.com" >> $GITHUB_OUTPUT
+          else
+            echo "synth_base=${{ secrets.SYNTH_PROD_BASE_URL }}" >> $GITHUB_OUTPUT
+          fi
         
       - name: Run synthetic test
         run: |
           export NEXT_PUBLIC_SYNTH=1
-          export SYNTH_BASE_URL=${{ secrets.SYNTH_PROD_BASE_URL }}
+          export SYNTH_BASE_URL="${{ steps.synth_preflight.outputs.synth_base }}"
+          if [ -z "$SYNTH_BASE_URL" ]; then
+            export SYNTH_BASE_URL="${{ secrets.SYNTH_PROD_BASE_URL }}"
+          fi
           echo "🔍 Environment variables:"
           echo "NEXT_PUBLIC_SYNTH=$NEXT_PUBLIC_SYNTH"
-          echo "SYNTH_BASE_URL=$SYNTH_BASE_URL"
+          echo "SYNTH_BASE_URL=${SYNTH_BASE_URL:-https://m4ktaba.com}"
           echo "🕐 Test started at: $(date)"
+          
+          set +e
           node scripts/synth/checkout-smoke.js
+          exit_code=$?
+          if [ $exit_code -ne 0 ]; then
+            echo "❌ First attempt failed (exit code $exit_code). Retrying once after delay..."
+            sleep 5
+            node scripts/synth/checkout-smoke.js
+            exit_code=$?
+          fi
+          
+          if [ $exit_code -ne 0 ]; then
+            echo "❌ Synthetic checkout smoke test failed after retry."
+            exit $exit_code
+          fi
+          echo "✅ Synthetic checkout smoke test passed."
         env:
           SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL }}
           

@@ -77,10 +77,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Secrets preflight
+        id: security_preflight
+        run: |
+          if [ -z "${{ secrets.SNYK_TOKEN }}" ]; then
+            echo "::warning::Missing SNYK_TOKEN secret. Skipping Snyk scan."
+            echo "skip_snyk=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run security audit
         run: pnpm audit --audit-level moderate
 
       - name: Run Snyk security scan
+        if: steps.security_preflight.outputs.skip_snyk != 'true'
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -332,7 +341,16 @@ jobs:
       - name: Run Prettier check
         run: pnpm format:check
 
+      - name: Secrets preflight
+        id: code_quality_preflight
+        run: |
+          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
+            echo "::warning::Missing SONAR_TOKEN secret. Skipping SonarCloud scan."
+            echo "skip_sonar=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run SonarCloud Scan
+        if: steps.code_quality_preflight.outputs.skip_sonar != 'true'
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
