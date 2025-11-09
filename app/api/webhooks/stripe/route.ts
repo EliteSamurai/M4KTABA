@@ -4,6 +4,13 @@ import Stripe from 'stripe';
 import { stripe } from '@/lib/stripe';
 import { reportError } from '@/lib/sentry';
 import { counter } from '@/lib/metrics';
+import {
+  trackWebhook,
+  trackConversion,
+  trackRefund,
+  trackDispute,
+  trackGMV,
+} from '@/lib/observability/metrics';
 
 // Webhook events we handle
 const HANDLED_EVENTS = [
@@ -79,11 +86,13 @@ export async function POST(req: NextRequest) {
     }
 
     counter('webhook_stripe_processed').inc();
+    trackWebhook('stripe', event.type, true);
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('Error processing webhook:', error);
     reportError(error as Error, { context: 'stripe-webhook', type: event.type });
     counter('webhook_stripe_error').inc();
+    trackWebhook('stripe', event.type, false);
 
     // Return 200 to prevent Stripe from retrying
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 200 });
@@ -99,6 +108,8 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   const orderId = paymentIntent.metadata.orderId;
   const buyerId = paymentIntent.metadata.buyerId;
   const buyerEmail = paymentIntent.receipt_email;
+  const amount = paymentIntent.amount / 100; // Convert cents to dollars
+  const currency = paymentIntent.currency.toUpperCase();
 
   // Update order status in database
   await updateOrderStatus(orderId, 'paid', {
@@ -110,8 +121,8 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 
   // Send confirmation email
   await sendOrderConfirmationEmail(buyerEmail!, orderId, {
-    amount: paymentIntent.amount / 100,
-    currency: paymentIntent.currency.toUpperCase(),
+    amount,
+    currency,
   });
 
   // Notify seller
@@ -121,6 +132,10 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   }
 
   counter('order_completed').inc();
+  
+  // Track observability metrics
+  trackConversion('stripe', true);
+  trackGMV(amount, currency, paymentIntent.metadata.region || 'US');
 }
 
 /**
@@ -143,6 +158,9 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
   }
 
   counter('order_failed').inc();
+  
+  // Track observability metrics
+  trackConversion('stripe', false);
 }
 
 /**
@@ -168,6 +186,9 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
       currency: charge.currency,
     });
     await notifySeller(order.sellerId, 'order_refunded', { orderId: order.id });
+    
+    // Track observability metrics
+    trackRefund(charge.amount_refunded / 100, order.id);
   }
 
   counter('order_refunded').inc();
@@ -180,6 +201,7 @@ async function handleDisputeCreated(dispute: Stripe.Dispute) {
   console.log('⚠️  Dispute created:', dispute.id);
 
   const chargeId = dispute.charge as string;
+  const order = await findOrderByChargeId(chargeId);
   
   // Notify seller and admin
   await notifyAdmin('dispute_created', {
@@ -189,6 +211,11 @@ async function handleDisputeCreated(dispute: Stripe.Dispute) {
   });
 
   counter('dispute_created').inc();
+  
+  // Track observability metrics
+  if (order?.sellerId) {
+    trackDispute(order.sellerId, dispute.amount / 100, dispute.reason);
+  }
 }
 
 // Helper functions (to be implemented with your database)
@@ -213,6 +240,15 @@ async function findOrderByPaymentIntent(paymentIntentId: string): Promise<{
 } | null> {
   // TODO: Implement database query
   console.log(`Finding order by payment intent: ${paymentIntentId}`);
+  return null;
+}
+
+async function findOrderByChargeId(chargeId: string): Promise<{
+  id: string;
+  sellerId: string;
+} | null> {
+  // TODO: Implement database query
+  console.log(`Finding order by charge: ${chargeId}`);
   return null;
 }
 

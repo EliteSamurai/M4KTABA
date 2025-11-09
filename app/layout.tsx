@@ -13,6 +13,13 @@ import Script from 'next/script';
 import { A11yLiveRegion } from '@/components/A11yLiveRegion';
 import VitalsClient from './vitals-client';
 
+// Initialize observability system on server
+if (typeof window === 'undefined') {
+  import('@/lib/observability/monitor').then(({ initializeObservability }) => {
+    initializeObservability();
+  });
+}
+
 const montserrat = Montserrat({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],

@@ -4,6 +4,7 @@ import { authOptions } from '../../auth/[...nextauth]/options';
 import { capturePayPalOrder } from '@/lib/paypal';
 import { reportError } from '@/lib/sentry';
 import { counter } from '@/lib/metrics';
+import { trackConversion, trackGMV } from '@/lib/observability/metrics';
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -32,10 +33,17 @@ export async function POST(req: Request) {
     const capture = captureData.purchase_units[0]?.payments?.captures?.[0];
 
     if (!capture || capture.status !== 'COMPLETED') {
+      trackConversion('paypal', false);
       throw new Error('Payment capture was not completed successfully.');
     }
 
     counter('checkout_paypal_completed').inc();
+    
+    // Track observability metrics
+    trackConversion('paypal', true);
+    const amount = parseFloat(capture.amount.value);
+    const currency = capture.amount.currency_code;
+    trackGMV(amount, currency, 'US'); // TODO: Get region from order metadata
 
     return NextResponse.json({
       success: true,
