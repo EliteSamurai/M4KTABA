@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const requiredAlways = ['name', 'street1', 'city', 'country'] as const;
+    const requiredAlways = ['email', 'name', 'street1', 'city', 'country'] as const;
     const missingRequired = requiredAlways.filter(field => {
       const value = (shippingDetails as Record<string, unknown>)[field];
       return typeof value !== 'string' || value.trim().length === 0;

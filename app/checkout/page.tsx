@@ -21,6 +21,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -95,12 +96,16 @@ const stripePromise = loadStripe(
 });
 
 const shippingSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
   name: z.string().min(1, 'Name is required'),
   street1: z.string().min(1, 'Street address is required'),
   street2: z.string().optional(),
   city: z.string().min(1, 'City is required'),
-  zip: z.string().min(1, 'ZIP code is required'),
-  state: z.string().min(1, 'State is required'),
+  zip: z.string().optional(),
+  state: z.string().optional(),
   country: z.string().min(1, 'Country is required'),
 });
 
@@ -246,7 +251,10 @@ export function CheckoutContent() {
     resolver: zodResolver(shippingSchema),
     mode: 'onChange',
     defaultValues: (testDefaults as Partial<ShippingFormValues>) ?? {
-      name: '',
+      email:
+        (session?.user as { email?: string } | undefined)?.email ??
+        (isSyntheticTest ? 'synthetic-buyer@m4ktaba.com' : ''),
+      name: (session?.user as { name?: string } | undefined)?.name ?? '',
       street1: '',
       street2: '',
       city: '',
@@ -384,7 +392,9 @@ export function CheckoutContent() {
   const validateAddress = async (shippingData: ShippingFormValues) => {
     try {
       const mod = await import('./address-validator');
-      const { isValid } = await mod.validateAddressClient(shippingData);
+      const { email: _email, ...addressOnly } = shippingData;
+      void _email;
+      const { isValid } = await mod.validateAddressClient(addressOnly);
       if (isValid) track('address_validated');
       return isValid;
     } catch (error) {
@@ -439,8 +449,10 @@ export function CheckoutContent() {
         setBgValidationWarning(null);
         try {
           const mod = await import('./address-validator');
+          const { email: _email, ...addressOnly } = shippingData;
+          void _email;
           const result = await mod.validateAddressClient(
-            shippingData,
+            addressOnly,
             controller.signal
           );
           setBgValidationValid(Boolean(result?.isValid));
@@ -498,6 +510,7 @@ export function CheckoutContent() {
 
     const currentValues = form.getValues();
     const shippingData: ShippingFormValues = {
+      email: currentValues.email,
       name: currentValues.name,
       street1,
       street2: currentValues.street2,
@@ -701,7 +714,10 @@ export function CheckoutContent() {
                             id: a.id || a._id || a.street1,
                             ...a,
                           }))}
-                          onUse={addr => {
+                          onUse={(addr: any) => {
+                            if (addr.email) {
+                              form.setValue('email', addr.email);
+                            }
                             form.setValue('name', addr.name || '');
                             form.setValue('street1', addr.street1 || '');
                             form.setValue('street2', addr.street2 || '');
@@ -712,6 +728,33 @@ export function CheckoutContent() {
                           }}
                         />
                       )}
+                      <FormField
+                        control={form.control}
+                        name='email'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              {checkoutCopy.fields.email.label}
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type='email'
+                                placeholder={
+                                  checkoutCopy.fields.email.placeholder
+                                }
+                                autoComplete='email'
+                                {...field}
+                                value={field.value as string}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              {checkoutCopy.fields.email.help}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
                       <FormField
                         control={form.control}
                         name='name'

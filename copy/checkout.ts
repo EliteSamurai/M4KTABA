@@ -16,6 +16,11 @@ export const checkoutCopy = {
     step3Confirm: 'Step 3 of 3 • Confirm',
   },
   fields: {
+    email: {
+      label: 'Email',
+      placeholder: 'you@example.com',
+      help: 'We’ll send your receipt and delivery updates here.',
+    },
     name: { label: 'Full Name', placeholder: 'John Doe' },
     street1: { label: 'Street Address', placeholder: '123 Main St' },
     street2: { label: 'Apartment, suite, etc.', placeholder: 'Apt 4B' },
