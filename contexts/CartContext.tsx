@@ -38,7 +38,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       // Get CSRF token
       const csrfResponse = await fetch('/api/csrf-token');
-      const { token: csrfToken } = await csrfResponse.json();
+      const csrfJson = await csrfResponse.json();
+      const csrfToken =
+        csrfJson?.csrfToken ?? csrfJson?.token ?? csrfJson?.value ?? '';
+
+      if (!csrfToken) {
+        console.warn('CSRF token missing from /api/csrf-token response', csrfJson);
+        return;
+      }
 
       // Filter out invalid cart items and fix user data before sending
       const validCart = updatedCart
