@@ -34,19 +34,63 @@ export async function POST(req: Request) {
       throw new Error('Invalid cart total. Please check your items.');
     }
 
-    if (
-      !shippingDetails ||
-      !shippingDetails.name ||
-      !shippingDetails.street1 ||
-      !shippingDetails.city ||
-      !shippingDetails.state ||
-      !shippingDetails.zip ||
-      !shippingDetails.country
-    ) {
+    if (!shippingDetails || typeof shippingDetails !== 'object') {
       return NextResponse.json(
         { error: 'Invalid or incomplete shipping details.' },
         { status: 400 }
       );
+    }
+
+    const requiredAlways = ['name', 'street1', 'city', 'country'] as const;
+    const missingRequired = requiredAlways.filter(field => {
+      const value = (shippingDetails as Record<string, unknown>)[field];
+      return typeof value !== 'string' || value.trim().length === 0;
+    });
+    if (missingRequired.length > 0) {
+      return NextResponse.json(
+        {
+          error: `Missing required fields: ${missingRequired.join(', ')}.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    const countryCode =
+      typeof shippingDetails.country === 'string'
+        ? shippingDetails.country.toUpperCase()
+        : '';
+    const requiresPostal = ['US', 'CA', 'GB', 'AU', 'BR', 'IN'].includes(
+      countryCode
+    );
+    if (requiresPostal) {
+      if (
+        typeof shippingDetails.zip !== 'string' ||
+        shippingDetails.zip.trim().length === 0
+      ) {
+        return NextResponse.json(
+          {
+            error: 'Postal/ZIP code is required for your country.',
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    const requiresState = ['US', 'CA', 'AU', 'BR', 'IN', 'MX'].includes(
+      countryCode
+    );
+    if (requiresState) {
+      if (
+        typeof shippingDetails.state !== 'string' ||
+        shippingDetails.state.trim().length === 0
+      ) {
+        return NextResponse.json(
+          {
+            error: 'State/region is required for your country.',
+          },
+          { status: 400 }
+        );
+      }
     }
 
     const buyerEmail =
