@@ -49,18 +49,31 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!session?.user?.email) {
+    const buyerEmail =
+      session?.user?.email ??
+      (typeof shippingDetails?.email === 'string'
+        ? shippingDetails.email
+        : undefined) ??
+      (process.env.NEXT_PUBLIC_SYNTH === '1'
+        ? 'synthetic-buyer@m4ktaba.com'
+        : undefined);
+
+    if (!buyerEmail) {
       return NextResponse.json(
         { error: 'No buyer email found in session' },
         { status: 400 }
       );
     }
 
+    const userId =
+      ((session?.user?._id as string | undefined) ??
+        (session?.user?.id as string | undefined) ??
+        buyerEmail) ??
+      'guest';
     // Derive orderId (client should provide when starting checkout) or make a deterministic one
     const orderId =
       (shippingDetails?.orderId as string | undefined) ||
-      `${Date.now()}-${session.user._id}`;
-    const userId = session.user._id as string;
+      `${Date.now()}-${userId}`;
     const step = 'create';
     const headerKey = (req.headers.get('Idempotency-Key') || '').trim();
     const idemKey = headerKey || deriveIdempotencyKey(step, userId, orderId);
@@ -88,7 +101,7 @@ export async function POST(req: Request) {
       createPaymentIntentWithDestinationCharge({
         amountCents: Math.round(subtotal * 100),
         currency: 'usd',
-        buyerEmail: session.user.email,
+        buyerEmail,
         orderId,
         buyerId: userId,
         sellerStripeAccountId,
