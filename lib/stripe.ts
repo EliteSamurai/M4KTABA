@@ -69,13 +69,16 @@ export async function createPaymentIntentWithDestinationCharge(
   const base: Stripe.PaymentIntentCreateParams = {
     amount: p.amountCents,
     currency: p.currency,
-    // Enable automatic payment methods including Apple Pay, Google Pay, Link
-    automatic_payment_methods: {
-      enabled: true,
-      allow_redirects: 'always',
-    },
-    // Explicitly list payment method types if provided
-    ...(p.paymentMethodTypes && { payment_method_types: p.paymentMethodTypes }),
+    ...(p.paymentMethodTypes && p.paymentMethodTypes.length > 0
+      ? {
+          payment_method_types: p.paymentMethodTypes,
+        }
+      : {
+          automatic_payment_methods: {
+            enabled: true,
+            allow_redirects: 'always',
+          },
+        }),
     receipt_email: p.buyerEmail,
     transfer_group: p.orderId,
     metadata: {
