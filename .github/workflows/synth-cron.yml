@@ -5,6 +5,11 @@ on:
   #   - cron: '3/5 * * * *'  # Run every 5 minutes starting at minute 3 (avoids top-of-hour traffic)
   workflow_dispatch:
 
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10.15.1'
+  SYNTH_LOCAL_BASE: 'http://127.0.0.1:3000'
+
 jobs:
   synthetic:
     runs-on: ubuntu-latest
@@ -17,13 +22,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          
-      - name: Enable corepack
-        run: corepack enable
+          node-version: ${{ env.NODE_VERSION }}
         
-      - name: Use pnpm
+      - name: Enable pnpm via Corepack
         run: |
+          corepack enable
           corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
         
       - name: Install dependencies
@@ -31,27 +34,48 @@ jobs:
         
       - name: Install Playwright
         run: pnpm exec playwright install --with-deps chromium
-        
-      - name: Base URL preflight
+
+      - name: Build application
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+
+      - name: Start production server
+        run: |
+          PORT=3000 HOSTNAME=127.0.0.1 node .next/standalone/server.js &
+          echo $! >> server.pid
+
+      - name: Wait for checkout to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -sf "${{ env.SYNTH_LOCAL_BASE }}/checkout?synth=1" > /dev/null; then
+              echo "✅ Checkout route is ready"
+              exit 0
+            fi
+            echo "⏳ Waiting for checkout route (attempt $i/30)..."
+            sleep 2
+          done
+          echo "❌ Checkout route did not become ready in time"
+          exit 1
+
+      - name: Determine base URL
         id: synth_preflight
         run: |
-          if [ -z "${{ secrets.SYNTH_PROD_BASE_URL }}" ]; then
-            echo "::warning::SYNTH_PROD_BASE_URL not configured. Falling back to https://m4ktaba.com"
-            echo "synth_base=https://m4ktaba.com" >> $GITHUB_OUTPUT
-          else
+          if [ -n "${{ secrets.SYNTH_PROD_BASE_URL }}" ]; then
             echo "synth_base=${{ secrets.SYNTH_PROD_BASE_URL }}" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::SYNTH_PROD_BASE_URL not configured. Using local server ${{ env.SYNTH_LOCAL_BASE }}"
+            echo "synth_base=${{ env.SYNTH_LOCAL_BASE }}" >> $GITHUB_OUTPUT
           fi
-        
+
       - name: Run synthetic test
         run: |
           export NEXT_PUBLIC_SYNTH=1
           export SYNTH_BASE_URL="${{ steps.synth_preflight.outputs.synth_base }}"
-          if [ -z "$SYNTH_BASE_URL" ]; then
-            export SYNTH_BASE_URL="${{ secrets.SYNTH_PROD_BASE_URL }}"
-          fi
           echo "🔍 Environment variables:"
           echo "NEXT_PUBLIC_SYNTH=$NEXT_PUBLIC_SYNTH"
-          echo "SYNTH_BASE_URL=${SYNTH_BASE_URL:-https://m4ktaba.com}"
+          echo "SYNTH_BASE_URL=$SYNTH_BASE_URL"
           echo "🕐 Test started at: $(date)"
           
           set +e
@@ -70,8 +94,16 @@ jobs:
           fi
           echo "✅ Synthetic checkout smoke test passed."
         env:
-          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL }}
-          
+          SYNTH_BASE_URL: ${{ steps.synth_preflight.outputs.synth_base }}
+      
+      - name: Stop server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then
+            cat server.pid | xargs -r kill
+            rm -f server.pid
+          fi
+      
       - name: Upload screenshots on failure
         if: failure()
         uses: actions/upload-artifact@v4
