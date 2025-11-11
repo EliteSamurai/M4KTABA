@@ -377,6 +377,13 @@ export function CheckoutContent() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
+        console.error('create-payment-intent failed', {
+          status: response.status,
+          data,
+          payload: {
+            cartSize: Array.isArray(cart) ? cart.length : 'n/a',
+          },
+        });
         const message =
           (typeof data?.error === 'string' && data.error.length > 0
             ? data.error
