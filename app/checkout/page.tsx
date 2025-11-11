@@ -95,19 +95,50 @@ const stripePromise = loadStripe(
   );
 });
 
-const shippingSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
-  name: z.string().min(1, 'Name is required'),
-  street1: z.string().min(1, 'Street address is required'),
-  street2: z.string().optional(),
-  city: z.string().min(1, 'City is required'),
-  zip: z.string().optional(),
-  state: z.string().optional(),
-  country: z.string().min(1, 'Country is required'),
-});
+const countriesRequiringPostal = new Set(['US', 'CA', 'GB', 'AU', 'BR', 'IN']);
+const countriesRequiringState = new Set(['US', 'CA', 'AU', 'BR', 'IN', 'MX']);
+
+const shippingSchema = z
+  .object({
+    email: z
+      .string()
+      .min(1, 'Email is required')
+      .email('Please enter a valid email address'),
+    name: z.string().min(1, 'Name is required'),
+    street1: z.string().min(1, 'Street address is required'),
+    street2: z.string().optional(),
+    city: z.string().min(1, 'City is required'),
+    zip: z
+      .string()
+      .max(32, 'Zip/Postal code must be 32 characters or fewer')
+      .optional(),
+    state: z
+      .string()
+      .max(64, 'State/Region must be 64 characters or fewer')
+      .optional(),
+    country: z.string().min(1, 'Country is required'),
+  })
+  .superRefine((values, ctx) => {
+    const country = values.country?.trim().toUpperCase();
+    if (country && countriesRequiringPostal.has(country)) {
+      if (!values.zip || values.zip.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['zip'],
+          message: 'Postal/ZIP code is required for your country.',
+        });
+      }
+    }
+    if (country && countriesRequiringState.has(country)) {
+      if (!values.state || values.state.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['state'],
+          message: 'State/Region is required for your country.',
+        });
+      }
+    }
+  });
 
 type ShippingFormValues = z.infer<typeof shippingSchema>;
 
@@ -343,7 +374,32 @@ export function CheckoutContent() {
         body: JSON.stringify({ cart, shippingDetails }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const message =
+          (typeof data?.error === 'string' && data.error.length > 0
+            ? data.error
+            : 'Failed to prepare payment. Please try again.') ?? undefined;
+        dispatch({
+          type: 'INTENT_ERROR',
+          message,
+        });
+        if (typeof message === 'string') {
+          // surface on relevant fields when possible
+          if (message.toLowerCase().includes('postal')) {
+            form.setError('zip', { message });
+          }
+          if (message.toLowerCase().includes('state')) {
+            form.setError('state', { message });
+          }
+          if (message.toLowerCase().includes('email')) {
+            form.setError('email', { message });
+          }
+        }
+        return;
+      }
+
       if (data.clientSecret) {
         setClientSecret(data.clientSecret);
         dispatch({ type: 'INTENT_OK' });
