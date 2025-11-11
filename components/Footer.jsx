@@ -18,7 +18,7 @@ const footerLinks = [
     title: 'Company',
     links: [
       { href: '/about', label: 'About' },
-      { href: '/contact', label: 'Contact' },
+      { href: '/help#contact', label: 'Contact' },
       { href: '/terms', label: 'Terms' },
       { href: '/privacy', label: 'Privacy' },
     ],
@@ -26,10 +26,10 @@ const footerLinks = [
   {
     title: 'Support',
     links: [
-      { href: '/faq', label: 'FAQ' },
+      { href: '/help#faq', label: 'FAQ' },
       { href: '/shipping', label: 'Shipping' },
       { href: '/returns', label: 'Returns' },
-      { href: '/track', label: 'Track Order' },
+      { href: '/help#track-order', label: 'Track Order' },
     ],
   },
 ];

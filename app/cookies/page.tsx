@@ -311,7 +311,7 @@ export default function CookiesPage() {
           </p>
           <div className='flex flex-col sm:flex-row gap-4'>
             <Button asChild>
-              <Link href='/contact'>Contact Us</Link>
+              <Link href='/help#contact'>Contact Us</Link>
             </Button>
             <Button variant='outline' asChild>
               <Link href='/privacy'>Privacy Policy</Link>

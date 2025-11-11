@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Search, HelpCircle, MessageCircle, Mail, Phone } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -76,7 +77,7 @@ export default function HelpPage() {
     <div className='min-h-screen bg-gray-50'>
       <div className='container mx-auto px-4 py-8'>
         {/* Header */}
-        <div className='text-center mb-12'>
+        <div className='text-center mb-12' id='top'>
           <h1 className='text-4xl font-bold text-gray-900 mb-4'>
             How can we help you?
           </h1>
@@ -128,13 +129,13 @@ export default function HelpPage() {
         )}
 
         {/* Quick Start Guide */}
-        <div className='mb-12'>
+        <div className='mb-12' id='quick-start'>
           <h2 className='text-2xl font-semibold mb-6'>Quick Start Guide</h2>
           <HelpSection title='Getting Started' items={quickStartItems} />
         </div>
 
         {/* FAQ Section */}
-        <div className='mb-12'>
+        <div className='mb-12' id='faq'>
           <h2 className='text-2xl font-semibold mb-6'>
             Frequently Asked Questions
           </h2>
@@ -142,7 +143,7 @@ export default function HelpPage() {
         </div>
 
         {/* Contact Support */}
-        <div className='mb-12'>
+        <div className='mb-12' id='contact'>
           <h2 className='text-2xl font-semibold mb-6'>Contact Support</h2>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
             {contactMethods.map((method, index) => (
@@ -164,6 +165,24 @@ export default function HelpPage() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+
+        {/* Order Tracking */}
+        <div className='mb-12' id='track-order'>
+          <h2 className='text-2xl font-semibold mb-6'>Track Your Order</h2>
+          <p className='mb-6 text-gray-600 max-w-3xl'>
+            Check the latest status of your purchases anytime. You can review
+            shipment progress, download receipts, or contact sellers directly
+            from your dashboard.
+          </p>
+          <div className='flex flex-wrap gap-4'>
+            <Button asChild>
+              <Link href='/orders'>View My Orders</Link>
+            </Button>
+            <Button variant='outline' asChild>
+              <Link href='/help#contact'>Need more help?</Link>
+            </Button>
           </div>
         </div>
 

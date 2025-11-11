@@ -291,10 +291,10 @@ export default function ReturnsPage() {
             </p>
             <div className='flex flex-col sm:flex-row gap-4'>
               <Button asChild>
-                <Link href='/contact'>Contact Support</Link>
+                <Link href='/help#contact'>Contact Support</Link>
               </Button>
               <Button variant='outline' asChild>
-                <Link href='/track'>Track Your Order</Link>
+                <Link href='/help#track-order'>Track Your Order</Link>
               </Button>
             </div>
           </section>
