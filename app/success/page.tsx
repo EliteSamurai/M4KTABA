@@ -199,7 +199,7 @@ export function SuccessContent() {
               });
 
               try {
-                // Get CSRF token
+                // Get CSRF token (reuse for both operations)
                 const csrfResponse = await fetch('/api/csrf-token');
                 const { token: csrfToken } = await csrfResponse.json();
 
@@ -217,6 +217,28 @@ export function SuccessContent() {
                   console.log('Order saved:', savedOrder);
                   setOrderSaved(true);
 
+                  // Only clear cart after successful order save
+                  try {
+                    // Clear cart on server
+                    await fetch('/api/cart', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'x-csrf-token': csrfToken,
+                      },
+                      body: JSON.stringify({ cart: [] }),
+                    });
+
+                    // Clear cart locally
+                    await clearCart();
+
+                    // Clear session storage backup
+                    sessionStorage.removeItem('checkout_cart');
+                  } catch (cartError) {
+                    console.error('Error clearing cart:', cartError);
+                    // Don't fail the whole flow if cart clear fails
+                  }
+
                   // Redirect to order confirmation page after a short delay
                   setTimeout(() => {
                     router.push(
@@ -226,36 +248,16 @@ export function SuccessContent() {
                 } else {
                   const errorData = await saveOrderRes.json();
                   console.error('Order saving failed:', errorData);
-                  setError(errorData.message || 'Failed to save order');
+                  setError(errorData.message || 'Failed to save order. Payment succeeded but order not recorded. Please contact support with your payment ID.');
                   setOrderSaved(false);
+                  // DO NOT clear cart if order save failed - user needs to contact support
                 }
               } catch (orderError) {
                 console.error('Error saving order:', orderError);
-                setError('Failed to save order. Please contact support.');
+                setError('Failed to save order. Payment succeeded but order not recorded. Please contact support with your payment ID: ' + paymentIntentId);
                 setOrderSaved(false);
+                // DO NOT clear cart if order save failed
               }
-
-              // Always clear the cart after payment is successful, regardless of order saving
-              try {
-                // Get CSRF token for cart clearing
-                const csrfResponse = await fetch('/api/csrf-token');
-                const { token: csrfToken } = await csrfResponse.json();
-
-                // Clear cart on server
-                await fetch('/api/cart', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'x-csrf-token': csrfToken,
-                  },
-                  body: JSON.stringify({ cart: [] }),
-                });
-              } catch (cartError) {
-                console.error('Error clearing cart on server:', cartError);
-              }
-
-              // Clear cart locally
-              clearCart();
             } else {
               throw new Error(
                 data.error || 'Failed to retrieve payment details'

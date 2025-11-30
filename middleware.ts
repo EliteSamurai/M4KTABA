@@ -1,29 +1,80 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-// Attach CSRF token cookie on GET navigations to pages
-export function middleware(req: NextRequest) {
+// Protected routes that require authentication
+const protectedRoutes = ['/checkout', '/dashboard', '/orders', '/sell'];
+
+// Routes that require complete profile
+const profileRequiredRoutes = ['/checkout', '/sell'];
+
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  
+  // Check if this is a protected route
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+  const requiresProfile = profileRequiredRoutes.some(route => pathname.startsWith(route));
+  
+  // Get the session token
+  const token = await getToken({ 
+    req, 
+    secret: process.env.NEXTAUTH_SECRET 
+  });
+
+  // Redirect to login if accessing protected route without auth
+  if (isProtectedRoute && !token) {
+    const loginUrl = new URL('/login', req.url);
+    loginUrl.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Check if profile is complete for routes that require it
+  if (requiresProfile && token && !token.profileComplete) {
+    const location = token.location as Record<string, unknown> | null | undefined;
+    
+    // Check if location is missing or incomplete
+    const hasCompleteAddress = 
+      location && 
+      typeof location === 'object' &&
+      location.street &&
+      location.city &&
+      location.state &&
+      location.zip &&
+      location.country;
+
+    if (!hasCompleteAddress) {
+      const profileUrl = new URL('/signup/complete-profile', req.url);
+      profileUrl.searchParams.set('userId', token._id as string || '');
+      profileUrl.searchParams.set('returnTo', pathname);
+      return NextResponse.redirect(profileUrl);
+    }
+  }
+
+  // Handle CSRF token for page navigation
   const isPageGet =
     req.method === 'GET' && req.headers.get('accept')?.includes('text/html');
-  if (!isPageGet) return NextResponse.next();
+  
+  if (isPageGet) {
+    const res = NextResponse.next();
+    const existingToken = req.cookies.get('csrf_token');
 
-  const res = NextResponse.next();
-  const existingToken = req.cookies.get('csrf_token');
-
-  // Force regenerate token if it's 'seed' or doesn't exist
-  if (!existingToken || existingToken.value === 'seed') {
-    // Generate a simple random token (avoid crypto import in middleware)
-    const token =
-      Math.random().toString(36).substring(2) + Date.now().toString(36);
-    res.cookies.set('csrf_token', token, {
-      httpOnly: false,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-    });
+    // Force regenerate token if it's 'seed' or doesn't exist
+    if (!existingToken || existingToken.value === 'seed') {
+      // Generate a simple random token (avoid crypto import in middleware)
+      const token =
+        Math.random().toString(36).substring(2) + Date.now().toString(36);
+      res.cookies.set('csrf_token', token, {
+        httpOnly: false,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+      });
+    }
+    return res;
   }
-  return res;
+
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/((?!_next|api/webhooks).*)'],
+  matcher: ['/((?!_next|api/webhooks|api/auth).*)'],
 };

@@ -34,17 +34,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     loadCartFromLocalStorage();
   }, []);
 
-  const syncCartWithBackend = async (updatedCart: CartItem[]) => {
+  const syncCartWithBackend = async (updatedCart: CartItem[]): Promise<boolean> => {
     try {
       // Get CSRF token
       const csrfResponse = await fetch('/api/csrf-token');
+      if (!csrfResponse.ok) {
+        console.error('Failed to fetch CSRF token');
+        return false;
+      }
+      
       const csrfJson = await csrfResponse.json();
       const csrfToken =
         csrfJson?.csrfToken ?? csrfJson?.token ?? csrfJson?.value ?? '';
 
       if (!csrfToken) {
         console.warn('CSRF token missing from /api/csrf-token response', csrfJson);
-        return;
+        return false;
       }
 
       // Filter out invalid cart items and fix user data before sending
@@ -67,13 +72,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         }));
 
       const cartData = { cart: validCart };
-      console.log('Syncing cart with data:', cartData);
-      console.log('Cart data type check:', {
-        cartDataType: typeof cartData,
-        cartType: typeof cartData.cart,
-        isCartArray: Array.isArray(cartData.cart),
-        cartLength: cartData.cart.length,
-      });
 
       // Update local cart with only valid items
       if (validCart.length !== updatedCart.length) {
@@ -94,11 +92,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         const errorText = await response.text();
         console.error('Error syncing cart:', errorText);
         console.error('Cart data that failed:', cartData);
-      } else {
-        console.log('Cart synced successfully');
+        return false;
       }
+
+      console.log('Cart synced successfully');
+      return true;
     } catch (error) {
       console.error('Failed to sync cart with backend', error);
+      return false;
     }
   };
 
@@ -125,7 +126,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
           )
         : [...prevCart, item];
       updateLocalStorage(updatedCart);
-      syncCartWithBackend(updatedCart);
+      
+      // Sync with backend but don't block UI
+      syncCartWithBackend(updatedCart).catch(error => {
+        console.error('Cart sync failed, but local state is updated', error);
+        // Could show a toast notification here in the future
+      });
+      
       return updatedCart;
     });
   };
@@ -134,7 +141,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     setCart(prevCart => {
       const updatedCart = prevCart.filter(item => item.id !== id);
       updateLocalStorage(updatedCart);
-      syncCartWithBackend(updatedCart);
+      syncCartWithBackend(updatedCart).catch(error => {
+        console.error('Cart sync failed after removing item', error);
+      });
       return updatedCart;
     });
   };
@@ -145,16 +154,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         item.id === id ? { ...item, quantity } : item
       );
       updateLocalStorage(updatedCart);
-      // fire-and-forget; caller may optimistically handle revert on error
-      syncCartWithBackend(updatedCart);
+      syncCartWithBackend(updatedCart).catch(error => {
+        console.error('Cart sync failed after quantity update', error);
+        // Caller may optimistically handle revert on error
+      });
       return updatedCart;
     });
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
     setCart([]);
     updateLocalStorage([]);
-    syncCartWithBackend([]);
+    await syncCartWithBackend([]).catch(error => {
+      console.error('Failed to clear cart on server', error);
+    });
   };
 
   const handleLogout = async () => {

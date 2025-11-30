@@ -65,6 +65,7 @@ export async function POST(req: Request) {
       .set({
         image: sanityImage,
         location,
+        profileComplete: true, // Mark profile as complete
         bio: bio
           ? [
               {

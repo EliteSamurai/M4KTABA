@@ -90,9 +90,7 @@ const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 ).catch(error => {
   console.error('Failed to load Stripe.js:', error);
-  throw new Error(
-    'Failed to load Stripe.js. Please check your internet connection and try again.'
-  );
+  return null; // Return null instead of throwing to allow component to handle gracefully
 });
 
 const countriesRequiringPostal = new Set(['US', 'CA', 'GB', 'AU', 'BR', 'IN']);
@@ -205,6 +203,7 @@ export function CheckoutContent() {
       : null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [clientSecret, setClientSecret] = useState<string>('');
+  const [stripeLoadError, setStripeLoadError] = useState<boolean>(false);
   const stateMachineEnabled = useFlag('checkout_state_machine');
   const autocompleteEnabled = useFlag('address_autocomplete');
   const savedAddressesEnabled = useFlag('saved_addresses');
@@ -248,6 +247,14 @@ export function CheckoutContent() {
   const preflightEnabled = useFlag('preflight_drift');
   useEffect(() => {
     track('checkout_view', { cartCount: cart?.length || 0 });
+    
+    // Check if Stripe loaded successfully
+    stripePromise.then(stripe => {
+      if (!stripe) {
+        setStripeLoadError(true);
+        console.error('Stripe failed to load');
+      }
+    });
   }, []);
 
   // Offline banner state
@@ -334,25 +341,47 @@ export function CheckoutContent() {
     });
   }, [session]);
 
-  // Derive nextCart from search params in a stable way
-  const cartParamString = React.useMemo(() => {
-    try {
-      return searchParams?.get('cart') ?? null;
-    } catch {
-      return null;
-    }
-  }, [searchParams]);
-
+  // Derive nextCart from session storage first, then URL params as fallback
   const nextCart = React.useMemo(() => {
-    if (!cartParamString) return null as CartItem[] | null;
+    // Try session storage first (more secure and reliable)
+    if (typeof window !== 'undefined') {
+      try {
+        const sessionCart = sessionStorage.getItem('checkout_cart');
+        if (sessionCart) {
+          const parsed = JSON.parse(sessionCart);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            console.log('Loaded cart from session storage');
+            return parsed as CartItem[];
+          }
+        }
+      } catch (error) {
+        console.error('Failed to parse session storage cart:', error);
+      }
+    }
+
+    // Fallback to URL parameter for backwards compatibility
     try {
+      const cartParamString = searchParams?.get('cart');
+      if (!cartParamString) return null as CartItem[] | null;
+      
       const parsed = JSON.parse(decodeURIComponent(cartParamString));
-      return Array.isArray(parsed) ? (parsed as CartItem[]) : [];
+      const cart = Array.isArray(parsed) ? (parsed as CartItem[]) : [];
+      
+      // Store in session storage for next time
+      if (typeof window !== 'undefined' && cart.length > 0) {
+        try {
+          sessionStorage.setItem('checkout_cart', JSON.stringify(cart));
+        } catch (e) {
+          console.error('Failed to store cart in session storage:', e);
+        }
+      }
+      
+      return cart;
     } catch (error) {
-      console.error('Failed to parse cart data:', error);
+      console.error('Failed to parse cart from URL:', error);
       return [] as CartItem[];
     }
-  }, [cartParamString]);
+  }, [searchParams]);
 
   const cartsEqual = (a: unknown, b: unknown) =>
     a === b || (a && b && JSON.stringify(a) === JSON.stringify(b));
@@ -362,16 +391,68 @@ export function CheckoutContent() {
     setCart(prev => (cartsEqual(prev, nextCart) ? prev : nextCart));
   }, [nextCart]);
 
+  const validateCartWithServer = async (cart: CartItem[]) => {
+    try {
+      const response = await fetch('/api/cart/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cart }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok || !data.valid) {
+        return {
+          valid: false,
+          errors: data.errors || [],
+          message: data.message || 'Cart validation failed',
+        };
+      }
+
+      return {
+        valid: true,
+        cart: data.cart,
+      };
+    } catch (error) {
+      console.error('Cart validation error:', error);
+      return {
+        valid: false,
+        message: 'Failed to validate cart',
+      };
+    }
+  };
+
   const createPaymentIntent = async (
     cart: CartItem[],
-    shippingDetails: ShippingFormValues
+    shippingDetails: ShippingFormValues,
+    retryCount = 0
   ) => {
+    const maxRetries = 2;
+    
     try {
+      // Validate cart first
+      const validation = await validateCartWithServer(cart);
+      
+      if (!validation.valid) {
+        const errorMsg = validation.errors?.length > 0
+          ? `Cart validation failed: ${validation.errors.map((e: any) => e.error).join(', ')}`
+          : validation.message || 'Cart validation failed';
+        
+        dispatch({
+          type: 'INTENT_ERROR',
+          message: errorMsg,
+        });
+        return;
+      }
+
+      // Use validated cart
+      const validatedCart = validation.cart || cart;
+
       const fetcher = offlineQueueEnabled ? safeFetch : fetch;
       const response = await fetcher('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart, shippingDetails }),
+        body: JSON.stringify({ cart: validatedCart, shippingDetails }),
       });
 
       const data = await response.json().catch(() => ({}));
@@ -381,13 +462,23 @@ export function CheckoutContent() {
           status: response.status,
           data,
           payload: {
-            cartSize: Array.isArray(cart) ? cart.length : 'n/a',
+            cartSize: Array.isArray(validatedCart) ? validatedCart.length : 'n/a',
           },
         });
         const message =
           (typeof data?.error === 'string' && data.error.length > 0
             ? data.error
             : 'Failed to prepare payment. Please try again.') ?? undefined;
+        
+        // Retry on network or server errors
+        if (retryCount < maxRetries && (response.status >= 500 || response.status === 0)) {
+          console.log(`Retrying payment intent creation (attempt ${retryCount + 1}/${maxRetries})`);
+          setTimeout(() => {
+            createPaymentIntent(cart, shippingDetails, retryCount + 1);
+          }, 1000 * (retryCount + 1)); // Exponential backoff
+          return;
+        }
+        
         dispatch({
           type: 'INTENT_ERROR',
           message,
@@ -410,7 +501,7 @@ export function CheckoutContent() {
       if (data.clientSecret) {
         setClientSecret(data.clientSecret);
         dispatch({ type: 'INTENT_OK' });
-        track('intent_created', { items: cart.length });
+        track('intent_created', { items: validatedCart.length });
         return;
       }
       dispatch({
@@ -419,7 +510,17 @@ export function CheckoutContent() {
       });
     } catch (error) {
       console.error('Error creating payment intent:', error);
-      reportError(error, { stage: 'intent_create' });
+      reportError(error, { stage: 'intent_create', retryCount });
+      
+      // Retry on network errors
+      if (retryCount < maxRetries) {
+        console.log(`Retrying payment intent creation (attempt ${retryCount + 1}/${maxRetries})`);
+        setTimeout(() => {
+          createPaymentIntent(cart, shippingDetails, retryCount + 1);
+        }, 1000 * (retryCount + 1));
+        return;
+      }
+      
       dispatch({
         type: 'INTENT_ERROR',
         message: 'Failed to prepare payment. Please try again.',
@@ -1020,6 +1121,24 @@ export function CheckoutContent() {
                         />
                       </div>
 
+                      {stripeLoadError && (
+                        <Alert variant='destructive'>
+                          <AlertTitle>Payment System Unavailable</AlertTitle>
+                          <AlertDescription>
+                            Failed to load payment system. Please check your internet connection and ad blocker settings, then refresh the page.
+                          </AlertDescription>
+                          <div className='mt-2 space-x-2'>
+                            <Button
+                              type='button'
+                              variant='outline'
+                              onClick={() => window.location.reload()}
+                            >
+                              Refresh Page
+                            </Button>
+                          </div>
+                        </Alert>
+                      )}
+
                       {(state.status === 'addressError' ||
                         state.status === 'paymentError') && (
                         <Alert variant='destructive'>
@@ -1031,13 +1150,20 @@ export function CheckoutContent() {
                                 ? state.message
                                 : null}
                           </AlertDescription>
-                          <div className='mt-2'>
+                          <div className='mt-2 space-x-2'>
                             <Button
                               type='button'
                               variant='outline'
-                              onClick={() => dispatch({ type: 'RESET' })}
+                              onClick={() => {
+                                dispatch({ type: 'RESET' });
+                                // Retry creating payment intent if it was a payment error
+                                if (state.status === 'paymentError') {
+                                  const formData = form.getValues();
+                                  createPaymentIntent(cart, formData);
+                                }
+                              }}
                             >
-                              Try again
+                              {state.status === 'paymentError' ? 'Retry Payment' : 'Try Again'}
                             </Button>
                           </div>
                         </Alert>
@@ -1061,7 +1187,8 @@ export function CheckoutContent() {
                         disabled={
                           isBusy(state) ||
                           !form.formState.isValid ||
-                          bgValidationValid === false
+                          bgValidationValid === false ||
+                          stripeLoadError
                         }
                       >
                         {state.status === 'validatingAddress' ? (

@@ -100,9 +100,10 @@ export const authOptions: NextAuthOptions = {
                 _type: 'user',
                 _id: user._id || uuidv4(),
                 email: user.email,
-                location: user.location || {},
+                location: user.location || null, // Use null instead of {} to indicate no address set
                 image: imageRef || null,
                 stripeAccountId: user.stripeAccountId || null,
+                profileComplete: false, // Track if profile is complete
               };
 
               await (writeClient as any).createIfNotExists(newUser);
@@ -111,8 +112,9 @@ export const authOptions: NextAuthOptions = {
 
             token._id = existingUser._id;
             token.image = existingUser.image || null; // Preserve Sanity image object
-            token.location = existingUser.location || {};
+            token.location = existingUser.location || null; // Use null for incomplete profiles
             token.stripeAccountId = existingUser.stripeAccountId || null;
+            token.profileComplete = existingUser.profileComplete || false;
           } catch (error) {
             console.error('Error fetching or creating Google user:', error);
           }
