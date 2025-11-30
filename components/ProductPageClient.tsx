@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Edit } from 'lucide-react';
+import { Edit, Truck, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import ThumbnailSwitcher from '@/components/ThumbnailSwitcher';
 import AddToCartButton from '@/components/AddToCartButton';
 import QuantitySelector from '@/components/QuantitySelector';
@@ -20,6 +21,7 @@ import Link from 'next/link';
 import EditableThumbnailManager from './EditableThumbnailManager';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams } from 'next/navigation';
+import { calculateShipping, getShippingBadge } from '@/lib/shipping-smart';
 
 interface ProductPageClientProps {
   book: { _id?: string; [key: string]: unknown };
@@ -134,6 +136,12 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
   const averageRating = calculateAverageRating(userRatings);
   const isAvailable = (availableQuantity as number) > 0;
   const isOwner = session?.user?._id === (user as any)?._id;
+
+  // Calculate shipping estimate
+  const sellerCountry = (user as any)?.location?.country?.toUpperCase() || 'US';
+  const buyerCountry = session?.user?.location?.country?.toUpperCase() || 'US';
+  const shippingInfo = calculateShipping(sellerCountry, buyerCountry, quantity);
+  const shippingBadge = getShippingBadge(shippingInfo.tier);
 
   const handleImageUpdate = async (
     updatedPhotos: { _key?: string; asset?: { _ref?: string } }[]
@@ -274,6 +282,43 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                     ${(price as number)?.toFixed(2) || 'N/A'}
                   </span>
                 </div>
+                
+                {/* Shipping Information */}
+                {!isOwner && (
+                  <>
+                    <Separator className='mb-4' />
+                    <div className='mb-4 space-y-2'>
+                      <div className='flex items-center justify-between text-sm'>
+                        <div className='flex items-center gap-2 text-muted-foreground'>
+                          <Truck className='h-4 w-4' />
+                          <span>Shipping</span>
+                          <Badge variant='outline' className='text-xs'>
+                            {shippingBadge.emoji} {shippingBadge.label}
+                          </Badge>
+                        </div>
+                        <span className='font-medium'>
+                          {shippingInfo.buyerPays > 0 
+                            ? `$${shippingInfo.buyerPays.toFixed(2)}`
+                            : 'FREE'
+                          }
+                        </span>
+                      </div>
+                      <div className='flex items-start gap-1 text-xs text-muted-foreground'>
+                        <Info className='mt-0.5 h-3 w-3 flex-shrink-0' />
+                        <span>
+                          {shippingInfo.carrier} - Estimated delivery: {shippingInfo.estimatedDays.min}-{shippingInfo.estimatedDays.max} days
+                          {shippingInfo.note && ` • ${shippingInfo.note}`}
+                        </span>
+                      </div>
+                      {(user as any)?.location?.country && (
+                        <div className='text-xs text-muted-foreground'>
+                          Ships from: {(user as any).location.country.toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+                
                 <Separator className='mb-4' />
                 <div className='space-y-4'>
                   <QuantitySelector

@@ -30,7 +30,10 @@ async function fetchLatestBooks() {
     price,
     _createdAt,
     user->{
-      email
+      _id,
+      email,
+      location,
+      stripeAccountId
     },
     "image": photos[0].asset->url
   }`;

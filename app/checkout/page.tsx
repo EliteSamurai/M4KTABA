@@ -204,6 +204,7 @@ export function CheckoutContent() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [clientSecret, setClientSecret] = useState<string>('');
   const [stripeLoadError, setStripeLoadError] = useState<boolean>(false);
+  const [shippingCalculation, setShippingCalculation] = useState<any>(null);
   const stateMachineEnabled = useFlag('checkout_state_machine');
   const autocompleteEnabled = useFlag('address_autocomplete');
   const savedAddressesEnabled = useFlag('saved_addresses');
@@ -393,10 +394,13 @@ export function CheckoutContent() {
 
   const validateCartWithServer = async (cart: CartItem[]) => {
     try {
+      // Get buyer country from form or session
+      const buyerCountry = form.getValues('country') || session?.user?.location?.country || 'US';
+      
       const response = await fetch('/api/cart/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart }),
+        body: JSON.stringify({ cart, buyerCountry }),
       });
 
       const data = await response.json();
@@ -409,9 +413,15 @@ export function CheckoutContent() {
         };
       }
 
+      // Store shipping calculation
+      if (data.shipping) {
+        setShippingCalculation(data.shipping);
+      }
+
       return {
         valid: true,
         cart: data.cart,
+        shipping: data.shipping,
       };
     } catch (error) {
       console.error('Cart validation error:', error);
@@ -759,7 +769,17 @@ export function CheckoutContent() {
             </div>
           ) : cart && cart.length > 0 ? (
             <>
-              <CartSummary cart={cart} />
+              <CartSummary 
+                cart={cart} 
+                shippingCost={shippingCalculation?.totalBuyerPays || 0}
+                shippingTier={shippingCalculation?.sellers?.[0]?.shipping?.tier}
+                shippingDetails={shippingCalculation?.sellers?.[0] ? {
+                  tier: shippingCalculation.sellers[0].shipping.tier,
+                  isFree: shippingCalculation.sellers[0].qualifiesForFree,
+                  savings: shippingCalculation.sellers[0].shipping.platformSubsidy,
+                  estimatedDays: shippingCalculation.sellers[0].shipping.estimatedDays
+                } : undefined}
+              />
               <div className='mt-2'>
                 <ReservationTimer
                   keyId={

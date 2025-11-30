@@ -38,6 +38,7 @@ async function fetchBookData(id: string): Promise<Book> {
           email,
           image,
           ratings,
+          location,
           stripeAccountId
         },
         description,
