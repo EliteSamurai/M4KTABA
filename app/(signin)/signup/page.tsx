@@ -22,7 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import Password from '@/components/PasswordInput';
 import GoogleButton from '@/components/GoogleButton';
-import SignInArt from '@/public/beautifulart2.jpg';
+import SignInArt from '@/public/beautifulart2.jpg'; // TODO: Convert to WebP
 import { TrustBadges } from '@/components/trust/TrustBadges';
 import { ContextualHelp } from '@/components/help/HelpTooltip';
 

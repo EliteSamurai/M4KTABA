@@ -7,7 +7,7 @@ import {
   BadgeDollarSign,
   ArrowRight,
 } from 'lucide-react';
-import HeroImage from '@/public/image (1).jpg';
+import HeroImage from '@/public/image (1).jpg'; // TODO: Convert to WebP for better performance
 import { Button } from '@/components/ui/button';
 import {
   Card,

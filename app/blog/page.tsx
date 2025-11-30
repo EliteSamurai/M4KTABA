@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { readClient } from '@/studio-m4ktaba/client';
-import BlogHeroImg from '@/public/islamiclibrary.jpg';
+import BlogHeroImg from '@/public/islamiclibrary.jpg'; // TODO: Convert to WebP
 import BlogClient from '@/components/BlogClient';
 import { Button } from '@/components/ui/button';
 

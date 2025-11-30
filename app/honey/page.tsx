@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
-import NewHoneyHero from '@/public/IMG_1470.jpg';
+import NewHoneyHero from '@/public/IMG_1470.jpg'; // TODO: Convert to WebP
 import HoneyProductCard from '@/components/HoneyProductCart';
 
 export const metadata: Metadata = {

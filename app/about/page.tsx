@@ -2,7 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Book, ShieldCheck, Users, Store, ArrowRight } from 'lucide-react';
-import IslamicBooks from '@/public/books.jpg';
+import IslamicBooks from '@/public/books.jpg'; // TODO: Convert to WebP
 
 import { Button } from '@/components/ui/button';
 import {

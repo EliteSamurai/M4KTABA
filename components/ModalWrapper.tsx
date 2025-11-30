@@ -22,5 +22,5 @@ export default function ModalWrapper() {
   // Only render the modal if the user is not signed in
   if (status === 'authenticated' || status === 'loading') return null;
 
-  return <PopupModal open={open} setOpen={setOpen} booksImage='/books.jpg' />;
+  return <PopupModal open={open} setOpen={setOpen} booksImage='/books.jpg' />; // Next.js will auto-optimize
 }

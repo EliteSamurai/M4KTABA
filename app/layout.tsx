@@ -3,7 +3,6 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AuthProvider from './context/AuthProvider';
-import SupportWidget from '@/components/SupportWidget';
 import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/contexts/CartContext';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -12,6 +11,13 @@ import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script';
 import { A11yLiveRegion } from '@/components/A11yLiveRegion';
 import VitalsClient from './vitals-client';
+import dynamic from 'next/dynamic';
+
+// Dynamically import heavy components to reduce initial bundle size
+const SupportWidget = dynamic(() => import('@/components/SupportWidget'), {
+  ssr: false,
+  loading: () => null,
+});
 
 // Initialize observability system on server
 if (typeof window === 'undefined') {
@@ -24,6 +30,9 @@ const montserrat = Montserrat({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-montserrat',
+  display: 'swap', // Improve font loading performance
+  preload: true,
+  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
 });
 
 export const metadata = {
@@ -88,29 +97,39 @@ export default function RootLayout({
       className={`${montserrat.className} m-8 bg-slate-50 antialiased`}
     >
       <head>
-        {/* Google Tag (gtag.js) */}
+        {/* Preconnect to external domains for faster loading */}
+        <link rel='preconnect' href='https://fonts.googleapis.com' />
+        <link rel='preconnect' href='https://fonts.gstatic.com' crossOrigin='anonymous' />
+        <link rel='preconnect' href='https://cdn.sanity.io' />
+        <link rel='dns-prefetch' href='https://www.googletagmanager.com' />
+        <link rel='dns-prefetch' href='https://connect.facebook.net' />
+        <link rel='dns-prefetch' href='https://js.stripe.com' />
+        
+        {/* Google Tag (gtag.js) - Deferred for better performance */}
         <Script
-          strategy='afterInteractive'
+          strategy='lazyOnload'
           src='https://www.googletagmanager.com/gtag/js?id=G-N3YCSKEH3E'
         />
         <Script
           id='google-analytics'
-          strategy='afterInteractive'
+          strategy='lazyOnload'
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
   
-              gtag('config', 'G-N3YCSKEH3E');
+              gtag('config', 'G-N3YCSKEH3E', {
+                page_path: window.location.pathname,
+              });
             `,
           }}
         />
 
-        {/* Meta Pixel Script */}
+        {/* Meta Pixel Script - Deferred for better performance */}
         <Script
           id='fb-pixel'
-          strategy='afterInteractive'
+          strategy='lazyOnload'
           dangerouslySetInnerHTML={{
             __html: `
       !function(f,b,e,v,n,t,s)

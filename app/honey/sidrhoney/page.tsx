@@ -15,10 +15,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import mainHoneyImage from '@/public/IMG_1457.jpg';
-import honey1 from '@/public/IMG_1478.jpg';
-import honey2 from '@/public/IMG_1469.jpg';
-import honey3 from '@/public/IMG_1459.jpg';
+import mainHoneyImage from '@/public/IMG_1457.jpg'; // TODO: Convert to WebP
+import honey1 from '@/public/IMG_1478.jpg'; // TODO: Convert to WebP
+import honey2 from '@/public/IMG_1469.jpg'; // TODO: Convert to WebP
+import honey3 from '@/public/IMG_1459.jpg'; // TODO: Convert to WebP
 
 export default function HoneyProductPage() {
   const [quantity, setQuantity] = useState(1);

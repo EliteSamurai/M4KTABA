@@ -18,7 +18,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import BeautifulArt from '@/public/beautifulart2.jpg';
+import BeautifulArt from '@/public/beautifulart2.jpg'; // TODO: Convert to WebP
 import GoogleButton from '@/components/GoogleButton';
 import PasswordInput from '@/components/PasswordInput';
 import { useToast } from '@/hooks/use-toast';
