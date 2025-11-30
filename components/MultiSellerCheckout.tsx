@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Store, Package, TruckIcon, CreditCard, Info } from 'lucide-react';
+import { Store, Package, TruckIcon, CreditCard, Info, Home, Plane } from 'lucide-react';
 import {
   type MultiSellerCart,
   createMultiSellerCart,
@@ -14,6 +14,12 @@ import {
 import { calculateTax, formatTax } from '@/lib/tax-calculator';
 import { formatCurrency } from '@/lib/currency';
 import type { CartItem } from '@/types/shipping-types';
+import { 
+  calculateShipping, 
+  getShippingTier, 
+  getShippingBadge,
+  qualifiesForFreeShipping
+} from '@/lib/shipping-smart';
 import {
   Tooltip,
   TooltipContent,
@@ -39,7 +45,8 @@ export function MultiSellerCheckout({
 
   useEffect(() => {
     if (cart.length > 0) {
-      const cartWithTax = createMultiSellerCart(cart);
+      const buyerCountry = shippingAddress.country || 'US';
+      const cartWithTax = createMultiSellerCart(cart, buyerCountry);
 
       // Calculate tax for each seller group
       cartWithTax.sellerGroups = cartWithTax.sellerGroups.map((group) => {
@@ -50,10 +57,19 @@ export function MultiSellerCheckout({
           shippingAddress.region
         );
 
+        // Add shipping tier info for each seller
+        const sellerCountry = group.items[0]?.user?.location?.country || 'US';
+        const tier = getShippingTier(sellerCountry, buyerCountry);
+        const shippingCalc = calculateShipping(sellerCountry, buyerCountry, group.items.length);
+        const qualifiesForFree = qualifiesForFreeShipping(group.subtotal, tier);
+
         return {
           ...group,
           tax: tax.taxAmount,
           total: group.subtotal + group.shipping + tax.taxAmount,
+          shippingTier: tier,
+          shippingDetails: shippingCalc,
+          qualifiesForFree,
         };
       });
 
@@ -143,6 +159,11 @@ export function MultiSellerCheckout({
                 <div className="flex items-center gap-1">
                   <TruckIcon className="h-3 w-3" />
                   <span>Shipping</span>
+                  {(group as any).qualifiesForFree && (
+                    <Badge variant="success" className="ml-1 text-xs bg-green-100 text-green-800">
+                      FREE
+                    </Badge>
+                  )}
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
@@ -150,14 +171,21 @@ export function MultiSellerCheckout({
                       </TooltipTrigger>
                       <TooltipContent>
                         <p className="max-w-xs text-xs">
-                          Each seller ships separately. Shipping calculated based on items
-                          and destination.
+                          {(group as any).shippingDetails 
+                            ? `${(group as any).shippingDetails.carrier} - Estimated ${(group as any).shippingDetails.estimatedDays.min}-${(group as any).shippingDetails.estimatedDays.max} days. ${(group as any).shippingDetails.note || ''}`
+                            : 'Each seller ships separately. Shipping calculated based on seller location and destination.'
+                          }
                         </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <span>{formatCurrency(group.shipping, currency)}</span>
+                <span>
+                  {(group as any).qualifiesForFree 
+                    ? <span className="text-green-600 font-semibold">FREE</span>
+                    : formatCurrency(group.shipping, currency)
+                  }
+                </span>
               </div>
 
               {group.tax > 0 && (

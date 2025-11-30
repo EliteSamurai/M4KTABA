@@ -59,3 +59,27 @@ export type Book = {
   selectedCategory: { _ref: string; title: string };
   _createdAt?: string | number;
 };
+
+// Shipping tier types
+export type ShippingTier = 'domestic' | 'regional' | 'international';
+
+export interface ShippingCalculation {
+  tier: ShippingTier;
+  buyerPays: number;
+  sellerPays: number;
+  platformSubsidy: number;
+  actualCost: number;
+  estimatedDays: { min: number; max: number };
+  carrier: string;
+  note?: string;
+}
+
+export interface ShippingAddress {
+  name: string;
+  street1: string;
+  street2?: string;
+  city: string;
+  state?: string;
+  zip?: string;
+  country: string;
+}

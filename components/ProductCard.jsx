@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCart, Loader2 } from 'lucide-react';
-
+import { ShoppingCart, Loader2, Home, Package as PackageIcon, Plane } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from './ui/skeleton';
 import { useCart } from '@/contexts/CartContext';
 import { urlFor } from '@/utils/imageUrlBuilder';
+import { calculateShipping, getShippingTier, getShippingBadge } from '@/lib/shipping-smart';
 
 export default function BookProductCard({
   id,
@@ -32,6 +33,13 @@ export default function BookProductCard({
   loading = false,
 }) {
   const { addToCart, isInCart } = useCart();
+  const { data: session } = useSession();
+  
+  // Calculate shipping estimate
+  const sellerCountry = user?.location?.country?.toUpperCase() || 'US';
+  const buyerCountry = session?.user?.location?.country?.toUpperCase() || 'US';
+  const shippingInfo = calculateShipping(sellerCountry, buyerCountry, 1);
+  const badge = getShippingBadge(shippingInfo.tier);
 
   const imageUrl = urlFor(image);
   const validImageUrl = imageUrl || '/placeholder.jpg';
@@ -74,12 +82,22 @@ export default function BookProductCard({
               sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
             />
           </div>
-          <Badge
-            variant='secondary'
-            className='absolute right-2 top-2 bg-black/60 text-white backdrop-blur-sm'
-          >
-            ${price.toFixed(2)}
-          </Badge>
+          <div className="absolute right-2 top-2 flex flex-col gap-1">
+            <Badge
+              variant='secondary'
+              className='bg-black/60 text-white backdrop-blur-sm'
+            >
+              ${price.toFixed(2)}
+            </Badge>
+            {shippingInfo.buyerPays > 0 && (
+              <Badge
+                variant='outline'
+                className='bg-white/90 text-xs backdrop-blur-sm'
+              >
+                {badge.emoji} +${shippingInfo.buyerPays.toFixed(2)}
+              </Badge>
+            )}
+          </div>
         </CardContent>
       </Link>
 
@@ -90,13 +108,41 @@ export default function BookProductCard({
               <CardTitle className='line-clamp-2 text-lg'>{title}</CardTitle>
             </TooltipTrigger>
             <TooltipContent>
-              <p> {title.slice(0, 7) + '...'}</p>
+              <p>{title}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <p className='text-sm text-muted-foreground'>
-          Sold by {user.email.split('@')[0]}
-        </p>
+        <div className="space-y-1">
+          <p className='text-sm text-muted-foreground'>
+            Sold by {user.email.split('@')[0]}
+            {user.location?.country && (
+              <span className='ml-1 text-xs'>({user.location.country.toUpperCase()})</span>
+            )}
+          </p>
+          {shippingInfo.buyerPays > 0 && (
+            <p className='text-xs text-muted-foreground flex items-center gap-1'>
+              <span>{badge.emoji}</span>
+              <span>{badge.label} shipping: ${shippingInfo.buyerPays.toFixed(2)}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <span className="text-muted-foreground">ⓘ</span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs text-xs">
+                      {shippingInfo.carrier} - Estimated {shippingInfo.estimatedDays.min}-{shippingInfo.estimatedDays.max} days
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </p>
+          )}
+          {shippingInfo.buyerPays === 0 && (
+            <p className='text-xs text-green-600 font-medium'>
+              ✓ Free shipping available
+            </p>
+          )}
+        </div>
       </CardHeader>
 
       <CardFooter className='p-4 pt-0 mt-auto'>

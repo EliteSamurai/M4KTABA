@@ -30,7 +30,10 @@ export interface MultiSellerCart {
 /**
  * Group cart items by seller
  */
-export function groupItemsBySeller(items: CartItem[]): SellerGroup[] {
+export function groupItemsBySeller(
+  items: CartItem[],
+  buyerCountry: string = 'US'
+): SellerGroup[] {
   const sellerMap = new Map<string, CartItem[]>();
 
   // Group items by seller
@@ -52,7 +55,7 @@ export function groupItemsBySeller(items: CartItem[]): SellerGroup[] {
     );
 
     // Calculate shipping per seller (can be customized)
-    const shipping = calculateShippingForSeller(sellerItems);
+      const shipping = calculateShippingForSeller(sellerItems, buyerCountry);
 
     // Calculate tax per seller
     const tax = 0; // Will be calculated based on buyer location
@@ -75,22 +78,36 @@ export function groupItemsBySeller(items: CartItem[]): SellerGroup[] {
 
 /**
  * Calculate shipping cost for a seller's items
+ * Now uses smart multi-country shipping calculation
+ * 
+ * @param items - Cart items from a single seller
+ * @param buyerCountry - Buyer's country code (e.g., 'US', 'SA')
+ * @returns Shipping cost that buyer pays
  */
-function calculateShippingForSeller(items: CartItem[]): number {
-  // Simple calculation: $5 base + $2 per additional item
+function calculateShippingForSeller(
+  items: CartItem[],
+  buyerCountry: string = 'US'
+): number {
   if (items.length === 0) return 0;
   
-  const baseShipping = 5.0;
-  const perItemShipping = 2.0;
+  // Get seller's country from first item
+  const sellerCountry = items[0]?.user?.location?.country?.toUpperCase() || 'US';
   
-  return baseShipping + (items.length - 1) * perItemShipping;
+  // Use the new smart shipping calculator
+  const { calculateShipping } = require('./shipping-smart');
+  const shipping = calculateShipping(sellerCountry, buyerCountry, items.length);
+  
+  return shipping.buyerPays;
 }
 
 /**
  * Create multi-seller cart summary
  */
-export function createMultiSellerCart(items: CartItem[]): MultiSellerCart {
-  const sellerGroups = groupItemsBySeller(items);
+export function createMultiSellerCart(
+  items: CartItem[],
+  buyerCountry: string = 'US'
+): MultiSellerCart {
+  const sellerGroups = groupItemsBySeller(items, buyerCountry);
 
   const subtotal = sellerGroups.reduce((sum, group) => sum + group.subtotal, 0);
   const totalShipping = sellerGroups.reduce((sum, group) => sum + group.shipping, 0);

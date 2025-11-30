@@ -1,6 +1,6 @@
-import { CartItem } from '@/types/shipping-types';
+import { CartItem, ShippingTier } from '@/types/shipping-types';
 import { checkoutCopy } from '@/copy/checkout';
-import { Info } from 'lucide-react';
+import { Info, Home, Package as PackageIcon, Plane } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Tooltip,
@@ -13,13 +13,34 @@ interface CartSummaryProps {
   cart: CartItem[];
   shippingCost?: number;
   currency?: string;
+  shippingTier?: ShippingTier;
+  shippingDetails?: {
+    tier: ShippingTier;
+    isFree: boolean;
+    savings?: number;
+    estimatedDays?: { min: number; max: number };
+  };
 }
 
 export function CartSummary({
   cart,
   shippingCost = 0,
   currency = 'USD',
+  shippingTier,
+  shippingDetails,
 }: CartSummaryProps) {
+  
+  const getShippingIcon = (tier?: ShippingTier) => {
+    if (!tier) return PackageIcon;
+    const icons = {
+      domestic: Home,
+      regional: PackageIcon,
+      international: Plane
+    };
+    return icons[tier];
+  };
+  
+  const ShippingIcon = getShippingIcon(shippingTier);
   const subtotal = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -70,7 +91,13 @@ export function CartSummary({
 
         <div className='flex justify-between text-sm'>
           <div className="flex items-center gap-1">
+            <ShippingIcon className="h-3.5 w-3.5 text-muted-foreground" />
             <span>{checkoutCopy.cartSummary.shipping}</span>
+            {shippingTier && (
+              <Badge variant="outline" className="ml-1 text-xs">
+                {checkoutCopy.shipping[shippingTier].emoji} {checkoutCopy.shipping[shippingTier].label}
+              </Badge>
+            )}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
@@ -78,7 +105,10 @@ export function CartSummary({
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="max-w-xs text-xs">
-                    Shipping calculated based on destination. Rates vary by country.
+                    {shippingTier 
+                      ? `${checkoutCopy.shipping[shippingTier].description}. ${shippingDetails?.estimatedDays ? `Estimated delivery: ${shippingDetails.estimatedDays.min}-${shippingDetails.estimatedDays.max} days` : ''}`
+                      : checkoutCopy.cartSummary.shippingCalculated
+                    }
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -90,6 +120,14 @@ export function CartSummary({
               : formatPrice(shippingCost)}
           </span>
         </div>
+        
+        {/* Show savings if shipping is subsidized */}
+        {shippingDetails?.savings && shippingDetails.savings > 0 && (
+          <div className="flex justify-between text-xs text-green-600">
+            <span>✓ Shipping subsidy (we cover)</span>
+            <span>-{formatPrice(shippingDetails.savings)}</span>
+          </div>
+        )}
 
         <div className='flex justify-between text-sm text-green-700'>
           <div className="flex items-center gap-1">

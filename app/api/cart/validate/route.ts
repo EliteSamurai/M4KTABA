@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/options';
 import { readClient } from '@/studio-m4ktaba/client';
 import { CartItem } from '@/types/shipping-types';
+import { calculateMultiSellerShipping } from '@/lib/shipping-smart';
 
 export async function POST(req: Request) {
   try {
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { cart } = await req.json();
+    const { cart, buyerCountry } = await req.json();
 
     if (!Array.isArray(cart) || cart.length === 0) {
       return NextResponse.json(
@@ -38,7 +39,8 @@ export async function POST(req: Request) {
               "user": user->{
                 _id,
                 email,
-                stripeAccountId
+                stripeAccountId,
+                location
               }
             }`,
             { id: item.id }
@@ -118,9 +120,33 @@ export async function POST(req: Request) {
       .filter(result => result.valid)
       .map(result => result.product);
 
+    // Calculate shipping based on buyer and seller countries
+    const country = buyerCountry?.toUpperCase() || session.user.location?.country?.toUpperCase() || 'US';
+    const sellerGroups = new Map<string, { items: any[]; country: string }>();
+    
+    validatedCart.forEach((item: any) => {
+      const sellerId = item.user?._id || 'unknown';
+      const sellerCountry = item.user?.location?.country?.toUpperCase() || 'US';
+      
+      if (!sellerGroups.has(sellerId)) {
+        sellerGroups.set(sellerId, { items: [], country: sellerCountry });
+      }
+      sellerGroups.get(sellerId)!.items.push(item);
+    });
+
+    const sellers = Array.from(sellerGroups.entries()).map(([sellerId, data]) => ({
+      sellerId,
+      sellerCountry: data.country,
+      itemCount: data.items.reduce((sum, item) => sum + item.quantity, 0),
+      subtotal: data.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    }));
+
+    const shippingCalculation = calculateMultiSellerShipping(sellers, country);
+
     return NextResponse.json({
       valid: true,
       cart: validatedCart,
+      shipping: shippingCalculation,
     });
   } catch (error) {
     console.error('Cart validation error:', error);

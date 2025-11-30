@@ -62,8 +62,39 @@ export const checkoutCopy = {
     quantity: 'Quantity',
     subtotal: 'Subtotal',
     shipping: 'Shipping',
-    shippingFree: 'Free',
+    shippingFree: 'FREE',
+    shippingCalculated: 'Calculated based on seller location',
     total: 'Total',
+    platformFee: 'Platform Fee',
+    platformFeeZero: '$0.00',
+    platformFeeTooltip: "We don't charge platform fees! Sellers receive the full amount. Only payment processor fees apply.",
+  },
+  shipping: {
+    domestic: {
+      label: 'Domestic Shipping',
+      emoji: '🏠',
+      description: 'Fast delivery within the same country',
+    },
+    regional: {
+      label: 'Regional Shipping',
+      emoji: '📦',
+      description: 'Delivery to nearby countries',
+    },
+    international: {
+      label: 'International Shipping',
+      emoji: '✈️',
+      description: 'Worldwide delivery',
+    },
+    freeShipping: {
+      qualified: '✓ Free Shipping',
+      almostThere: 'Add {amount} more for free shipping!',
+      threshold: 'Free shipping on orders over {amount}',
+    },
+    multiSeller: {
+      discount: 'Multi-seller discount applied',
+      separate: 'Items will ship separately from each seller',
+      tooltip: 'Each seller ships from their location. You saved {amount} on additional shipping!',
+    },
   },
   errors: {
     addressInvalid: 'Invalid shipping address. Please check and try again.',

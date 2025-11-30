@@ -12,6 +12,7 @@ import {
 } from '@/lib/idempotency';
 import { reportError } from '@/lib/sentry';
 import { counter, withLatency } from '@/lib/metrics';
+import { calculateMultiSellerShipping } from '@/lib/shipping-smart';
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -33,6 +34,35 @@ export async function POST(req: Request) {
     if (subtotal <= 0) {
       throw new Error('Invalid cart total. Please check your items.');
     }
+
+    // Calculate shipping based on buyer and seller countries
+    const buyerCountry = shippingDetails.country?.toUpperCase() || 'US';
+    
+    // Group items by seller for shipping calculation
+    const sellerGroups = new Map<string, { items: CartItem[]; country: string }>();
+    (cart as CartItem[]).forEach(item => {
+      const sellerId = item.user?._id || 'unknown';
+      const sellerCountry = item.user?.location?.country?.toUpperCase() || 'US';
+      
+      if (!sellerGroups.has(sellerId)) {
+        sellerGroups.set(sellerId, { items: [], country: sellerCountry });
+      }
+      sellerGroups.get(sellerId)!.items.push(item);
+    });
+
+    // Calculate multi-seller shipping
+    const sellers = Array.from(sellerGroups.entries()).map(([sellerId, data]) => ({
+      sellerId,
+      sellerCountry: data.country,
+      itemCount: data.items.reduce((sum, item) => sum + item.quantity, 0),
+      subtotal: data.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    }));
+
+    const shippingCalculation = calculateMultiSellerShipping(sellers, buyerCountry);
+    const totalShipping = shippingCalculation.totalBuyerPays;
+    
+    // Total amount = subtotal + shipping (no platform fees!)
+    const totalAmount = subtotal + totalShipping;
 
     if (!shippingDetails || typeof shippingDetails !== 'object') {
       return NextResponse.json(
@@ -143,7 +173,7 @@ export async function POST(req: Request) {
 
     const pi = await withLatency('/api/create-payment-intent', () =>
       createPaymentIntentWithDestinationCharge({
-        amountCents: Math.round(subtotal * 100),
+        amountCents: Math.round(totalAmount * 100), // Include shipping in total
         currency: 'usd',
         buyerEmail,
         orderId,
@@ -154,11 +184,18 @@ export async function POST(req: Request) {
         idempotencyKey: idemKey,
         metadata: {
           shippingDetails: JSON.stringify(shippingDetails),
+          shippingBreakdown: JSON.stringify(shippingCalculation),
+          subtotal: subtotal.toFixed(2),
+          shippingCost: totalShipping.toFixed(2),
+          totalAmount: totalAmount.toFixed(2),
         },
         // Enable Apple Pay and Google Pay
         paymentMethodTypes: ['card', 'link'],
       })
     );
+
+    // Log shipping calculation for debugging
+    console.log(`[Payment Intent] Order ${orderId} - Subtotal: $${subtotal.toFixed(2)}, Shipping: $${totalShipping.toFixed(2)}, Total: $${totalAmount.toFixed(2)}, Sellers: ${sellerIds.length}`);
 
     await commit(storeKey, { clientSecret: pi.client_secret });
     counter('checkout_started').inc();

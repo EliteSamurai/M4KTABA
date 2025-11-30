@@ -62,21 +62,39 @@ const ShippingInfo = () => {
 
   const faqs = [
     {
+      question: 'How are shipping costs calculated?',
+      answer:
+        'Shipping is based on the distance between the seller and you! We use three tiers: (1) 🏠 Domestic ($3.99) - same country as seller, (2) 📦 Regional ($7.99) - nearby countries in the same region (e.g., GCC, EU, North America), and (3) ✈️ International ($14.99) - worldwide shipping. This keeps costs fair and low for everyone!',
+      icon: DollarSign,
+    },
+    {
+      question: 'Why do some books have cheaper shipping than others?',
+      answer:
+        'Because sellers ship from their own country! If a seller is in your country, you get domestic shipping ($3.99). If they\'re in a nearby region, regional shipping applies ($7.99). Books from farther away have international shipping ($14.99). We show the shipping cost on each product so you know the total before adding to cart.',
+      icon: HelpCircle,
+    },
+    {
       question: 'How long does shipping take?',
       answer:
-        "Shipping times vary depending on the seller's location and shipping method. You will receive an estimated delivery date when the seller provides tracking information.",
+        'Delivery times depend on the shipping tier: Domestic (3-7 days), Regional (5-10 days), and International (10-21 days). GCC countries enjoy express delivery (2-4 days) between Gulf states. You\'ll receive tracking information via email once shipped.',
       icon: Clock,
+    },
+    {
+      question: 'Can I get free shipping?',
+      answer:
+        'Yes! Free shipping applies when you spend: $35+ for domestic orders, $50+ for regional orders, or $75+ for international orders. We also give you 25% off additional shipping when buying from multiple sellers!',
+      icon: Package,
     },
     {
       question: "What if the seller doesn't ship my order?",
       answer:
-        'If the seller fails to ship within 4 days, please contact our support team. We will follow up with the seller or issue a refund if necessary.',
+        'Sellers must ship within 4 days. If they don\'t, contact our support team immediately. We\'ll follow up with the seller or issue a full refund if necessary. Your satisfaction is guaranteed.',
       icon: AlertCircle,
     },
     {
-      question: 'Who covers the shipping cost?',
+      question: 'Do you charge platform fees on shipping?',
       answer:
-        'Shipping costs are set by each seller and will be displayed at checkout. The total price you see includes shipping.',
+        'No! We actually subsidize shipping costs to keep them low for you. For domestic orders, you pay $3.99 but the actual cost is ~$5.50 - we cover the difference. Sellers never lose money on shipping either. Everyone wins!',
       icon: DollarSign,
     },
   ];
