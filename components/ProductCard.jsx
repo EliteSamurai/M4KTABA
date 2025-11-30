@@ -36,8 +36,9 @@ export default function BookProductCard({
   const { data: session } = useSession();
   
   // Calculate shipping estimate
-  const sellerCountry = user?.location?.country?.toUpperCase() || 'US';
-  const buyerCountry = session?.user?.location?.country?.toUpperCase() || 'US';
+  // Pass raw country codes - shipping calculator will normalize them
+  const sellerCountry = user?.location?.country || 'US';
+  const buyerCountry = session?.user?.location?.country || 'US';
   const shippingInfo = calculateShipping(sellerCountry, buyerCountry, 1);
   const badge = getShippingBadge(shippingInfo.tier);
 

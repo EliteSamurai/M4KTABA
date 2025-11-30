@@ -138,8 +138,9 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
   const isOwner = session?.user?._id === (user as any)?._id;
 
   // Calculate shipping estimate
-  const sellerCountry = (user as any)?.location?.country?.toUpperCase() || 'US';
-  const buyerCountry = session?.user?.location?.country?.toUpperCase() || 'US';
+  // Pass raw country codes - shipping calculator will normalize them
+  const sellerCountry = (user as any)?.location?.country || 'US';
+  const buyerCountry = session?.user?.location?.country || 'US';
   const shippingInfo = calculateShipping(sellerCountry, buyerCountry, quantity);
   const shippingBadge = getShippingBadge(shippingInfo.tier);
 

@@ -397,7 +397,7 @@ export default function PrivacyPage() {
                 <strong>Address:</strong> M4KTABA Privacy Team
               </p>
               <p>
-                <strong>Response Time:</strong> We'll respond within 8 hours
+                <strong>Response Time:</strong> We try to respond within 2 hours
               </p>
             </div>
           </section>

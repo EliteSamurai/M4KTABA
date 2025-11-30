@@ -52,10 +52,10 @@ export default function HelpPage() {
   const contactMethods = [
     {
       title: 'Email Support',
-      description: 'Get help via email within 24 hours',
+      description: 'We try to respond within 2 hours',
       icon: Mail,
       action: 'Send Email',
-      href: 'mailto:support@m4ktaba.com',
+      href: 'mailto:contact@m4ktaba.com',
     },
     {
       title: 'Live Chat',
@@ -266,7 +266,7 @@ export default function HelpPage() {
           </p>
           <div className='flex flex-col sm:flex-row gap-4 justify-center'>
             <Button size='lg' asChild>
-              <a href='mailto:support@m4ktaba.com'>
+              <a href='mailto:contact@m4ktaba.com'>
                 <Mail className='mr-2 w-4 h-4' />
                 Email Support
               </a>

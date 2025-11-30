@@ -107,6 +107,54 @@ export function getRegion(countryCode: string): string | null {
 }
 
 /**
+ * Normalize country code to 2-letter uppercase ISO format
+ * Handles various input formats and returns consistent output
+ */
+export function normalizeCountryCode(countryInput: string | undefined | null): string {
+  if (!countryInput || typeof countryInput !== 'string') {
+    return 'US'; // Default fallback
+  }
+  
+  // Trim whitespace and convert to uppercase
+  let code = countryInput.trim().toUpperCase();
+  
+  // If it's already a 2-letter code, return it
+  if (code.length === 2 && /^[A-Z]{2}$/.test(code)) {
+    return code;
+  }
+  
+  // Handle common country name mappings
+  const countryNameMap: Record<string, string> = {
+    'UNITED STATES': 'US',
+    'USA': 'US',
+    'UNITED STATES OF AMERICA': 'US',
+    'AMERICA': 'US',
+    'CANADA': 'CA',
+    'UNITED KINGDOM': 'GB',
+    'UK': 'GB',
+    'GREAT BRITAIN': 'GB',
+    'ENGLAND': 'GB',
+    'SAUDI ARABIA': 'SA',
+    'KSA': 'SA',
+    'SAUDI': 'SA',
+    'UNITED ARAB EMIRATES': 'AE',
+    'UAE': 'AE',
+    'EMIRATES': 'AE',
+    'DUBAI': 'AE',
+    'ABU DHABI': 'AE',
+  };
+  
+  // Check if it's a country name
+  if (countryNameMap[code]) {
+    return countryNameMap[code];
+  }
+  
+  // Default to US if we can't determine
+  console.warn(`[Shipping] Could not normalize country code: "${countryInput}", defaulting to US`);
+  return 'US';
+}
+
+/**
  * Check if two countries are in the same region
  */
 export function isSameRegion(country1: string, country2: string): boolean {
@@ -132,8 +180,14 @@ export function getShippingTier(
   sellerCountry: string, 
   buyerCountry: string
 ): ShippingTier {
-  const seller = sellerCountry.toUpperCase();
-  const buyer = buyerCountry.toUpperCase();
+  // Normalize both country codes to ensure consistency
+  const seller = normalizeCountryCode(sellerCountry);
+  const buyer = normalizeCountryCode(buyerCountry);
+  
+  // Debug log for troubleshooting
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[Shipping] Calculating tier: ${sellerCountry} (${seller}) → ${buyerCountry} (${buyer})`);
+  }
   
   // Domestic: Same country
   if (seller === buyer) {

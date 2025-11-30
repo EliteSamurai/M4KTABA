@@ -387,7 +387,7 @@ Track these metrics:
 For questions or issues:
 - **Documentation**: This file
 - **Code**: `lib/shipping-smart.ts`
-- **Support**: support@m4ktaba.com
+- **Support**: contact@m4ktaba.com
 
 ---
 

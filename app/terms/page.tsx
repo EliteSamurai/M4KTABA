@@ -123,7 +123,7 @@ export default function TermsPage() {
               </CardHeader>
               <CardContent>
                 <Button asChild variant='secondary'>
-                  <Link href='mailto:support@m4ktaba.com'>Contact Support</Link>
+                  <Link href='mailto:contact@m4ktaba.com'>Contact Support</Link>
                 </Button>
               </CardContent>
             </Card>

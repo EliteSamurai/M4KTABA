@@ -78,7 +78,7 @@ export function getOrderConfirmationTemplate(
           </div>
           
           <p style="color: #6c757d; font-size: 14px; margin-top: 30px;">
-            If you have any questions, please contact us at support@m4ktaba.com
+            If you have any questions, please contact us at contact@m4ktaba.com
           </p>
         </div>
       </div>
@@ -99,7 +99,7 @@ ${data.items.map(item => `- ${item.title} (Qty: ${item.quantity}) - $${(item.pri
 
 Track your order: ${process.env.NEXT_PUBLIC_APP_URL}/orders/${data.orderId}
 
-If you have any questions, please contact us at support@m4ktaba.com
+If you have any questions, please contact us at contact@m4ktaba.com
     `,
   };
 }
@@ -147,7 +147,7 @@ export function getShippingUpdateTemplate(data: OrderEmailData): EmailTemplate {
           </div>
           
           <p style="color: #6c757d; font-size: 14px; margin-top: 30px;">
-            If you have any questions, please contact us at support@m4ktaba.com
+            If you have any questions, please contact us at contact@m4ktaba.com
           </p>
         </div>
       </div>
@@ -165,7 +165,7 @@ ${data.estimatedDelivery ? `Estimated Delivery: ${data.estimatedDelivery}` : ''}
 
 Track your order: ${process.env.NEXT_PUBLIC_APP_URL}/orders/${data.orderId}
 
-If you have any questions, please contact us at support@m4ktaba.com
+If you have any questions, please contact us at contact@m4ktaba.com
     `,
   };
 }
@@ -202,7 +202,7 @@ export function getDeliveryConfirmationTemplate(
           </div>
           
           <p style="color: #6c757d; font-size: 14px; margin-top: 30px;">
-            If you have any questions, please contact us at support@m4ktaba.com
+            If you have any questions, please contact us at contact@m4ktaba.com
           </p>
         </div>
       </div>
@@ -220,7 +220,7 @@ Thank you for choosing M4KTABA for your book needs!
 Leave a review: ${process.env.NEXT_PUBLIC_APP_URL}/orders/${data.orderId}/review
 Shop more books: ${process.env.NEXT_PUBLIC_APP_URL}/all
 
-If you have any questions, please contact us at support@m4ktaba.com
+If you have any questions, please contact us at contact@m4ktaba.com
     `,
   };
 }
