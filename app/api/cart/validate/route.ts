@@ -35,7 +35,7 @@ export async function POST(req: Request) {
               _id,
               title,
               price,
-              available,
+              quantity,
               "user": user->{
                 _id,
                 email,
@@ -54,11 +54,14 @@ export async function POST(req: Request) {
             };
           }
 
-          if (!product.available) {
+          // Check if product has sufficient quantity
+          if (!product.quantity || product.quantity < item.quantity) {
             return {
               id: item.id,
               valid: false,
-              error: 'Product no longer available',
+              error: product.quantity === 0 
+                ? 'Product no longer available' 
+                : `Only ${product.quantity} available, you requested ${item.quantity}`,
             };
           }
 
