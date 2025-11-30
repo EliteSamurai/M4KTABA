@@ -98,7 +98,7 @@ export function getRegion(countryCode: string): string | null {
   const upperCode = countryCode.toUpperCase();
   
   for (const [region, countries] of Object.entries(SHIPPING_REGIONS)) {
-    if (countries.includes(upperCode as any)) {
+    if ((countries as readonly string[]).includes(upperCode)) {
       return region;
     }
   }
@@ -120,9 +120,9 @@ export function isSameRegion(country1: string, country2: string): boolean {
  * Check if both countries are in the GCC (special fast/cheap shipping)
  */
 export function isGCC(country1: string, country2: string): boolean {
-  const gcc = SHIPPING_REGIONS.gcc;
-  return gcc.includes(country1.toUpperCase() as any) && 
-         gcc.includes(country2.toUpperCase() as any);
+  const gcc = SHIPPING_REGIONS.gcc as readonly string[];
+  return gcc.includes(country1.toUpperCase()) && 
+         gcc.includes(country2.toUpperCase());
 }
 
 /**
@@ -214,7 +214,7 @@ function getCarrierInfo(
   }
   
   // Middle East domestic
-  if (SHIPPING_REGIONS.middleEast.includes(seller as any) && seller === buyer) {
+  if ((SHIPPING_REGIONS.middleEast as readonly string[]).includes(seller) && seller === buyer) {
     return {
       estimatedDays: { min: 2, max: 5 },
       carrier: 'Aramex / Local Post'
@@ -222,7 +222,7 @@ function getCarrierInfo(
   }
   
   // Europe domestic
-  if (SHIPPING_REGIONS.europe.includes(seller as any) && seller === buyer) {
+  if ((SHIPPING_REGIONS.europe as readonly string[]).includes(seller) && seller === buyer) {
     return {
       estimatedDays: { min: 2, max: 5 },
       carrier: 'Royal Mail / Local Post'

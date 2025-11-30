@@ -160,7 +160,7 @@ export function MultiSellerCheckout({
                   <TruckIcon className="h-3 w-3" />
                   <span>Shipping</span>
                   {(group as any).qualifiesForFree && (
-                    <Badge variant="success" className="ml-1 text-xs bg-green-100 text-green-800">
+                    <Badge variant="secondary" className="ml-1 text-xs bg-green-100 text-green-800">
                       FREE
                     </Badge>
                   )}

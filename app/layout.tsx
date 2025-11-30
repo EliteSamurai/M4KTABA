@@ -15,7 +15,6 @@ import dynamic from 'next/dynamic';
 
 // Dynamically import heavy components to reduce initial bundle size
 const SupportWidget = dynamic(() => import('@/components/SupportWidget'), {
-  ssr: false,
   loading: () => null,
 });
 
