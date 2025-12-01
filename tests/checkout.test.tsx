@@ -248,6 +248,24 @@ test('checkout validates address and advances to payment', async () => {
         );
         return {
           ok: true,
+          json: async () => ({ 
+            valid: true, 
+            cart: [{ id: '1', title: 'Test Book', price: 10, quantity: 1 }],
+            shipping: { totalShippingCost: 3.99 }
+          }),
+        } as any;
+      }
+    )
+    .mockImplementationOnce(
+      async (url: RequestInfo | URL, init?: RequestInit) => {
+        // eslint-disable-next-line no-console
+        console.log(
+          'fetch[3]',
+          typeof url === 'string' ? url : url.toString(),
+          init?.method
+        );
+        return {
+          ok: true,
           json: async () => ({ clientSecret: 'cs_test_123' }),
         } as any;
       }
@@ -328,6 +346,16 @@ test('double-clicking submit does not issue duplicate requests', async () => {
       const href = String(url);
       if (href.includes('/api/validate-address')) {
         return { ok: true, json: async () => ({ isValid: true }) } as any;
+      }
+      if (href.includes('/api/cart/validate')) {
+        return {
+          ok: true,
+          json: async () => ({ 
+            valid: true, 
+            cart: [{ id: '1', title: 'Test Book', price: 10, quantity: 1 }],
+            shipping: { totalShippingCost: 3.99 }
+          }),
+        } as any;
       }
       if (href.includes('/api/create-payment-intent')) {
         return {
