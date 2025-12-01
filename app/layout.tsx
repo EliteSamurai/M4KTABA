@@ -40,6 +40,10 @@ export const metadata = {
     default: 'M4KTABA | Online Islamic-Arabic Books Marketplace',
     template: '%s | M4KTABA',
   },
+  other: {
+    // Performance hints
+    'X-UA-Compatible': 'IE=edge',
+  },
   description:
     'Discover M4KTABA, the ultimate online marketplace for authentic Islamic-Arabic books and premium Yemeni Sidr honey. Buy, sell, and connect with a vibrant community today!',
   keywords:

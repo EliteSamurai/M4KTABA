@@ -7,7 +7,9 @@ import {
   BadgeDollarSign,
   ArrowRight,
 } from 'lucide-react';
-import HeroImage from '@/public/image (1).jpg'; // TODO: Convert to WebP for better performance
+import HeroImageDesktop from '@/public/hero-books-desktop.webp';
+import HeroImageTablet from '@/public/hero-books-tablet.webp';
+import HeroImageMobile from '@/public/hero-books-mobile.webp';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -47,8 +49,7 @@ async function fetchLatestBooks() {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ query }),
-    cache: 'no-store',
-    next: { revalidate: 0 },
+    next: { revalidate: 60 }, // Cache for 60 seconds to improve TTFB
   });
 
   if (!response.ok) {
@@ -76,13 +77,31 @@ export default async function Home() {
 
       {/* Hero Section */}
       <div className='relative flex min-h-[70vh] items-center justify-center overflow-hidden'>
-        <Image
-          src={HeroImage}
-          alt='Buying & Selling Books'
-          priority
-          fill
-          className='absolute top-0 left-0 w-screen h-full object-cover'
-        />
+        <picture>
+          <source 
+            media="(max-width: 768px)" 
+            srcSet={HeroImageMobile.src}
+            type="image/webp"
+            width={768}
+            height={576}
+          />
+          <source 
+            media="(max-width: 1200px)" 
+            srcSet={HeroImageTablet.src}
+            type="image/webp"
+            width={1200}
+            height={900}
+          />
+          <Image
+            src={HeroImageDesktop}
+            alt='Buying & Selling Books - Islamic Arabic Books Marketplace'
+            priority
+            fill
+            sizes="100vw"
+            className='absolute top-0 left-0 w-screen h-full object-cover'
+            quality={85}
+          />
+        </picture>
 
         {/* Content */}
         <div className='relative z-10 mx-auto max-w-4xl px-4 text-center'>
