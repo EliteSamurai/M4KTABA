@@ -124,7 +124,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
               ? { ...cartItem, quantity: cartItem.quantity + item.quantity }
               : cartItem
           )
-        : [...prevCart, item];
+        : [...prevCart, { ...item, _key: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}` }];
       updateLocalStorage(updatedCart);
       
       // Sync with backend but don't block UI

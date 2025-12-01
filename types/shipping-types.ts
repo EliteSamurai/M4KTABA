@@ -1,4 +1,5 @@
 export interface CartItem {
+  _key?: string; // Sanity array item key
   id: string;
   title: string;
   author?: string; // Book author

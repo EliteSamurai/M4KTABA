@@ -65,6 +65,13 @@ export default defineType({
       description: 'The ID of the Stripe account associated with this user.',
     },
     defineField({
+      name: 'profileComplete',
+      title: 'Profile Complete',
+      type: 'boolean',
+      description: 'Indicates whether the user has completed their profile (address, etc.)',
+      initialValue: false,
+    }),
+    defineField({
       name: 'ratings',
       title: 'Ratings',
       type: 'array',
