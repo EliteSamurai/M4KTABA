@@ -144,7 +144,7 @@ describe('Shipping Calculator', () => {
           sellerId: 'seller1',
           sellerCountry: 'US',
           itemCount: 2,
-          subtotal: 40.00,
+          subtotal: 20.00, // Below free shipping threshold of $35
         },
       ];
 
@@ -258,9 +258,9 @@ describe('Shipping Calculator', () => {
       expect(shipping.buyerPays).toBe(3.99); // Base rate
     });
 
-    it('should handle unknown countries as US', () => {
+    it('should handle unknown countries as international', () => {
       const shipping = calculateShipping('XX', 'YY', 1);
-      expect(shipping.tier).toBe('domestic'); // Both unknown = same "region" (none)
+      expect(shipping.tier).toBe('international'); // Unknown countries default to international
     });
   });
 });

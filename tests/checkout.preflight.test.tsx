@@ -69,6 +69,16 @@ describe('checkout preflight drift', () => {
         if (href.includes('/api/validate-address')) {
           return { ok: true, json: async () => ({ isValid: true }) } as any;
         }
+        if (href.includes('/api/cart/validate')) {
+          return {
+            ok: true,
+            json: async () => ({ 
+              valid: true, 
+              cart: [{ id: '1', title: 'Test Book', price: 10, quantity: 3 }],
+              shipping: { totalShippingCost: 3.99 }
+            }),
+          } as any;
+        }
         if (href.includes('/api/cart/review')) {
           return {
             ok: true,

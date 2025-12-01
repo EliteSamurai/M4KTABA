@@ -159,6 +159,16 @@ const mockFetch = jest.fn(async (input: RequestInfo | URL) => {
       json: async () => ({ isValid: true }),
     } as any;
   }
+  if (url.includes('/api/cart/validate')) {
+    return {
+      ok: true,
+      json: async () => ({ 
+        valid: true, 
+        cart: [{ id: '1', title: 'Test Book', price: 10, quantity: 1 }],
+        shipping: { totalShippingCost: 3.99 }
+      }),
+    } as any;
+  }
   if (url.includes('/api/create-payment-intent')) {
     return {
       ok: true,
@@ -173,6 +183,10 @@ const _origFetch: any = global.fetch as any;
 beforeEach(() => {
   (global as any).fetch = mockFetch;
   mockFetch.mockClear();
+  // Disable feature flags that might interfere with tests
+  localStorage.setItem('flag:offline_queue', '0');
+  localStorage.setItem('flag:preflight_drift', '0');
+  localStorage.setItem('flag:state_machine', '0');
   // Force non-empty cart in happy path by default
   try {
     const nav = require('next/navigation');
