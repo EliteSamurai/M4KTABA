@@ -105,7 +105,7 @@ export default function SignUpPage() {
               <CardTitle className='text-2xl font-bold'>
                 Create an account
               </CardTitle>
-              <CardDescription>Sign up to access all features</CardDescription>
+              <CardDescription>Join thousands buying & selling authentic Islamic books</CardDescription>
               <ContextualHelp context='signup' />
             </CardHeader>
             <CardContent className='space-y-4'>

@@ -87,10 +87,10 @@ export default async function Home() {
         {/* Content */}
         <div className='relative z-10 mx-auto max-w-4xl px-4 text-center'>
           <h1 className='bg-gradient-to-r from-white to-gray-300 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl md:text-6xl'>
-            The eBay for Arabic-Islamic Books
+            The Global Marketplace for Arabic-Islamic Books
           </h1>
           <p className='mx-auto mt-6 max-w-2xl text-lg text-gray-300'>
-            Discover, buy, and sell your favorite Islamic literature in Arabic.
+            Buy and sell authentic Islamic literature from sellers worldwide. No platform fees, fair shipping, instant payouts.
           </p>
           <div className='mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center'>
             <Button size='lg' className='hover:bg-primary/90' asChild>
@@ -118,27 +118,27 @@ export default async function Home() {
           <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4'>
             {[
               {
-                title: 'Affordable Books',
+                title: '100% to Sellers, Zero Fees',
                 description:
-                  'Find lots of books at prices that are easy to afford.',
+                  'No platform fees. Sellers keep 100% of the sale price. Only payment processing applies.',
                 icon: BadgeDollarSign,
               },
               {
-                title: 'Fast & Free Shipping',
+                title: 'Smart Shipping Worldwide',
                 description:
-                  'Get your books delivered fast, with free shipping every time.',
+                  'Fair distance-based rates starting at $3.99. Free shipping on orders $35+.',
                 icon: Truck,
               },
               {
-                title: 'Wide Variety of Books',
+                title: 'Authentic Islamic Literature',
                 description:
-                  'Explore many Islamic books in Arabic on many different topics.',
+                  'Browse hundreds of Arabic books on Quran, Hadith, Fiqh, and more from trusted sellers.',
                 icon: BookOpen,
               },
               {
-                title: 'Sell Your Old Books',
+                title: 'Sell & Earn Instantly',
                 description:
-                  'Sell the books you no longer need and let others enjoy them.',
+                  'List your books in minutes. Get paid directly via Stripe. Keep 100% of your asking price.',
                 icon: Book,
               },
             ].map((feature, index) => (

@@ -62,8 +62,7 @@ export default function Footer() {
             Join our newsletter
           </h2>
           <p className='mb-8 text-lg text-muted-foreground'>
-            Stay up to date with the latest products, announcements, and blog
-            posts.
+            Get early access to new listings, seller tips, and Islamic book insights delivered weekly.
           </p>
           <div className='mx-auto max-w-md'>
             <SubscribeForm />
@@ -82,7 +81,7 @@ export default function Footer() {
               M4KTABA
             </Link>
             <p className='text-muted-foreground'>
-              Find great Islamic books quickly and easily, all in one place.
+              The global marketplace for Arabic-Islamic books. Zero platform fees, fair shipping, instant payouts.
             </p>
             <div className='flex gap-4'>
               {socialLinks.map(social => (

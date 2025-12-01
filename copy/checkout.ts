@@ -6,9 +6,9 @@ export const checkoutCopy = {
   },
   descriptions: {
     pageSubtitle:
-      'Complete your purchase by providing shipping details and payment information.',
-    shippingHelp: 'Enter your shipping address for delivery.',
-    paymentHelp: 'Complete your purchase securely with Stripe.',
+      'Complete your purchase securely. We never charge platform fees - 100% goes to sellers.',
+    shippingHelp: 'Enter your shipping address. Shipping starts at $3.99 for domestic orders.',
+    paymentHelp: 'Pay securely with Stripe. Your payment is protected.',
   },
   steps: {
     step1Address: 'Step 1 of 3 • Address',

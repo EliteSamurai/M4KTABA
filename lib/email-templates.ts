@@ -39,7 +39,7 @@ export function getOrderConfirmationTemplate(
         
         <div style="padding: 20px; background: white; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
           <p>Hi ${data.customerName},</p>
-          <p>Thank you for your purchase! Your order has been confirmed and is being processed.</p>
+          <p>Thank you for your purchase! Your order has been confirmed and the seller has been notified. 100% of your payment goes directly to the seller.</p>
           
           <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h2 style="color: #2c3e50; margin-top: 0;">Order #${data.orderId}</h2>
@@ -78,7 +78,7 @@ export function getOrderConfirmationTemplate(
           </div>
           
           <p style="color: #6c757d; font-size: 14px; margin-top: 30px;">
-            If you have any questions, please contact us at contact@m4ktaba.com
+            Questions? We try to respond within 2 hours at contact@m4ktaba.com
           </p>
         </div>
       </div>
@@ -99,7 +99,7 @@ ${data.items.map(item => `- ${item.title} (Qty: ${item.quantity}) - $${(item.pri
 
 Track your order: ${process.env.NEXT_PUBLIC_APP_URL}/orders/${data.orderId}
 
-If you have any questions, please contact us at contact@m4ktaba.com
+Questions? We try to respond within 2 hours at contact@m4ktaba.com
     `,
   };
 }
@@ -147,7 +147,7 @@ export function getShippingUpdateTemplate(data: OrderEmailData): EmailTemplate {
           </div>
           
           <p style="color: #6c757d; font-size: 14px; margin-top: 30px;">
-            If you have any questions, please contact us at contact@m4ktaba.com
+            Questions? We try to respond within 2 hours at contact@m4ktaba.com
           </p>
         </div>
       </div>
@@ -165,7 +165,7 @@ ${data.estimatedDelivery ? `Estimated Delivery: ${data.estimatedDelivery}` : ''}
 
 Track your order: ${process.env.NEXT_PUBLIC_APP_URL}/orders/${data.orderId}
 
-If you have any questions, please contact us at contact@m4ktaba.com
+Questions? We try to respond within 2 hours at contact@m4ktaba.com
     `,
   };
 }
@@ -202,7 +202,7 @@ export function getDeliveryConfirmationTemplate(
           </div>
           
           <p style="color: #6c757d; font-size: 14px; margin-top: 30px;">
-            If you have any questions, please contact us at contact@m4ktaba.com
+            Questions? We try to respond within 2 hours at contact@m4ktaba.com
           </p>
         </div>
       </div>
@@ -220,7 +220,7 @@ Thank you for choosing M4KTABA for your book needs!
 Leave a review: ${process.env.NEXT_PUBLIC_APP_URL}/orders/${data.orderId}/review
 Shop more books: ${process.env.NEXT_PUBLIC_APP_URL}/all
 
-If you have any questions, please contact us at contact@m4ktaba.com
+Questions? We try to respond within 2 hours at contact@m4ktaba.com
     `,
   };
 }

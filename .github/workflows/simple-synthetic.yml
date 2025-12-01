@@ -18,25 +18,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
 
       - name: Enable corepack
-        run: corepack enable
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.15.1 --activate
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
       - name: Install Playwright
-        run: npx playwright install chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run simple health check
         run: |
           echo "🔍 Starting simple synthetic test..."
           echo "🕐 Test started at: $(date -u)"
-          echo "🌐 Base URL: ${{ secrets.SYNTH_PROD_BASE_URL || 'https://www.m4ktaba.com' }}"
+          BASE_URL="${{ secrets.SYNTH_PROD_BASE_URL || 'https://www.m4ktaba.com' }}"
+          echo "🌐 Base URL: $BASE_URL"
           node scripts/synth/simple-health-check.js
         env:
-          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL }}
+          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL || 'https://www.m4ktaba.com' }}
+        continue-on-error: false
 
       - name: Upload failure artifacts
         if: failure()

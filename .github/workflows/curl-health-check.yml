@@ -18,8 +18,10 @@ jobs:
         run: |
           echo "🔍 Starting curl-based health check..."
           echo "🕐 Test started at: $(date -u)"
-          echo "🌐 Base URL: ${{ secrets.SYNTH_PROD_BASE_URL || 'https://www.m4ktaba.com' }}"
+          BASE_URL="${{ secrets.SYNTH_PROD_BASE_URL || 'https://www.m4ktaba.com' }}"
+          echo "🌐 Base URL: $BASE_URL"
           chmod +x scripts/synth/curl-test.sh
           ./scripts/synth/curl-test.sh
         env:
-          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL }}
+          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL || 'https://www.m4ktaba.com' }}
+        continue-on-error: false

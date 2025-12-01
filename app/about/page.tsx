@@ -54,10 +54,11 @@ export default function About() {
           {/* Mission Statement */}
           <div className='prose prose-gray mx-auto max-w-3xl dark:prose-invert'>
             <p className='lead text-xl text-muted-foreground'>
-              Welcome to <strong>M4KTABA</strong>, the dedicated marketplace for
-              <strong> Arabic-Islamic books</strong>. Our platform connects
-              sellers and buyers, making it easier than ever to find rare and
-              valuable Islamic literature from around the world.
+              Welcome to <strong>M4KTABA</strong>, the global marketplace for
+              <strong> Arabic-Islamic books</strong>. We connect sellers and buyers
+              worldwide with transparent pricing, fair shipping from $3.99, and zero
+              platform fees. Every dollar you spend goes directly to the seller who
+              shares authentic Islamic knowledge.
             </p>
           </div>
 
@@ -73,9 +74,9 @@ export default function About() {
                 icon: Book,
               },
               {
-                title: 'Secure Transactions',
+                title: 'Secure Payments',
                 description:
-                  'Safe and protected buying & selling process with buyer protection.',
+                  'Stripe-powered checkout with buyer protection. Sellers get instant payouts to their bank.',
                 icon: ShieldCheck,
               },
 
@@ -86,9 +87,9 @@ export default function About() {
                 icon: Users,
               },
               {
-                title: 'Seller Support',
+                title: 'Zero Platform Fees',
                 description:
-                  'Comprehensive support for independent sellers and bookstores.',
+                  'No listing fees, no commission, no hidden costs. Sellers keep 100% of the sale price.',
                 icon: Store,
               },
             ].map((feature, index) => (

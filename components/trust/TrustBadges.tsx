@@ -66,8 +66,8 @@ const trustData = [
   },
   {
     icon: Truck,
-    title: 'Free Shipping',
-    description: 'On all orders',
+    title: 'Smart Shipping',
+    description: 'Free on $35+ orders',
     variant: 'default' as const,
   },
   {

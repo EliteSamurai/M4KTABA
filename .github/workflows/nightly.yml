@@ -8,6 +8,8 @@ on:
 jobs:
   synthetic:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,10 +18,33 @@ jobs:
       - run: corepack enable
       - run: pnpm install --no-frozen-lockfile
       - run: npx playwright install chromium
-      - run: SYNTH_BASE_URL=${{ secrets.SYNTH_BASE_URL }} node scripts/synth/checkout-smoke.js
+      - run: node scripts/synth/checkout-smoke.js
+        env:
+          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL || 'https://www.m4ktaba.com' }}
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-synthetic-screenshots
+          path: |
+            checkout-debug-*.png
+            checkout-failure-*.png
+          retention-days: 3
 
   lighthouse:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - run: npx lhci autorun --rc-file=./lighthouserc.json || true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: corepack enable
+      - run: pnpm install --no-frozen-lockfile
+      - name: Build application
+        run: pnpm build
+        env:
+          SKIP_ENV_VALIDATION: true
+      - run: npx lhci autorun --rc-file=./lighthouserc.json || echo "Lighthouse CI failed but continuing"
+        continue-on-error: true

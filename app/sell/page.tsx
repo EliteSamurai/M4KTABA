@@ -45,8 +45,8 @@ export default async function SellPage() {
             Sell Your Books
           </h1>
           <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
-            Turn your books into cash with our simple, fee-free selling process.
-            List your books in minutes and start earning today.
+            List your Arabic-Islamic books in minutes. Zero platform fees - keep 100% of your asking price.
+            Get paid instantly via Stripe to your bank account.
           </p>
         </div>
 

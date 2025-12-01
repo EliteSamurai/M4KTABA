@@ -65,10 +65,10 @@ export const DEFAULT_TRUST_SIGNALS: TrustSignal[] = [
     visible: true,
   },
   {
-    id: 'free_shipping',
+    id: 'smart_shipping',
     type: 'guarantee',
-    title: 'Free Shipping',
-    description: 'On all orders',
+    title: 'Smart Shipping',
+    description: 'From $3.99, free on $35+',
     icon: 'Truck',
     verified: true,
     priority: 3,
@@ -283,7 +283,7 @@ export function getAverageRating(): number {
 
 // Trust signal presets
 export const TRUST_SIGNAL_PRESETS = {
-  homepage: ['ssl_security', 'stripe_payments', 'user_rating', 'free_shipping'],
+  homepage: ['ssl_security', 'stripe_payments', 'user_rating', 'smart_shipping'],
   checkout: [
     'ssl_security',
     'stripe_payments',

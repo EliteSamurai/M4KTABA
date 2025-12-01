@@ -238,7 +238,7 @@ const helpContent: Record<string, { title: string; content: string }> = {
   shipping: {
     title: 'Shipping Information',
     content:
-      'We provide free shipping on all orders. Books are shipped within 1-2 business days after payment confirmation.',
+      'Fair distance-based shipping starts at $3.99 (domestic). Free shipping on orders $35+ (domestic), $50+ (regional), $75+ (international). Sellers ship within 4 days.',
   },
   payments: {
     title: 'Payment Security',

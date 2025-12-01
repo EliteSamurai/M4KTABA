@@ -19,25 +19,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
           
       - name: Enable corepack
-        run: corepack enable
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.15.1 --activate
         
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
         
       - name: Install Playwright
-        run: npx playwright install chromium
+        run: pnpm exec playwright install --with-deps chromium
         
       - name: Run checkout smoke test
         run: |
           export NEXT_PUBLIC_SYNTH=1
-          export SYNTH_BASE_URL=${{ secrets.SYNTH_PROD_BASE_URL }}
+          BASE_URL="${{ secrets.SYNTH_PROD_BASE_URL || 'https://www.m4ktaba.com' }}"
+          export SYNTH_BASE_URL="$BASE_URL"
           echo "🔍 Running checkout smoke test..."
+          echo "🌐 Base URL: $BASE_URL"
           node scripts/synth/checkout-smoke.js
         env:
-          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL }}
+          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL || 'https://www.m4ktaba.com' }}
           
       - name: Upload checkout screenshots on failure
         if: failure()
@@ -62,24 +65,27 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
           
       - name: Enable corepack
-        run: corepack enable
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.15.1 --activate
         
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
         
       - name: Install Playwright
-        run: npx playwright install chromium
+        run: pnpm exec playwright install --with-deps chromium
         
       - name: Run health check
         run: |
-          export SYNTH_BASE_URL=${{ secrets.SYNTH_PROD_BASE_URL }}
+          BASE_URL="${{ secrets.SYNTH_PROD_BASE_URL || 'https://www.m4ktaba.com' }}"
+          export SYNTH_BASE_URL="$BASE_URL"
           echo "🔍 Running health check..."
+          echo "🌐 Base URL: $BASE_URL"
           node scripts/synth/health-check.js
         env:
-          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL }}
+          SYNTH_BASE_URL: ${{ secrets.SYNTH_PROD_BASE_URL || 'https://www.m4ktaba.com' }}
           
       - name: Upload health check screenshots on failure
         if: failure()

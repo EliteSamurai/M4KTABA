@@ -143,9 +143,9 @@ export const DEFAULT_HELP_ITEMS: HelpItem[] = [
     id: 'shipping-information',
     title: 'Shipping and delivery',
     content:
-      'We provide free shipping on all orders. Books are typically shipped within 1-2 business days after payment confirmation. Delivery usually takes 3-5 business days within the US.',
+      'Distance-based shipping starts at $3.99 (domestic), $7.99 (regional), $14.99 (international). Free shipping on orders $35+/$50+/$75+ respectively. Sellers ship within 4 days. Delivery: 3-7 days (domestic), 5-10 (regional), 10-21 (international).',
     category: 'shipping',
-    tags: ['shipping', 'delivery', 'free'],
+    tags: ['shipping', 'delivery', 'rates', 'international'],
     priority: 2,
     visible: true,
     lastUpdated: '2024-01-15',
