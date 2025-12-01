@@ -93,7 +93,6 @@ jobs:
         continue-on-error: true
 
       - name: Run Snyk security scan
-        if: ${{ secrets.SNYK_TOKEN != '' }}
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -266,10 +265,11 @@ jobs:
           # Add cleanup commands here
 
       - name: Notify maintenance completion
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' && always() }}
+        if: always()
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
           channel: '#maintenance'
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
           text: 'Maintenance workflow completed with status: ${{ job.status }}'
+        continue-on-error: true
