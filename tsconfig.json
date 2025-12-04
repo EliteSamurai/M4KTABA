@@ -4,10 +4,18 @@
     "module": "ESNext",
     "baseUrl": ".", // Base directory for resolving non-relative paths
     "paths": {
-      "@/*": ["./*"], // Map `@/` to the root directory
-      "@test-utils": ["./tests/helpers/test-utils"]
+      "@/*": [
+        "./*"
+      ], // Map `@/` to the root directory
+      "@test-utils": [
+        "./tests/helpers/test-utils"
+      ]
     },
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "checkJs": false,
     "strict": true,
@@ -17,18 +25,26 @@
     "isolatedModules": true,
     "noEmit": true,
     "skipDefaultLibCheck": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "skipLibCheck": true,
     "incremental": true,
     "esModuleInterop": true,
-    "types": ["jest", "node"],
+    "types": [
+      "jest",
+      "node"
+    ],
     "plugins": [
       {
         "name": "next"
       }
     ]
   },
-  "exclude": ["node_modules", ".next", "dist", "tests/**/*"],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "dist",
+    "tests/**/*"
+  ],
   "include": [
     "**/*.ts",
     "**/*.tsx",
@@ -37,6 +53,7 @@
     "next-env.d.ts",
     "types/**/*.ts",
     ".next/types/**/*.ts",
-    "components/HoneyProductCart.jsx"
+    "components/HoneyProductCart.jsx",
+    ".next/dev/types/**/*.ts"
   ]
 }

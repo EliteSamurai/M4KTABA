@@ -36,7 +36,10 @@ const urlFor = (source: SanityImageSource) => {
   return null;
 };
 
-const options = { next: { revalidate: 30 } };
+const options = { 
+  next: { revalidate: 300 }, // 5 min cache for blog posts (rarely change)
+  cache: 'force-cache' as RequestCache
+};
 
 // Helper Functions
 const formatDate = (dateString: string) =>

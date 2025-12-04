@@ -34,8 +34,10 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   
-  eslint: {
-    ignoreDuringBuilds: process.env.NODE_ENV === 'production',
+  // Note: eslint.ignoreDuringBuilds removed in Next.js 16
+  // Use `pnpm lint` separately or configure in .eslintrc
+  typescript: {
+    ignoreBuildErrors: false, // Keep TypeScript strict
   },
   
   async headers() {
