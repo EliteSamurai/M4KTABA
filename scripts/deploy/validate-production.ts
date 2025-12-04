@@ -44,25 +44,6 @@ const PLATFORMS = {
       'STRIPE_SECRET_KEY',
     ],
   },
-  fly: {
-    name: 'Fly.io (Workers)',
-    required: [
-      'NEXTAUTH_SECRET',
-      'SANITY_PROJECT_ID',
-      'SANITY_DATASET',
-      'SANITY_API_TOKEN',
-      'STRIPE_SECRET_KEY',
-      'REDIS_URL',
-      'NODE_ENV',
-    ],
-    critical: [
-      'NEXTAUTH_SECRET',
-      'SANITY_PROJECT_ID',
-      'SANITY_DATASET',
-      'STRIPE_SECRET_KEY',
-      'REDIS_URL',
-    ],
-  },
 };
 
 function validatePlatform(

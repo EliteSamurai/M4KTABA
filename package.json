@@ -47,7 +47,6 @@
     "validate:env:strict": "tsx scripts/deploy/validate-env.ts --throw",
     "validate:production": "tsx scripts/deploy/validate-production.ts",
     "validate:vercel": "tsx scripts/deploy/validate-production.ts vercel",
-    "validate:fly": "tsx scripts/deploy/validate-production.ts fly",
     "pre-push": "./scripts/pre-push.sh",
     "ci:local": "pnpm run lint && pnpm run type-check && pnpm run build"
   },

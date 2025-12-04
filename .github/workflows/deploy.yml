@@ -160,12 +160,6 @@ jobs:
           vercel-args: '--prod'
           working-directory: ./
 
-      - name: Deploy Fly.io Workers
-        if: steps.production_preflight.outputs.skip_deploy != 'true'
-        run: |
-          echo "Deploying Fly.io workers..."
-          # Add Fly.io deployment commands here
-
       - name: Run production smoke tests
         if: steps.production_preflight.outputs.skip_deploy != 'true'
         run: |
