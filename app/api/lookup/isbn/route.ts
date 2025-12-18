@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Ensure this route is dynamic and not statically generated
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // Mock ISBN lookup data - in production, this would integrate with a real service
 const MOCK_BOOKS: Record<string, any> = {
   '978-0-123456-78-9': {

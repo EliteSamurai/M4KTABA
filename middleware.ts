@@ -76,5 +76,9 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next|api/webhooks|api/auth).*)'],
+  // Only run middleware on page routes, not API routes (except specific ones if needed)
+  // This prevents unnecessary middleware execution on API endpoints
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 };
