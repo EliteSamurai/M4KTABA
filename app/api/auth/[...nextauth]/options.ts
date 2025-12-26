@@ -100,7 +100,7 @@ export const authOptions: NextAuthOptions = {
                 _type: 'user',
                 _id: user._id || uuidv4(),
                 email: user.email,
-                location: user.location || null, // Use null instead of {} to indicate no address set
+                ...(user.location && { location: user.location }),
                 image: imageRef || null,
                 stripeAccountId: user.stripeAccountId || null,
                 profileComplete: false, // Track if profile is complete

@@ -37,7 +37,6 @@ export default defineType({
         {name: 'country', title: 'Country', type: 'string'},
       ],
       description: "The user's complete address.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'bio',
