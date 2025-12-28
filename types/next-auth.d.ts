@@ -6,6 +6,7 @@ declare module 'next-auth' {
     user: {
       _id: string;
       stripeAccountId: string;
+      profileComplete?: boolean;
       location?: {
         street?: string;
         city?: string;
@@ -22,6 +23,7 @@ declare module 'next-auth' {
     image?: string;
     picture?: string;
     stripeAccountId: string;
+    profileComplete?: boolean;
     location?: {
       street?: string;
       city?: string;

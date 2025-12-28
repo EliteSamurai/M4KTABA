@@ -56,6 +56,7 @@ export const authOptions: NextAuthOptions = {
           image: user.image ? urlFor(user.image) : '',
           location: user.location,
           stripeAccountId: user.stripeAccountId || null,
+          profileComplete: user.profileComplete || false,
         } as User;
       },
     }),
@@ -73,8 +74,9 @@ export const authOptions: NextAuthOptions = {
         // Populate token with user data
         token._id = user._id || token._id;
         token.email = user.email;
-        token.location = user.location || {};
+        token.location = user.location || null; // Use null for incomplete profiles (consistent with Google OAuth)
         token.stripeAccountId = user.stripeAccountId || null;
+        token.profileComplete = user.profileComplete || false;
 
         if (account?.provider === 'google') {
           try {
@@ -132,20 +134,26 @@ export const authOptions: NextAuthOptions = {
       session.user.location = token.location;
       session.user.image = token.image || null; // Return the Sanity image object
       session.user.stripeAccountId = token.stripeAccountId || null;
+      session.user.profileComplete = token.profileComplete || false;
 
       try {
         // Dynamic import of readClient
         const { readClient } = await import('@/studio-m4ktaba/client');
 
         const latestUser = await (readClient as any).fetch(
-          `*[_type == "user" && _id == $_id][0]{email, image, location, stripeAccountId}`,
+          `*[_type == "user" && _id == $_id][0]{email, image, location, stripeAccountId, profileComplete}`,
           { _id: token._id }
         );
 
-        session.user.image = latestUser?.image || session.user.image; // Keep the image object intact
-        session.user.location = latestUser?.location || session.user.location;
-        session.user.stripeAccountId =
-          latestUser?.stripeAccountId || session.user.stripeAccountId;
+        if (latestUser) {
+          session.user.image = latestUser.image || session.user.image; // Keep the image object intact
+          session.user.location = latestUser.location || session.user.location;
+          session.user.stripeAccountId =
+            latestUser.stripeAccountId || session.user.stripeAccountId;
+          session.user.profileComplete = latestUser.profileComplete || false;
+          // Update token with latest profileComplete status
+          token.profileComplete = latestUser.profileComplete || false;
+        }
       } catch (error) {
         console.error('Error fetching user data for session:', error);
       }
