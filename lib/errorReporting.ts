@@ -185,7 +185,7 @@ export function reportReactError(error: Error, errorInfo?: React.ErrorInfo): voi
   reportError({
     message: error.message,
     stack: error.stack,
-    componentStack: errorInfo?.componentStack,
+    componentStack: errorInfo?.componentStack || undefined,
     type: 'react_error',
     severity: 'high',
   });
