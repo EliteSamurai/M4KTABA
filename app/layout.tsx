@@ -12,6 +12,8 @@ import Script from 'next/script';
 import { A11yLiveRegion } from '@/components/A11yLiveRegion';
 import VitalsClient from './vitals-client';
 import dynamic from 'next/dynamic';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { ErrorReportingInitializer } from '@/components/ErrorReportingInitializer';
 
 // Dynamically import heavy components to reduce initial bundle size
 const SupportWidget = dynamic(() => import('@/components/SupportWidget'), {
@@ -164,18 +166,22 @@ export default function RootLayout({
         <AuthProvider>
           <SupportProvider>
             <CartProvider>
-              <Navbar />
-              <A11yLiveRegion />
-              {process.env.NEXT_PUBLIC_DISABLE_VITALS !== 'true' ? (
-                <VitalsClient />
-              ) : null}
-              {children}
-              <Footer />
-              <SupportWidget />
-              <Toaster />
+              <ErrorBoundary>
+                <ErrorReportingInitializer />
+                <Navbar />
+                <A11yLiveRegion />
+                {process.env.NEXT_PUBLIC_DISABLE_VITALS !== 'true' ? (
+                  <VitalsClient />
+                ) : null}
+                {children}
+                <Footer />
+                <SupportWidget />
+                <Toaster />
+              </ErrorBoundary>
             </CartProvider>
           </SupportProvider>
         </AuthProvider>
+
       </body>
     </html>
   );

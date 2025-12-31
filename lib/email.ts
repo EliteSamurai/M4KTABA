@@ -161,22 +161,84 @@ export async function notifyAdmin(
   data: Record<string, any>
 ): Promise<void> {
   const adminEmail = process.env.ADMIN_EMAIL || process.env.ALERT_EMAIL;
-  
+
   if (!adminEmail) {
     console.warn('No admin email configured');
     return;
   }
 
+  // Determine if this is an error report
+  const isErrorReport = event.includes('Error:') || data.type === 'react_error' || data.type === 'javascript_error';
+
+  const subject = isErrorReport
+    ? `🚨 M4KTABA Error: ${event}`
+    : `Admin Alert: ${event}`;
+
+  const html = isErrorReport ? generateErrorReportHtml(event, data) : generateAdminAlertHtml(event, data);
+
   await sendEmail({
     to: adminEmail,
-    subject: `Admin Alert: ${event}`,
-    html: `
-      <h2>Admin Alert</h2>
-      <p><strong>Event:</strong> ${event}</p>
-      <pre>${JSON.stringify(data, null, 2)}</pre>
-    `,
-    text: `Admin Alert: ${event}\n\n${JSON.stringify(data, null, 2)}`,
+    subject,
+    html,
+    text: isErrorReport ? generateErrorReportText(event, data) : generateAdminAlertText(event, data),
   });
+}
+
+function generateErrorReportHtml(event: string, data: Record<string, any>): string {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h1 style="color: #dc3545;">🚨 Error Report</h1>
+      <p><strong>Event:</strong> ${event}</p>
+      <p><strong>Timestamp:</strong> ${data.timestamp || new Date().toISOString()}</p>
+      <p><strong>URL:</strong> ${data.url || 'Unknown'}</p>
+      <p><strong>User Agent:</strong> ${data.userAgent || 'Unknown'}</p>
+
+      ${data.userId ? `<p><strong>User ID:</strong> ${data.userId}</p>` : ''}
+      ${data.userEmail ? `<p><strong>User Email:</strong> ${data.userEmail}</p>` : ''}
+
+      <h3>Error Details</h3>
+      <div style="background: #f8f9fa; padding: 15px; border-left: 4px solid #dc3545; margin: 10px 0;">
+        <p><strong>Message:</strong> ${data.error || data.message}</p>
+        ${data.stack ? `<p><strong>Stack:</strong></p><pre style="white-space: pre-wrap; font-size: 12px;">${data.stack}</pre>` : ''}
+        ${data.componentStack ? `<p><strong>Component Stack:</strong></p><pre style="white-space: pre-wrap; font-size: 12px;">${data.componentStack}</pre>` : ''}
+      </div>
+
+      <h3>Additional Data</h3>
+      <pre style="background: #f8f9fa; padding: 10px; font-size: 12px;">${JSON.stringify(data.additionalData || data, null, 2)}</pre>
+    </div>
+  `;
+}
+
+function generateErrorReportText(event: string, data: Record<string, any>): string {
+  return `
+🚨 ERROR REPORT
+Event: ${event}
+Timestamp: ${data.timestamp || new Date().toISOString()}
+URL: ${data.url || 'Unknown'}
+User Agent: ${data.userAgent || 'Unknown'}
+${data.userId ? `User ID: ${data.userId}` : ''}
+${data.userEmail ? `User Email: ${data.userEmail}` : ''}
+
+Error Details:
+Message: ${data.error || data.message}
+${data.stack ? `Stack:\n${data.stack}` : ''}
+${data.componentStack ? `Component Stack:\n${data.componentStack}` : ''}
+
+Additional Data:
+${JSON.stringify(data.additionalData || data, null, 2)}
+  `.trim();
+}
+
+function generateAdminAlertHtml(event: string, data: Record<string, any>): string {
+  return `
+    <h2>Admin Alert</h2>
+    <p><strong>Event:</strong> ${event}</p>
+    <pre>${JSON.stringify(data, null, 2)}</pre>
+  `;
+}
+
+function generateAdminAlertText(event: string, data: Record<string, any>): string {
+  return `Admin Alert: ${event}\n\n${JSON.stringify(data, null, 2)}`;
 }
 
 type OrderEmailPayload = {

@@ -2,18 +2,24 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { reportReactError } from '@/lib/errorReporting';
 
 type Props = { children: React.ReactNode };
-type State = { hasError: boolean };
+type State = { hasError: boolean; error?: Error; errorInfo?: React.ErrorInfo };
 
 export default class ErrorBoundary extends React.Component<Props, State> {
   state: State = { hasError: false };
 
-  static getDerivedStateFromError(): State {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
   }
 
-  componentDidCatch() {}
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    this.setState({ error, errorInfo });
+
+    // Report error to admin
+    reportReactError(error, errorInfo);
+  }
 
   render() {
     if (this.state.hasError) {
@@ -24,7 +30,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
             Please try again. If the problem persists, contact support.
           </p>
           <div className='mt-4'>
-            <Button onClick={() => this.setState({ hasError: false })}>
+            <Button onClick={() => this.setState({ hasError: false, error: undefined, errorInfo: undefined })}>
               Try again
             </Button>
           </div>

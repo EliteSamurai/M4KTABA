@@ -157,10 +157,10 @@ export function CompleteProfileContent() {
         } catch (updateError) {
           console.error('Error updating session:', updateError);
           // If session update fails, sign out and redirect to login
-          await signOut({
-            redirect: false,
-          });
-          router.push('/login');
+        await signOut({
+          redirect: false,
+        });
+        router.push('/login');
         }
       } else {
         throw new Error(result.message || 'Failed to update profile');

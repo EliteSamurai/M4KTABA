@@ -148,7 +148,7 @@ export const authOptions: NextAuthOptions = {
         if (latestUser) {
           session.user.image = latestUser.image || session.user.image; // Keep the image object intact
           session.user.location = latestUser.location || session.user.location;
-          session.user.stripeAccountId =
+        session.user.stripeAccountId =
             latestUser.stripeAccountId || session.user.stripeAccountId;
           session.user.profileComplete = latestUser.profileComplete || false;
           // Update token with latest profileComplete status
