@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useSession, signOut, update } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { Camera, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -143,25 +143,9 @@ export function CompleteProfileContent() {
           description: 'Your profile has been successfully completed.',
         });
 
-        // Refresh the session to update profileComplete status
-        try {
-          await update();
-          
-          // Get returnTo URL from query params or default to home
-          const returnTo = searchParams.get('returnTo') || '/';
-          
-          // Small delay to ensure session is updated
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          router.push(returnTo);
-        } catch (updateError) {
-          console.error('Error updating session:', updateError);
-          // If session update fails, sign out and redirect to login
-        await signOut({
-          redirect: false,
-        });
-        router.push('/login');
-        }
+        // Redirect to returnTo URL or home - session will be updated on next page load
+        const returnTo = searchParams.get('returnTo') || '/';
+        router.push(returnTo);
       } else {
         throw new Error(result.message || 'Failed to update profile');
       }
