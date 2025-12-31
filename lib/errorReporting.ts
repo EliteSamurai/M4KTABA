@@ -32,6 +32,8 @@ export async function reportError(details: ErrorDetails): Promise<void> {
       userAgent: details.userAgent || (typeof window !== 'undefined' ? window.navigator.userAgent : 'unknown'),
     };
 
+    console.log('📤 Sending error report:', errorReport);
+
     const response = await fetch('/api/error-report', {
       method: 'POST',
       headers: {
@@ -40,11 +42,17 @@ export async function reportError(details: ErrorDetails): Promise<void> {
       body: JSON.stringify(errorReport),
     });
 
+    console.log('📥 Error report response:', response.status, response.statusText);
+
     if (!response.ok) {
       console.error('Failed to report error:', response.statusText);
+      const errorText = await response.text();
+      console.error('Error response body:', errorText);
+    } else {
+      console.log('✅ Error report sent successfully');
     }
   } catch (error) {
-    console.error('Error reporting failed:', error);
+    console.error('❌ Error reporting failed:', error);
   }
 }
 

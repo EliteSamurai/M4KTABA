@@ -66,6 +66,34 @@ export default function TestErrorPage() {
     });
   };
 
+  const testApiDirectly = async () => {
+    try {
+      const response = await fetch('/api/test-error-report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: 'Direct API test - should send email',
+          timestamp: new Date().toISOString(),
+          testType: 'direct_api_test'
+        }),
+      });
+
+      const result = await response.json();
+      console.log('API Test Result:', result);
+
+      if (response.ok) {
+        alert('API test successful! Check your email.');
+      } else {
+        alert('API test failed: ' + result.error);
+      }
+    } catch (error) {
+      console.error('API test failed:', error);
+      alert('API test failed: ' + error);
+    }
+  };
+
   return (
     <div className="container mx-auto py-8 max-w-2xl">
       <Card>
@@ -117,6 +145,14 @@ export default function TestErrorPage() {
               className="w-full"
             >
               📝 Trigger Custom Error Report
+            </Button>
+
+            <Button
+              onClick={testApiDirectly}
+              variant="outline"
+              className="w-full"
+            >
+              🔗 Test API Directly (Bypass Error Handler)
             </Button>
           </div>
 
