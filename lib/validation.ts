@@ -25,7 +25,7 @@ export const CartItemSchema = z.object({
 });
 
 export const CartMutationSchema = z.object({
-  cart: z.array(CartItemSchema).min(0),
+  cart: z.string(),
 });
 
 export const ProfileUpdateSchema = z.object({

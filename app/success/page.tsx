@@ -226,7 +226,7 @@ export function SuccessContent() {
                         'Content-Type': 'application/json',
                         'x-csrf-token': csrfToken,
                       },
-                      body: JSON.stringify({ cart: [] }),
+                      body: JSON.stringify({ cart: JSON.stringify([]) }),
                     });
 
                     // Clear cart locally

@@ -40,9 +40,24 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const { cart } = parsed.data;
+    const { cart: cartString } = parsed.data;
 
-    await (writeClient as any).patch(session.user._id).set({ cart }).commit();
+    // Parse the cart string back to an array for database storage
+    let cartArray;
+    try {
+      cartArray = JSON.parse(cartString);
+      if (!Array.isArray(cartArray)) {
+        throw new Error('Cart must be an array');
+      }
+    } catch (error) {
+      console.error('Failed to parse cart string:', error);
+      return NextResponse.json(
+        { error: 'Invalid cart format' },
+        { status: 400 }
+      );
+    }
+
+    await (writeClient as any).patch(session.user._id).set({ cart: cartArray }).commit();
 
     return NextResponse.json({ message: 'Cart updated successfully' });
   } catch (error) {

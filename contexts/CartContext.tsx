@@ -53,7 +53,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       // Filter out invalid cart items and fix user data before sending
-      const validCart = updatedCart
+      const validCart = (updatedCart || [])
         .filter(
           item =>
             item.id &&
@@ -71,7 +71,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
               : item.user,
         }));
 
-      const cartData = { cart: validCart };
+      const cartData = { cart: JSON.stringify(validCart) };
 
       // Update local cart with only valid items
       if (validCart.length !== updatedCart.length) {
