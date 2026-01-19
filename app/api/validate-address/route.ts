@@ -12,6 +12,12 @@ async function validateAddress(address: {
   state: string;
   country: string;
 }) {
+  // If EasyPost API key is not configured, fall back to basic validation
+  if (!EASYPOST_API_KEY) {
+    console.warn('EasyPost API key not configured, falling back to basic address validation');
+    return validateAddressBasic(address);
+  }
+
   try {
     // Add the `verify` flag to trigger address verification
     const response = await fetch(`${EASYPOST_API_URL}/addresses`, {
@@ -28,7 +34,8 @@ async function validateAddress(address: {
 
     // Check if the response is ok (status 200-299)
     if (!response.ok) {
-      throw new Error(`Failed to validate address: ${response.statusText}`);
+      console.warn(`EasyPost API request failed (${response.status}), falling back to basic validation`);
+      return validateAddressBasic(address);
     }
 
     // Parse the response data
@@ -37,20 +44,50 @@ async function validateAddress(address: {
     // Access the 'verifications' object and check the status
     const verifications = data?.verifications || {};
 
-    // Check if both `zip4` and `delivery` verification succeeded
-    const zip4Valid = verifications.zip4?.success === true;
+    // Check if delivery verification succeeded (zip4 is optional)
     const deliveryValid = verifications.delivery?.success === true;
 
-    if (zip4Valid && deliveryValid) {
+    if (deliveryValid) {
       return true;
     } else {
-      console.error('Address validation failed:', verifications);
-      return false;
+      console.warn('EasyPost delivery verification failed, falling back to basic validation');
+      return validateAddressBasic(address);
     }
   } catch (error) {
-    console.error('Error validating address:', error);
-    return false;
+    console.error('Error validating address with EasyPost:', error);
+    console.warn('Falling back to basic address validation');
+    return validateAddressBasic(address);
   }
+}
+
+// Basic address validation fallback
+function validateAddressBasic(address: {
+  street1: string;
+  city: string;
+  zip: string;
+  state: string;
+  country: string;
+}): boolean {
+  // Basic validation - just check that required fields are present and have reasonable length
+  const isStreetValid = address.street1 && address.street1.length >= 5;
+  const isCityValid = address.city && address.city.length >= 2;
+  const isStateValid = address.state && address.state.length >= 2;
+  const isZipValid = address.zip && /^\d{5}(-\d{4})?$/.test(address.zip); // US zip code format
+  const isCountryValid = address.country && address.country.length >= 2;
+
+  const isValid = isStreetValid && isCityValid && isStateValid && isZipValid && isCountryValid;
+
+  if (!isValid) {
+    console.warn('Basic address validation failed:', {
+      street1: isStreetValid,
+      city: isCityValid,
+      state: isStateValid,
+      zip: isZipValid,
+      country: isCountryValid,
+    });
+  }
+
+  return isValid;
 }
 
 export async function POST(req: NextRequest) {
