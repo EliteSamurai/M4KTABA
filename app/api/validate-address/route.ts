@@ -68,12 +68,28 @@ function validateAddressBasic(address: {
   state: string;
   country: string;
 }): boolean {
-  // Basic validation - just check that required fields are present and have reasonable length
+  // Basic validation - check that required fields are present and have reasonable length
   const isStreetValid = address.street1 && address.street1.length >= 5;
   const isCityValid = address.city && address.city.length >= 2;
-  const isStateValid = address.state && address.state.length >= 2;
-  const isZipValid = address.zip && /^\d{5}(-\d{4})?$/.test(address.zip); // US zip code format
-  const isCountryValid = address.country && address.country.length >= 2;
+  const isCountryValid = address.country && address.country.length === 2; // ISO country code
+
+  // State validation - required for US, optional for others
+  const isStateValid = address.country === 'US'
+    ? (address.state && address.state.length >= 2)
+    : (!address.state || address.state.length >= 2); // Optional for non-US
+
+  // ZIP/Postal code validation - flexible for international formats
+  let isZipValid = true; // Default to valid (optional)
+  if (address.zip && address.zip.trim()) {
+    if (address.country === 'US') {
+      // US ZIP code format: 12345 or 12345-6789
+      isZipValid = /^\d{5}(-\d{4})?$/.test(address.zip);
+    } else {
+      // International postal codes: more flexible validation
+      // Accept alphanumeric codes with spaces, hyphens, common separators
+      isZipValid = /^[A-Z0-9\s\-]{3,10}$/i.test(address.zip);
+    }
+  }
 
   const isValid = isStreetValid && isCityValid && isStateValid && isZipValid && isCountryValid;
 
@@ -84,6 +100,8 @@ function validateAddressBasic(address: {
       state: isStateValid,
       zip: isZipValid,
       country: isCountryValid,
+      country: address.country,
+      stateRequired: address.country === 'US'
     });
   }
 
