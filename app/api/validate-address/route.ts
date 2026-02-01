@@ -99,8 +99,8 @@ function validateAddressBasic(address: {
       city: isCityValid,
       state: isStateValid,
       zip: isZipValid,
-      country: isCountryValid,
-      country: address.country,
+      countryValid: isCountryValid,
+      countryValue: address.country,
       stateRequired: address.country === 'US'
     });
   }
