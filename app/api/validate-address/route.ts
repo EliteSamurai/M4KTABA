@@ -69,13 +69,13 @@ function validateAddressBasic(address: {
   country: string;
 }): boolean {
   // Basic validation - check that required fields are present and have reasonable length
-  const isStreetValid = address.street1 && address.street1.length >= 5;
-  const isCityValid = address.city && address.city.length >= 2;
-  const isCountryValid = address.country && address.country.length === 2; // ISO country code
+  const isStreetValid = Boolean(address.street1 && address.street1.length >= 5);
+  const isCityValid = Boolean(address.city && address.city.length >= 2);
+  const isCountryValid = Boolean(address.country && address.country.length === 2); // ISO country code
 
   // State validation - required for US, optional for others
   const isStateValid = address.country === 'US'
-    ? (address.state && address.state.length >= 2)
+    ? Boolean(address.state && address.state.length >= 2)
     : (!address.state || address.state.length >= 2); // Optional for non-US
 
   // ZIP/Postal code validation - flexible for international formats
