@@ -19,6 +19,18 @@ export default async function Page() {
 
   const user = await (readClient as any).fetch(query, { email });
 
+  if (!user) {
+    return (
+      <main className='flex-1 py-6'>
+        <div className='container mx-auto px-4'>
+          <div className='rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive'>
+            <p>User profile not found. Please contact support.</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className='flex-1 py-6'>
       <ProfileForm session={session} user={user} />

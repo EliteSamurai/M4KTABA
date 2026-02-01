@@ -75,7 +75,7 @@ export const metadata = {
     type: 'website',
     images: [
       {
-        url: '/default-og-image.jpg',
+        url: '/islamiclibrary.jpg', // Use existing image instead of missing default-og-image.jpg
         width: 1200,
         height: 630,
         alt: 'M4KTABA logo and offerings',
@@ -87,7 +87,7 @@ export const metadata = {
     title: 'M4KTABA',
     description:
       'Explore a unique collection of Islamic-Arabic books and honey.',
-    images: ['/default-og-image.jpg'],
+    images: ['/islamiclibrary.jpg'], // Use existing image instead of missing default-og-image.jpg
   },
 };
 

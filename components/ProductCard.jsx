@@ -115,8 +115,8 @@ export default function BookProductCard({
         </TooltipProvider>
         <div className="space-y-1">
           <p className='text-sm text-muted-foreground'>
-            Sold by {user.email.split('@')[0]}
-            {user.location?.country && (
+            Sold by {user?.email ? user.email.split('@')[0] : 'Unknown Seller'}
+            {user?.location?.country && (
               <span className='ml-1 text-xs'>({user.location.country.toUpperCase()})</span>
             )}
           </p>

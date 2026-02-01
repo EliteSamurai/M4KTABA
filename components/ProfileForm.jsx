@@ -30,15 +30,25 @@ import getInitial from '@/utils/initials';
 export default function ProfileForm({ session, user }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Safely extract bio text with null checks
+  const getBioText = (userData) => {
+    if (!userData?.bio) return '';
+    if (!Array.isArray(userData.bio) || userData.bio.length === 0) return '';
+    const firstBlock = userData.bio[0];
+    if (!firstBlock?.children || !Array.isArray(firstBlock.children) || firstBlock.children.length === 0) return '';
+    return firstBlock.children[0]?.text || '';
+  };
+  
   const [formData, setFormData] = useState({
-    bio: user.bio?.[0]?.children?.[0]?.text || '',
+    bio: getBioText(user),
     street: '',
     city: '',
     state: '',
     zip: '',
     country: 'United States',
   });
-  const [image, setImage] = useState(user.image ? urlFor(user.image) : '');
+  const [image, setImage] = useState(user?.image ? urlFor(user.image) : '');
   const [imageFile, setImageFile] = useState(null);
 
   // State abbreviations map

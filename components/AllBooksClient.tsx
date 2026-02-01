@@ -87,7 +87,7 @@ export default function AllBooksClient({
               key={`${book._id}-${index}`}
               id={book._id}
               title={book.title}
-              user={book.user || 'Unknown'}
+              user={book.user || { email: 'unknown@example.com', location: {} }}
               price={book.price}
               image={urlFor(book.image) || '/placeholder.jpg'}
             />
