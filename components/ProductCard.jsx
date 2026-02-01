@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCart, Loader2, Home, Package as PackageIcon, Plane } from 'lucide-react';
+import { ShoppingCart, Loader2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from './ui/skeleton';
 import { useCart } from '@/contexts/CartContext';
 import { urlFor } from '@/utils/imageUrlBuilder';
-import { calculateShipping, getShippingTier, getShippingBadge } from '@/lib/shipping-smart';
+import { calculateShipping, getShippingBadge } from '@/lib/shipping-smart';
 
 export default function BookProductCard({
   id,
