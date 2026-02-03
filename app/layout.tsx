@@ -99,7 +99,7 @@ export default function RootLayout({
   return (
     <html
       lang='en'
-      className={`${montserrat.className} m-8 bg-slate-50 antialiased`}
+      className={`${montserrat.className} bg-slate-50 antialiased`}
     >
       <head>
         {/* Preconnect to external domains for faster loading */}

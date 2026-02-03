@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
   const author = (searchParams.get('author') || '').trim();
   const language = (searchParams.get('language') || '').trim();
   const condition = (searchParams.get('condition') || '').trim();
+  const category = (searchParams.get('category') || '').trim();
   const priceMin = toNumber(searchParams.get('price_min'), 0);
   const priceMax = toNumber(searchParams.get('price_max'), 0);
   const sort = (searchParams.get('sort') || 'new').trim();
@@ -42,6 +43,10 @@ export async function GET(req: NextRequest) {
     if (condition) {
       filters.push('condition == $condition');
       params.condition = condition;
+    }
+    if (category) {
+      filters.push('selectedCategory._ref == $category');
+      params.category = category;
     }
     if (priceMin > 0) {
       filters.push('price >= $priceMin');

@@ -79,3 +79,13 @@ body {
 .zoom-active {
   cursor: zoom-out; /* Changes cursor to a magnifying glass with a minus sign */
 }
+
+/* Hide scrollbar for horizontal scroll containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
