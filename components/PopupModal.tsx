@@ -26,7 +26,7 @@ interface SellDialogProps {
 export default function PopupModal({
   open,
   setOpen,
-  booksImage = '/placeholder.svg',
+  booksImage = '/islamiclibrary.jpg',
 }: SellDialogProps) {
   const router = useRouter();
 

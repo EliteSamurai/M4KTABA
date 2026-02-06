@@ -381,7 +381,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                       <Image
                         src={
                           urlFor((relatedBook as any).photos) ||
-                          '/placeholder.jpg'
+                          '/islamiclibrary.jpg'
                         }
                         alt={(relatedBook as any).title || 'Related product'}
                         className='h-full w-full object-cover'

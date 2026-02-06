@@ -57,7 +57,7 @@ export default function ThumbnailSwitcher({ photos }: ThumbnailSwitcherProps) {
           {mainImage && (
             <>
               <Image
-                src={urlFor(mainImage) || '/placeholder.jpg'}
+                src={urlFor(mainImage) || '/islamiclibrary.jpg'}
                 alt='Product image'
                 className={cn(
                   'h-full w-full object-contain transition-transform duration-300',
@@ -106,7 +106,7 @@ export default function ThumbnailSwitcher({ photos }: ThumbnailSwitcherProps) {
             )}
           >
             <Image
-              src={urlFor(photo) || '/placeholder.jpg'}
+              src={urlFor(photo) || '/islamiclibrary.jpg'}
               alt={`Product thumbnail ${i + 1}`}
               className='h-full w-full object-cover'
               width={150}

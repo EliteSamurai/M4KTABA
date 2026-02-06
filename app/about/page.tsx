@@ -30,7 +30,7 @@ export default function About() {
         <div className='relative'>
           <div className='absolute inset-0 z-0'>
             <Image
-              src={IslamicBooks || '/placeholder.svg'}
+              src={IslamicBooks || '/islamiclibrary.jpg'}
               alt='Islamic Books Collection'
               className='object-cover object-center brightness-[0.25]'
               priority

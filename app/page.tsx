@@ -210,7 +210,7 @@ export default async function Home() {
                   title={book.title}
                   user={book.user || 'Unknown'}
                   price={book.price || 0}
-                  image={book.image || '/placeholder.svg'}
+                  image={book.image || '/islamiclibrary.jpg'}
                   loading={false}
                 />
               ))}

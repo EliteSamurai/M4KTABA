@@ -482,7 +482,7 @@ export default function MyBooksPage() {
             <div className='aspect-square relative'>
               <Image
                 src={
-                  book.photos[0] ? urlFor(book.photos[0]) : '/placeholder.jpg'
+                  book.photos[0] ? urlFor(book.photos[0]) : '/islamiclibrary.jpg'
                 }
                 alt={book.title}
                 fill

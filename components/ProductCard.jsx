@@ -42,8 +42,13 @@ export default function BookProductCard({
   const shippingInfo = calculateShipping(sellerCountry, buyerCountry, 1);
   const badge = getShippingBadge(shippingInfo.tier);
 
+  // Validate and get image URL
   const imageUrl = urlFor(image);
-  const validImageUrl = imageUrl || '/placeholder.jpg';
+  // Use existing placeholder image, or fallback to a valid image
+  // Accept both http/https URLs and local paths starting with /
+  const validImageUrl = imageUrl && typeof imageUrl === 'string' && (imageUrl.startsWith('http') || imageUrl.startsWith('/'))
+    ? imageUrl 
+    : '/islamiclibrary.jpg'; // Use existing image as placeholder
 
   //   const builder = imageUrlBuilder(client);
 
@@ -74,13 +79,18 @@ export default function BookProductCard({
     <Card className='group h-full overflow-hidden transition-all hover:shadow-lg flex flex-col'>
       <Link href={`/all/${id}`} className='block'>
         <CardContent className='relative p-0 flex-grow'>
-          <div className='relative aspect-[3/4] overflow-hidden'>
+          <div className='relative aspect-[3/4] overflow-hidden bg-muted'>
             <Image
               src={validImageUrl}
-              alt={title}
+              alt={title || 'Book cover'}
               fill
               className='object-cover transition-transform duration-300 group-hover:scale-110'
               sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+              unoptimized={validImageUrl.startsWith('/') && !validImageUrl.startsWith('/_next')}
+              onError={() => {
+                // Next.js Image handles errors internally, but we can log for debugging
+                console.warn('Image failed to load:', validImageUrl);
+              }}
             />
           </div>
           <div className="absolute right-2 top-2 flex flex-col gap-1">
@@ -88,14 +98,14 @@ export default function BookProductCard({
               variant='secondary'
               className='bg-black/60 text-white backdrop-blur-sm'
             >
-              ${price.toFixed(2)}
+              ${(price || 0).toFixed(2)}
             </Badge>
             {shippingInfo.buyerPays > 0 && (
               <Badge
                 variant='outline'
                 className='bg-white/90 text-xs backdrop-blur-sm'
               >
-                {badge.emoji} +${shippingInfo.buyerPays.toFixed(2)}
+                {badge.emoji} +${(shippingInfo.buyerPays || 0).toFixed(2)}
               </Badge>
             )}
           </div>

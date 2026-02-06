@@ -221,7 +221,7 @@ export default function EditableThumbnailManager({
       {mainImage && (
         <div className='relative overflow-hidden rounded-lg border bg-background aspect-square'>
           <Image
-            src={urlFor(mainImage?.asset?._ref) || '/placeholder.jpg'}
+            src={urlFor(mainImage?.asset?._ref) || '/islamiclibrary.jpg'}
             alt='Main image'
             className='h-full w-full object-contain'
             width={600}
@@ -286,7 +286,7 @@ export default function EditableThumbnailManager({
             </div>
 
             <Image
-              src={urlFor(photo?.asset?._ref) || '/placeholder.jpg'}
+              src={urlFor(photo?.asset?._ref) || '/islamiclibrary.jpg'}
               alt={`Thumbnail ${index + 1}`}
               className='h-full w-full object-cover'
               width={150}

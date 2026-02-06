@@ -202,7 +202,7 @@ export default function OfferList({ offers }: OfferListProps) {
                 {offer.book.photos?.[0]?.url && (
                   <div className='relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden'>
                     <Image
-                      src={offer.book.photos[0].url || '/placeholder.svg'}
+                      src={offer.book.photos[0].url || '/islamiclibrary.jpg'}
                       alt={offer.book.title}
                       fill
                       className='object-cover'
