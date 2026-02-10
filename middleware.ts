@@ -7,12 +7,16 @@ const protectedRoutes = ['/checkout', '/dashboard', '/orders', '/sell'];
 // Routes that require complete profile
 const profileRequiredRoutes = ['/checkout', '/sell'];
 
+// Public routes that don't require profile completion (users can browse these)
+const publicRoutes = ['/', '/all', '/books', '/about', '/help', '/privacy', '/terms', '/blog', '/signup/complete-profile', '/login', '/signup', '/api'];
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   
   // Check if this is a protected route
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   const requiresProfile = profileRequiredRoutes.some(route => pathname.startsWith(route));
+  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
   
   // Get the session token
   const token = await getToken({ 
@@ -27,8 +31,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Check if profile is complete for routes that require it
-  if (requiresProfile && token && !token.profileComplete) {
+  // Check if profile is complete for authenticated users
+  // Redirect to complete-profile if:
+  // 1. User is authenticated
+  // 2. Profile is not marked as complete OR address is missing/incomplete
+  // 3. User is NOT on a public route (allow browsing public content)
+  if (token && !isPublicRoute) {
     const location = token.location as Record<string, unknown> | null | undefined;
     
     // Check if location is missing or incomplete
@@ -41,7 +49,8 @@ export async function middleware(req: NextRequest) {
       location.zip &&
       location.country;
 
-    if (!hasCompleteAddress) {
+    // If profile is not complete OR address is incomplete, redirect to complete-profile
+    if (!token.profileComplete || !hasCompleteAddress) {
       const profileUrl = new URL('/signup/complete-profile', req.url);
       profileUrl.searchParams.set('userId', token._id as string || '');
       profileUrl.searchParams.set('returnTo', pathname);

@@ -14,7 +14,15 @@ export async function POST(req: Request) {
   // Recommended: max 5 signup attempts per IP per 15 minutes
 
   try {
-    const body = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (jsonError) {
+      return NextResponse.json(
+        { message: 'Invalid request body. Please check your input.' },
+        { status: 400 }
+      );
+    }
 
     // Validate input
     const validationResult = signupSchema.safeParse(body);
@@ -27,11 +35,23 @@ export async function POST(req: Request) {
 
     const { email, password } = validationResult.data;
 
+    // Normalize email (lowercase, trim)
+    const normalizedEmail = email.toLowerCase().trim();
+
     // Check if the user already exists in the database
-    const existingUser = await (readClient as any).fetch(
-      `*[_type == "user" && email == $email][0]`,
-      { email }
-    );
+    let existingUser;
+    try {
+      existingUser = await (readClient as any).fetch(
+        `*[_type == "user" && email == $email][0]`,
+        { email: normalizedEmail }
+      );
+    } catch (fetchError) {
+      console.error('Error checking existing user:', fetchError);
+      return NextResponse.json(
+        { message: 'Database error. Please try again later.' },
+        { status: 500 }
+      );
+    }
 
     if (existingUser) {
       return NextResponse.json(
@@ -41,19 +61,46 @@ export async function POST(req: Request) {
     }
 
     // Hash the password and create the new user
-    const hashedPassword = await hash(password, 10);
+    let hashedPassword;
+    try {
+      hashedPassword = await hash(password, 10);
+    } catch (hashError) {
+      console.error('Error hashing password:', hashError);
+      return NextResponse.json(
+        { message: 'Failed to process password. Please try again.' },
+        { status: 500 }
+      );
+    }
 
-    const newUser = await (writeClient as any).create({
-      _type: 'user',
-      email,
-      password: hashedPassword,
-    });
+    let newUser;
+    try {
+      newUser = await (writeClient as any).create({
+        _type: 'user',
+        email: normalizedEmail,
+        password: hashedPassword,
+        profileComplete: false, // Ensure new users start with incomplete profile
+      });
+    } catch (createError) {
+      console.error('Error creating user in database:', createError);
+      return NextResponse.json(
+        { message: 'Failed to create account. Please try again.' },
+        { status: 500 }
+      );
+    }
+
+    // Validate user was created successfully
+    if (!newUser || !newUser._id) {
+      return NextResponse.json(
+        { message: 'Account creation incomplete. Please try again.' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ userId: newUser._id }, { status: 200 });
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error('Unexpected error creating user:', error);
     return NextResponse.json(
-      { message: 'Failed to create user' },
+      { message: 'An unexpected error occurred. Please try again.' },
       { status: 500 }
     );
   }

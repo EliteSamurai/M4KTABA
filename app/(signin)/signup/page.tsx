@@ -37,9 +37,34 @@ export default function SignUpPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Client-side validation
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    if (!trimmedPassword) {
+      setError('Please enter a password');
+      return;
+    }
+
+    // Basic email format check (server will do full validation)
+    if (!trimmedEmail.includes('@') || !trimmedEmail.includes('.')) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    if (trimmedPassword.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
     if (!isChecked) {
       setError('Please accept the terms and conditions');
-      return; // <-- THIS STOPS EXECUTION
+      return;
     }
 
     setIsLoading(true);
@@ -49,24 +74,59 @@ export default function SignUpPage() {
       const response = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword }),
       });
 
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch (jsonError) {
+        setError('Invalid response from server. Please try again.');
+        return;
+      }
+
       if (response.ok) {
-        const { userId } = await response.json();
-        await signIn('credentials', {
+        const { userId } = responseData;
+        
+        // Validate userId exists
+        if (!userId) {
+          setError('Account created but user ID is missing. Please try logging in.');
+          return;
+        }
+
+        // Sign in the user
+        const signInResult = await signIn('credentials', {
           redirect: false,
-          email,
-          password,
+          email: trimmedEmail,
+          password: trimmedPassword,
         });
-        router.push(`/signup/complete-profile?userId=${userId}`);
+
+        // Check if signIn was successful
+        if (!signInResult?.ok) {
+          setError('Account created successfully, but automatic sign-in failed. Please try logging in.');
+          return;
+        }
+
+        // Navigate to complete profile page
+        try {
+          router.push(`/signup/complete-profile?userId=${userId}`);
+        } catch (navError) {
+          // If navigation fails, still show success but suggest manual navigation
+          setError('Account created! Please navigate to complete your profile.');
+        }
       } else {
-        const data = await response.json();
-        setError(data.message || 'Signup failed');
+        setError(responseData?.message || 'Signup failed. Please try again.');
       }
     } catch (error) {
       if (error instanceof Error) {
-        setError(error.message);
+        // Check for network errors
+        if (error.message.includes('fetch') || error.message.includes('network')) {
+          setError('Network error. Please check your connection and try again.');
+        } else {
+          setError(error.message || 'An unexpected error occurred. Please try again.');
+        }
+      } else {
+        setError('An unexpected error occurred. Please try again.');
       }
     } finally {
       setIsLoading(false);

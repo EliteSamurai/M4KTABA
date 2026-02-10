@@ -25,7 +25,27 @@ export async function POST(req: Request) {
       );
     }
 
-    const { userId, imageBlob, location, bio } = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (jsonError) {
+      return NextResponse.json(
+        { message: 'Invalid request body. Please check your input.' },
+        { status: 400 }
+      );
+    }
+
+    const { imageBlob, location, bio } = body;
+
+    // Use userId from session for security (prevent users from updating other users' profiles)
+    const userId = session.user._id;
+    
+    if (!userId) {
+      return NextResponse.json(
+        { message: 'User ID not found in session. Please sign in again.' },
+        { status: 401 }
+      );
+    }
 
     if (
       !location?.street ||
@@ -89,11 +109,27 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } catch (error) {
+    console.error('Error updating profile:', error);
+    
+    let errorMessage = 'Failed to update profile';
+    let statusCode = 500;
+
     if (error instanceof Error) {
-      console.error('Error updating profile:', error.message);
-    } else {
-      console.error('Unknown error occurred:', error);
+      errorMessage = error.message;
+      
+      // Handle specific error types
+      if (error.message.includes('Unauthorized') || error.message.includes('session')) {
+        statusCode = 401;
+        errorMessage = 'Unauthorized: Please sign in again.';
+      } else if (error.message.includes('validation') || error.message.includes('Invalid')) {
+        statusCode = 400;
+      }
     }
+
+    return NextResponse.json(
+      { message: errorMessage },
+      { status: statusCode }
+    );
   }
 }
 

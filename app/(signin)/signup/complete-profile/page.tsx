@@ -88,9 +88,39 @@ export function CompleteProfileContent() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: 'Invalid File Type',
+          description: 'Please select an image file.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        toast({
+          title: 'File Too Large',
+          description: 'Please select an image smaller than 5MB.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImage(reader.result as string);
+        if (reader.result) {
+          setImage(reader.result as string);
+        }
+      };
+      reader.onerror = () => {
+        toast({
+          title: 'Image Error',
+          description: 'Failed to read image file. Please try again.',
+          variant: 'destructive',
+        });
       };
       reader.readAsDataURL(file);
     }
@@ -111,15 +141,32 @@ export function CompleteProfileContent() {
       return;
     }
 
+    // Client-side validation - ensure all address fields are filled
+    const trimmedStreet = street.trim();
+    const trimmedCity = city.trim();
+    const trimmedState = state.trim();
+    const trimmedZip = zip.trim();
+    const trimmedCountry = country.trim();
+
+    if (!trimmedStreet || !trimmedCity || !trimmedState || !trimmedZip || !trimmedCountry) {
+      toast({
+        title: 'Missing Information',
+        description: 'Please fill in all address fields (Street, City, State, ZIP, and Country)',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Note: userId is not sent - API uses session.user._id for security
     const profileData = {
-      userId,
       imageBlob,
       location: {
-        street,
-        city,
-        state,
-        zip,
-        country,
+        street: trimmedStreet,
+        city: trimmedCity,
+        state: trimmedState,
+        zip: trimmedZip,
+        country: trimmedCountry,
       },
       bio,
     };
@@ -134,10 +181,22 @@ export function CompleteProfileContent() {
         body: JSON.stringify(profileData),
       });
 
-      const result = await response.json();
-      event('CompleteRegistration');
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        throw new Error('Invalid response from server. Please try again.');
+      }
 
       if (response.ok) {
+        // Track completion event
+        try {
+          event('CompleteRegistration');
+        } catch (eventError) {
+          // Non-critical error, continue
+          console.warn('Failed to track completion event:', eventError);
+        }
+
         toast({
           title: 'Profile Completed',
           description: 'Your profile has been successfully completed.',
@@ -145,15 +204,41 @@ export function CompleteProfileContent() {
 
         // Redirect to returnTo URL or home - session will be updated on next page load
         const returnTo = searchParams.get('returnTo') || '/';
-        router.push(returnTo);
+        try {
+          router.push(returnTo);
+        } catch (navError) {
+          // If navigation fails, reload the page to update session
+          window.location.href = returnTo;
+        }
       } else {
-        throw new Error(result.message || 'Failed to update profile');
+        // Handle specific error messages
+        const errorMessage = result?.message || 'Failed to update profile';
+        
+        // Check for specific error types
+        if (response.status === 401) {
+          throw new Error('Your session has expired. Please sign in again.');
+        } else if (response.status === 400) {
+          throw new Error(errorMessage || 'Please check your information and try again.');
+        } else {
+          throw new Error(errorMessage);
+        }
       }
     } catch (error) {
       console.error('Error updating profile:', error);
+      
+      let errorMessage = 'An error occurred. Please try again.';
+      if (error instanceof Error) {
+        // Check for network errors
+        if (error.message.includes('fetch') || error.message.includes('network')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: 'Update Failed',
-        description: 'An error occurred. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
