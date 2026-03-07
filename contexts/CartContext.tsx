@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { CartItem } from '@/types/shipping-types';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 type CartContextType = {
   cart: CartItem[];
@@ -22,6 +22,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     const loadCartFromLocalStorage = () => {
@@ -35,6 +36,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const syncCartWithBackend = async (updatedCart: CartItem[]): Promise<boolean> => {
+    // Only sync to backend when user is authenticated; API returns 401 for guests
+    if (status !== 'authenticated' || !session?.user) {
+      return true;
+    }
     try {
       // Get CSRF token
       const csrfResponse = await fetch('/api/csrf-token');
