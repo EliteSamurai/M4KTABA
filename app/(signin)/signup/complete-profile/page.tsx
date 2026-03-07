@@ -65,7 +65,7 @@ export function CompleteProfileContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
   const [isLoading, setIsLoading] = useState(false);
 
   const [imageBlob, setImage] = useState<string | null>(null);
@@ -202,12 +202,20 @@ export function CompleteProfileContent() {
           description: 'Your profile has been successfully completed.',
         });
 
-        // Redirect to returnTo URL or home - session will be updated on next page load
+        // Update JWT with new profile so middleware allows access to returnTo (e.g. /orders).
+        const location = {
+          street: trimmedStreet,
+          city: trimmedCity,
+          state: trimmedState,
+          zip: trimmedZip,
+          country: trimmedCountry,
+        };
+        await updateSession({ profileComplete: true, location });
+
         const returnTo = searchParams.get('returnTo') || '/';
         try {
           router.push(returnTo);
         } catch (navError) {
-          // If navigation fails, reload the page to update session
           window.location.href = returnTo;
         }
       } else {

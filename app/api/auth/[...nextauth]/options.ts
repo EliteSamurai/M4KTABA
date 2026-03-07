@@ -69,7 +69,16 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger, session }) {
+      // After client calls update(), persist profile so middleware sees new JWT
+      if (trigger === 'update' && session != null) {
+        if (typeof (session as any).profileComplete === 'boolean') {
+          token.profileComplete = (session as any).profileComplete;
+        }
+        if ((session as any).location != null) {
+          token.location = (session as any).location;
+        }
+      }
       if (user) {
         // Populate token with user data
         token._id = user._id || token._id;
