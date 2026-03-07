@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Edit, Truck, Info } from 'lucide-react';
+import { Edit, Truck, Info, Eye } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import ThumbnailSwitcher from '@/components/ThumbnailSwitcher';
 import AddToCartButton from '@/components/AddToCartButton';
@@ -219,8 +219,8 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
           {/* Product Info */}
           <div className='space-y-8'>
             <div className='space-y-2'>
-              <div className='flex items-center justify-between'>
-                <div className='flex items-center gap-2'>
+              <div className='flex flex-wrap items-center justify-between gap-3'>
+                <div className='flex flex-wrap items-center gap-2'>
                   <Badge variant='secondary'>
                     {(selectedCategory as any)?.title}
                   </Badge>
@@ -231,6 +231,24 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                   ) : (
                     <Badge variant='destructive'>Out of Stock</Badge>
                   )}
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className='inline-flex items-center gap-1.5 rounded-full bg-muted/80 px-2.5 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border/50'>
+                          <Eye className='h-3.5 w-3.5' aria-hidden />
+                          <span>
+                            {(book as any)?.views != null
+                              ? Number((book as any).views).toLocaleString()
+                              : '0'}{' '}
+                            views
+                          </span>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side='bottom' className='text-xs'>
+                        People who viewed this listing
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
                 {isOwner && (
                   <Button

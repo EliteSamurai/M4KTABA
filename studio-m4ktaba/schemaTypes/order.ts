@@ -23,6 +23,27 @@ export default defineType({
       type: 'string',
     }),
     defineField({
+      name: 'userEmail',
+      title: 'Buyer Email',
+      type: 'string',
+      description: 'Email of the customer who placed the order',
+    }),
+    defineField({
+      name: 'shippingDetails',
+      title: 'Shipping Address',
+      type: 'object',
+      fields: [
+        { name: 'name', type: 'string', title: 'Name' },
+        { name: 'email', type: 'string', title: 'Email' },
+        { name: 'street1', type: 'string', title: 'Street 1' },
+        { name: 'street2', type: 'string', title: 'Street 2' },
+        { name: 'city', type: 'string', title: 'City' },
+        { name: 'state', type: 'string', title: 'State' },
+        { name: 'zip', type: 'string', title: 'ZIP / Postal Code' },
+        { name: 'country', type: 'string', title: 'Country' },
+      ],
+    }),
+    defineField({
       name: 'cart',
       title: 'Cart Items',
       type: 'array',

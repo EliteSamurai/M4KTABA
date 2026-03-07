@@ -72,7 +72,15 @@ export async function createOrderFromPaymentIntent(
   }
 
   if (cart.length === 0) {
-    return { created: false, reason: 'No cart or lineItemIds in metadata' };
+    const amountTotal = (paymentIntent.amount ?? 0) / 100;
+    cart = [
+      {
+        id: `placeholder-${piId}`,
+        title: 'Order from Stripe (line items not in metadata – check Stripe receipt)',
+        price: amountTotal,
+        quantity: 1,
+      },
+    ];
   }
 
   const orderDocument = {
