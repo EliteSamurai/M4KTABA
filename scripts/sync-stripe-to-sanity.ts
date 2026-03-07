@@ -78,7 +78,11 @@ async function main() {
       if (pi.status !== 'succeeded') continue;
 
       try {
-        const result = await createOrderFromPaymentIntent(pi, readClient, writeClient);
+        const result = await createOrderFromPaymentIntent(
+          pi,
+          readClient as unknown as Parameters<typeof createOrderFromPaymentIntent>[1],
+          writeClient as unknown as Parameters<typeof createOrderFromPaymentIntent>[2]
+        );
         if (result.created) {
           created++;
           console.log(`  Created order for ${pi.id} → ${result.orderId}`);

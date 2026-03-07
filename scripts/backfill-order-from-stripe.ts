@@ -54,7 +54,11 @@ async function main() {
 
   console.log('Fetching payment intent:', piId);
   const paymentIntent = await stripe.paymentIntents.retrieve(piId);
-  const result = await createOrderFromPaymentIntent(paymentIntent, readClient, writeClient);
+  const result = await createOrderFromPaymentIntent(
+    paymentIntent,
+    readClient as unknown as Parameters<typeof createOrderFromPaymentIntent>[1],
+    writeClient as unknown as Parameters<typeof createOrderFromPaymentIntent>[2]
+  );
 
   if (result.created) {
     console.log('Order created in Sanity:', result.orderId);

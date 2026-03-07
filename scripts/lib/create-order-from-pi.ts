@@ -9,19 +9,19 @@ export type CreateResult =
   | { created: true; orderId: string }
   | { created: false; reason: string };
 
-type SanityLike = { fetch: (query: string, params: Record<string, unknown>) => Promise<unknown[]>; create: (doc: unknown) => Promise<{ _id: string }> };
-
 export async function createOrderFromPaymentIntent(
   paymentIntent: Stripe.PaymentIntent,
-  readClient: SanityLike,
-  writeClient: SanityLike
+  readClient: { fetch: (q: string, p: Record<string, unknown>) => Promise<unknown> },
+  writeClient: { create: (doc: Record<string, unknown>) => Promise<{ _id: string }> }
 ): Promise<CreateResult> {
+  const read = readClient as { fetch: (q: string, p: Record<string, unknown>) => Promise<unknown> };
+  const write = writeClient as { create: (doc: Record<string, unknown>) => Promise<{ _id: string }> };
   const piId = paymentIntent.id;
   if (paymentIntent.status !== 'succeeded') {
     return { created: false, reason: `Payment intent status is ${paymentIntent.status}` };
   }
 
-  const existing = await readClient.fetch(
+  const existing = await read.fetch(
     `*[_type == "order" && paymentId == $paymentId][0]`,
     { paymentId: piId }
   );
@@ -58,11 +58,11 @@ export async function createOrderFromPaymentIntent(
   }
   if (cart.length === 0 && metadata.lineItemIds) {
     const ids = (metadata.lineItemIds as string).split(',').filter(Boolean);
-    const books = await readClient.fetch(
+    const books = (await read.fetch(
       `*[_type == "book" && _id in $ids]{ _id, title, price, "user": user->{ _id, email, stripeAccountId } }`,
       { ids }
-    );
-    cart = (books || []).map((b: any) => ({
+    )) as Array<{ _id: string; title?: string; price?: number; user?: unknown }>;
+    cart = (books || []).map((b) => ({
       id: b._id,
       title: b.title || 'Book',
       price: typeof b.price === 'number' ? b.price : 0,
@@ -91,6 +91,6 @@ export async function createOrderFromPaymentIntent(
     shippingDetails,
   };
 
-  const created = await writeClient.create(orderDocument);
+  const created = await write.create(orderDocument);
   return { created: true, orderId: created._id };
 }
