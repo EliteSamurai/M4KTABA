@@ -20,15 +20,22 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { cart, status, userId, paymentId, shippingDetails } = body;
 
+    if (!Array.isArray(cart) || cart.length === 0) {
+      return NextResponse.json(
+        { message: 'Cart is empty or invalid.' },
+        { status: 400 }
+      );
+    }
+
     console.log('Order API received:', {
-      cartLength: cart?.length,
+      cartLength: cart.length,
       status,
       userId,
       paymentId,
       hasShippingDetails: !!shippingDetails,
     });
 
-    console.log('First cart item structure:', cart?.[0]);
+    console.log('First cart item structure:', cart[0]);
     console.log('Shipping details:', shippingDetails);
 
     // Create a simplified cart for validation (remove extra fields)
@@ -68,13 +75,6 @@ export async function POST(req: Request) {
           message: 'Invalid order data',
           errors: validationResult.error.errors,
         },
-        { status: 400 }
-      );
-    }
-
-    if (!Array.isArray(cart) || cart.length === 0) {
-      return NextResponse.json(
-        { message: 'Cart is empty or invalid.' },
         { status: 400 }
       );
     }

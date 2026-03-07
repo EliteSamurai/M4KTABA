@@ -83,21 +83,28 @@ export function SuccessContent() {
     }
 
     const hasPaymentIntent = !!paymentIntentId;
-    const cartFromUrl = cartData
-      ? (() => {
-          try {
-            return JSON.parse(decodeURIComponent(cartData)) as CartItem[];
-          } catch {
-            return null;
-          }
-        })()
-      : null;
+    const parseCart = (raw: string | null): CartItem[] | null => {
+      if (!raw || typeof raw !== 'string') return null;
+      try {
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(raw);
+        } catch {
+          parsed = JSON.parse(decodeURIComponent(raw));
+        }
+        return Array.isArray(parsed) ? parsed : null;
+      } catch {
+        return null;
+      }
+    };
+    const cartFromUrl = cartData ? parseCart(cartData) : null;
     const cartFromStorage =
       typeof sessionStorage !== 'undefined'
         ? (() => {
             try {
               const raw = sessionStorage.getItem('checkout_cart');
-              return raw ? (JSON.parse(raw) as CartItem[]) : null;
+              const parsed = raw ? JSON.parse(raw) : null;
+              return Array.isArray(parsed) ? parsed : null;
             } catch {
               return null;
             }
@@ -134,19 +141,32 @@ export function SuccessContent() {
             if (data.success) {
               setReceiptUrl(data.receiptUrl);
 
-              // Extract shipping details from metadata
-              let shippingDetails;
+              // Extract shipping details from metadata; normalize so OrderCreateSchema passes (all required fields non-empty)
+              const required = (s: unknown) =>
+                typeof s === 'string' && s.trim().length > 0 ? s.trim() : 'N/A';
+              let shippingDetails: {
+                name: string;
+                street1: string;
+                street2?: string;
+                city: string;
+                state: string;
+                zip: string;
+                country: string;
+              };
               try {
-                shippingDetails = data.metadata?.shippingDetails
+                const raw = data.metadata?.shippingDetails
                   ? JSON.parse(data.metadata.shippingDetails)
-                  : {
-                      name: 'N/A',
-                      street1: 'N/A',
-                      city: 'N/A',
-                      state: 'N/A',
-                      zip: 'N/A',
-                      country: 'N/A',
-                    };
+                  : null;
+                shippingDetails = {
+                  name: required(raw?.name) ?? 'N/A',
+                  street1: required(raw?.street1 ?? raw?.street) ?? 'N/A',
+                  street2:
+                    typeof raw?.street2 === 'string' ? raw.street2 : undefined,
+                  city: required(raw?.city) ?? 'N/A',
+                  state: required(raw?.state) ?? 'N/A',
+                  zip: required(raw?.zip) ?? 'N/A',
+                  country: required(raw?.country) ?? 'N/A',
+                };
               } catch (parseError) {
                 console.error('Failed to parse shipping details:', parseError);
                 shippingDetails = {
@@ -161,53 +181,75 @@ export function SuccessContent() {
 
               console.log('Extracted shipping details:', shippingDetails);
 
+              const userId =
+                (session.user as { _id?: string; id?: string })._id ??
+                (session.user as { _id?: string; id?: string }).id;
+              if (!userId) {
+                setError(
+                  'Session missing user ID. Please sign in again and contact support with your payment ID if needed.'
+                );
+                setIsLoading(false);
+                return;
+              }
+
+              const safeNumber = (n: unknown, fallback: number) =>
+                typeof n === 'number' && Number.isFinite(n) ? n : fallback;
+              const safeString = (s: unknown, fallback: string) =>
+                typeof s === 'string' && s.length > 0 ? s : fallback;
+
               const orderPayload = {
-                cart: parsedCartData.map((item: CartItem) => {
-                  // Special handling for honey products
-                  if (item.id === 'honey-001') {
+                cart: parsedCartData
+                  .map((item: CartItem) => {
+                    if (item.id === 'honey-001') {
+                      return {
+                        _key: `${item.id}-${Date.now()}`,
+                        id: item.id,
+                        title: 'Raw Sidr Honey (226g)',
+                        price: safeNumber(item.price, 0),
+                        quantity: Math.max(1, safeNumber(item.quantity, 1)),
+                        user: {
+                          _id: 'MH7kyac4DmuRU6j51iL0It',
+                          email: 'contact@m4ktaba.com',
+                        },
+                        shippingStatus: 'pending',
+                        refundDetails: { refundStatus: 'not_requested' },
+                      };
+                    }
                     return {
                       _key: `${item.id}-${Date.now()}`,
-                      id: item.id,
-                      title: 'Raw Sidr Honey (226g)',
-                      price: item.price,
-                      quantity: item.quantity,
-                      user: {
-                        _id: 'MH7kyac4DmuRU6j51iL0It',
-                        email: 'contact@m4ktaba.com',
-                      },
+                      id: safeString(item.id, 'unknown'),
+                      title: safeString(item.title, 'Item'),
+                      price: safeNumber(item.price, 0),
+                      quantity: Math.max(1, safeNumber(item.quantity, 1)),
+                      user: item.user
+                        ? {
+                            _id: item.user._id,
+                            email: item.user.email,
+                            location: item.user.location,
+                            stripeAccountId: item.user.stripeAccountId,
+                          }
+                        : undefined,
                       shippingStatus: 'pending',
-                      refundDetails: {
-                        refundStatus: 'not_requested',
-                      },
+                      refundDetails: { refundStatus: 'not_requested' },
                     };
-                  }
-
-                  // Normal handling for other products
-                  return {
-                    _key: `${item.id}-${Date.now()}`,
-                    id: item.id,
-                    title: item.title,
-                    price: item.price,
-                    quantity: item.quantity,
-                    user: item.user
-                      ? {
-                          _id: item.user._id,
-                          email: item.user.email,
-                          location: item.user.location,
-                          stripeAccountId: item.user.stripeAccountId,
-                        }
-                      : undefined,
-                    shippingStatus: 'pending',
-                    refundDetails: {
-                      refundStatus: 'not_requested',
-                    },
-                  };
-                }),
+                  })
+                  .filter(
+                    (item: { id: string; quantity: number }) =>
+                      item.id !== 'unknown' && item.quantity > 0
+                  ),
                 status: 'pending',
                 paymentId: paymentIntentId,
-                userId: session.user._id,
+                userId,
                 shippingDetails,
               };
+
+              if (orderPayload.cart.length === 0) {
+                setError(
+                  'Order cart is empty or invalid. Payment succeeded; please contact support with your payment ID.'
+                );
+                setIsLoading(false);
+                return;
+              }
 
               console.log('Order payload being sent:', {
                 cartLength: orderPayload.cart.length,
@@ -219,12 +261,16 @@ export function SuccessContent() {
               });
 
               try {
-                // Get CSRF token (reuse for both operations)
-                const csrfResponse = await fetch('/api/csrf-token');
-                const { token: csrfToken } = await csrfResponse.json();
+                const csrfResponse = await fetch('/api/csrf-token', {
+                  credentials: 'include',
+                });
+                const csrfJson = await csrfResponse.json();
+                const csrfToken =
+                  csrfJson?.token ?? csrfJson?.csrfToken ?? csrfJson?.value ?? '';
 
                 const saveOrderRes = await fetch('/api/orders', {
                   method: 'POST',
+                  credentials: 'include',
                   headers: {
                     'Content-Type': 'application/json',
                     'x-csrf-token': csrfToken,
@@ -266,17 +312,37 @@ export function SuccessContent() {
                     );
                   }, 2000);
                 } else {
-                  const errorData = await saveOrderRes.json();
-                  console.error('Order saving failed:', errorData);
-                  setError(errorData.message || 'Failed to save order. Payment succeeded but order not recorded. Please contact support with your payment ID.');
+                  let errorMessage =
+                    'Payment succeeded but order could not be saved. Please contact support with your payment ID.';
+                  try {
+                    const contentType = saveOrderRes.headers.get('content-type');
+                    if (contentType?.includes('application/json')) {
+                      const errorData = await saveOrderRes.json();
+                      const msg = errorData?.message;
+                      if (typeof msg === 'string' && msg.length > 0) {
+                        errorMessage = msg;
+                      }
+                      if (errorData?.errors?.length) {
+                        console.error('Order validation errors:', errorData.errors);
+                      }
+                    }
+                  } catch (_) {
+                    errorMessage = `Order save failed (${saveOrderRes.status}). ${errorMessage}`;
+                  }
+                  console.error('Order saving failed:', saveOrderRes.status, errorMessage);
+                  setError(errorMessage);
                   setOrderSaved(false);
-                  // DO NOT clear cart if order save failed - user needs to contact support
                 }
               } catch (orderError) {
                 console.error('Error saving order:', orderError);
-                setError('Failed to save order. Payment succeeded but order not recorded. Please contact support with your payment ID: ' + paymentIntentId);
+                const errMsg =
+                  orderError instanceof Error
+                    ? orderError.message
+                    : 'Unknown error';
+                setError(
+                  `Failed to save order: ${errMsg}. Payment succeeded; please contact support with payment ID: ${paymentIntentId}`
+                );
                 setOrderSaved(false);
-                // DO NOT clear cart if order save failed
               }
             } else {
               throw new Error(
@@ -303,10 +369,10 @@ export function SuccessContent() {
       }
     } else if (orderSaved) {
       setIsLoading(false);
-    } else if (sessionStatus !== 'loading' && hasPaymentIntent && (!parsedCartData || parsedCartData.length === 0)) {
+    } else if (hasPaymentIntent && (!parsedCartData || parsedCartData.length === 0)) {
       setError('Order cart could not be loaded. Your payment succeeded; please contact support with your payment ID if you need help.');
       setIsLoading(false);
-    } else if (sessionStatus !== 'loading') {
+    } else {
       setIsLoading(false);
     }
   }, [paymentIntentId, cartData, session, sessionStatus, orderSaved]);
