@@ -183,6 +183,7 @@ export async function POST(req: Request) {
         lineItemIds,
         idempotencyKey: idemKey,
         metadata: {
+          userEmail: buyerEmail,
           shippingDetails: JSON.stringify(shippingDetails),
           shippingBreakdown: JSON.stringify(shippingCalculation),
           subtotal: subtotal.toFixed(2),

@@ -374,23 +374,33 @@ export async function handlePaymentIntentSucceeded(
         return;
       }
     } else {
-      // Handle test orders with userEmail in metadata
-      console.log('🧪 Processing test order...');
-      const cart = paymentIntent.metadata.cart
+      // userEmail in metadata (real purchases now include it) – create order from metadata if needed
+      let cart: any[] = paymentIntent.metadata.cart
         ? JSON.parse(paymentIntent.metadata.cart)
         : [];
-      // const shippingDetails = paymentIntent.metadata.shippingDetails
-      //   ? JSON.parse(paymentIntent.metadata.shippingDetails)
-      //   : null;
 
-      console.log(
-        '🛒 Raw shipping details metadata:',
-        paymentIntent.metadata.shippingDetails
-      );
-      console.log('🛒 Parsed shipping details:', shippingDetails);
+      if (cart.length === 0 && paymentIntent.metadata.lineItemIds && shippingDetails) {
+        const ids = (paymentIntent.metadata.lineItemIds as string).split(',').filter(Boolean);
+        if (ids.length > 0) {
+          const books = await (readClient as any).fetch(
+            `*[_type == "book" && _id in $ids]{ _id, title, price, "user": user->{ _id, email, stripeAccountId } }`,
+            { ids }
+          );
+          cart = (books || []).map((b: any) => ({
+            id: b._id,
+            title: b.title || 'Book',
+            price: typeof b.price === 'number' ? b.price : 0,
+            quantity: 1,
+            user: b.user,
+          }));
+          console.log('🛒 Built cart from lineItemIds:', cart.length, 'items');
+        }
+      }
 
       if (cart.length > 0 && shippingDetails) {
         await processRealOrder(userEmail, shippingDetails, cart, paymentIntent);
+      } else if (shippingDetails && !cart.length) {
+        console.warn('🛒 Webhook: userEmail and shippingDetails present but no cart (and no lineItemIds). Order not created.');
       }
     }
   } catch (error) {
