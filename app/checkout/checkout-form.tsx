@@ -56,20 +56,21 @@ export function CheckoutForm({ cart }: CheckoutFormProps) {
 
     setIsLoading(true);
 
-    // Serialize cart into a query string
-    const cartData = encodeURIComponent(JSON.stringify(cart));
+    // Store cart in sessionStorage so success page can read it (Stripe return_url is limited to 2048 chars)
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('checkout_cart', JSON.stringify(cart));
+    }
 
+    const successUrl = `${window.location.origin}/success`;
     try {
-      // Call (stripe as any).confirmPayment here and store the result
       const result = await (stripe as any).confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/success?cart=${cartData}`,
+          return_url: successUrl,
         },
         redirect: 'if_required',
       });
 
-      // Check if the payment failed or succeeded
       if (result.error) {
         console.error('Payment Error:', result.error);
         setError(result.error.message || 'An error occurred during payment');
@@ -84,7 +85,7 @@ export function CheckoutForm({ cart }: CheckoutFormProps) {
           title: 'Payment Successful',
           description: 'Your payment has been processed successfully.',
         });
-        window.location.href = `/success?payment_intent=${result.paymentIntent.id}&cart=${cartData}`;
+        window.location.href = `/success?payment_intent=${result.paymentIntent.id}`;
       }
     } catch (error) {
       if (error instanceof Error) {

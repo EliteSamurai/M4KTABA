@@ -82,13 +82,33 @@ export function SuccessContent() {
       return;
     }
 
-    if (session?.user && cartData && !orderSaved) {
+    const hasPaymentIntent = !!paymentIntentId;
+    const cartFromUrl = cartData
+      ? (() => {
+          try {
+            return JSON.parse(decodeURIComponent(cartData)) as CartItem[];
+          } catch {
+            return null;
+          }
+        })()
+      : null;
+    const cartFromStorage =
+      typeof sessionStorage !== 'undefined'
+        ? (() => {
+            try {
+              const raw = sessionStorage.getItem('checkout_cart');
+              return raw ? (JSON.parse(raw) as CartItem[]) : null;
+            } catch {
+              return null;
+            }
+          })()
+        : null;
+    const parsedCartData = cartFromUrl ?? cartFromStorage;
+
+    if (session?.user && hasPaymentIntent && parsedCartData && parsedCartData.length > 0 && !orderSaved) {
       setIsLoading(true);
 
       try {
-        const decodedCartData = decodeURIComponent(cartData);
-        const parsedCartData = JSON.parse(decodedCartData);
-
         setCart(parsedCartData);
 
         const fetchPaymentIntent = async () => {
@@ -277,11 +297,16 @@ export function SuccessContent() {
 
         fetchPaymentIntent();
       } catch (error) {
-        setError('Failed to parse cart data.');
-        console.error('Parsing error:', error);
+        setError('Failed to load order data.');
+        console.error('Order load error:', error);
         setIsLoading(false);
       }
     } else if (orderSaved) {
+      setIsLoading(false);
+    } else if (sessionStatus !== 'loading' && hasPaymentIntent && (!parsedCartData || parsedCartData.length === 0)) {
+      setError('Order cart could not be loaded. Your payment succeeded; please contact support with your payment ID if you need help.');
+      setIsLoading(false);
+    } else if (sessionStatus !== 'loading') {
       setIsLoading(false);
     }
   }, [paymentIntentId, cartData, session, sessionStatus, orderSaved]);
