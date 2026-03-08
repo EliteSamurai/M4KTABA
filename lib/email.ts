@@ -163,7 +163,8 @@ export async function notifyAdmin(
   const adminEmail = process.env.ADMIN_EMAIL || process.env.ALERT_EMAIL;
 
   if (!adminEmail) {
-    console.warn('No admin email configured');
+    console.warn('No admin email configured — set ADMIN_EMAIL or ALERT_EMAIL in Vercel env to receive error report emails');
+    console.warn('Error report payload:', JSON.stringify({ event, ...data }, null, 2));
     return;
   }
 
@@ -199,6 +200,7 @@ function generateErrorReportHtml(event: string, data: Record<string, any>): stri
       <h3>Error Details</h3>
       <div style="background: #f8f9fa; padding: 15px; border-left: 4px solid #dc3545; margin: 10px 0;">
         <p><strong>Message:</strong> ${data.error || data.message}</p>
+        ${data.filename != null || data.lineno != null ? `<p><strong>Location:</strong> ${[data.filename, data.lineno != null ? `line ${data.lineno}` : '', data.colno != null ? `col ${data.colno}` : ''].filter(Boolean).join(' ')}</p>` : ''}
         ${data.stack ? `<p><strong>Stack:</strong></p><pre style="white-space: pre-wrap; font-size: 12px;">${data.stack}</pre>` : ''}
         ${data.componentStack ? `<p><strong>Component Stack:</strong></p><pre style="white-space: pre-wrap; font-size: 12px;">${data.componentStack}</pre>` : ''}
       </div>

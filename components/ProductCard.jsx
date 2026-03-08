@@ -23,6 +23,7 @@ import { Skeleton } from './ui/skeleton';
 import { useCart } from '@/contexts/CartContext';
 import { urlFor } from '@/utils/imageUrlBuilder';
 import { calculateShipping, getShippingBadge } from '@/lib/shipping-smart';
+import { track } from '@/lib/analytics';
 
 export default function BookProductCard({
   id,
@@ -77,7 +78,17 @@ export default function BookProductCard({
 
   return (
     <Card className='group h-full overflow-hidden transition-all hover:shadow-lg flex flex-col'>
-      <Link href={`/all/${id}`} className='block'>
+      <Link
+        href={`/books/${id}`}
+        className='block'
+        onClick={() =>
+          track('view_product', {
+            productId: id,
+            price: price || 0,
+            sellerId: user?._id,
+          })
+        }
+      >
         <CardContent className='relative p-0 flex-grow'>
           <div className='relative aspect-[3/4] overflow-hidden bg-muted'>
             <Image
@@ -164,6 +175,11 @@ export default function BookProductCard({
           onClick={e => {
             e.preventDefault();
             if (!isBookInCart) {
+              track('add_to_cart', {
+                productId: id,
+                price: price || 0,
+                quantity: 1,
+              });
               addToCart({ id, title, price, quantity: 1, user });
             }
           }}

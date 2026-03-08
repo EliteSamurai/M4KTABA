@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ import GoogleButton from '@/components/GoogleButton';
 import PasswordInput from '@/components/PasswordInput';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
+import { track } from '@/lib/analytics';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -32,8 +33,14 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [showPassword] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const { register, handleSubmit } = useForm();
+  const callbackUrl = searchParams?.get('callbackUrl') || '/';
+  const safeCallbackUrl =
+    callbackUrl.startsWith('/') && !callbackUrl.startsWith('//')
+      ? callbackUrl
+      : '/';
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -48,13 +55,18 @@ export default function LoginPage() {
         email,
         password,
         redirect: false,
+        callbackUrl: safeCallbackUrl,
       });
 
       if (!result?.ok) {
         setError('Invalid email or password.');
       } else {
+        track('login_success', {
+          method: 'credentials',
+          callbackUrl: safeCallbackUrl,
+        });
         toast({ title: 'Welcome back', description: 'You are now signed in.' });
-        router.push('/');
+        router.push(safeCallbackUrl);
       }
     } catch {
       setError('Please check your input and try again.');
@@ -96,7 +108,7 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent className='space-y-4'>
-            <GoogleButton className='w-full' />
+            <GoogleButton className='w-full' callbackUrl={safeCallbackUrl} />
             <div className='relative'>
               <div className='absolute inset-0 flex items-center'>
                 <span className='w-full border-t' />

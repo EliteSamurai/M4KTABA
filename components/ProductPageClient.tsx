@@ -230,9 +230,6 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                   <Badge variant='secondary'>
                     {(selectedCategory as any)?.title}
                   </Badge>
-                  <Badge variant='outline' className='font-normal'>
-                    {(book as any)?.status === 'draft' ? 'Draft' : 'Published'}
-                  </Badge>
                   {isAvailable ? (
                     <Badge variant='default' className='bg-green-600'>
                       In Stock
@@ -275,7 +272,9 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                 image={(user as any)?.image || null}
                 email={(user as any)?.email || 'anonymous@example.com'}
                 name={(user as any)?.name || null}
+                sellerId={(user as any)?._id || null}
                 rating={Number(averageRating)}
+                reviewCount={userRatings.length}
               />
             </div>
 
@@ -396,7 +395,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
             relatedBooks.map((relatedBook, i) => (
               <Link
                 key={i}
-                href={`/all/${(relatedBook as any)._id}`}
+                href={`/books/${(relatedBook as any)._id}`}
                 className='transition-transform hover:scale-105'
               >
                 <Card className='overflow-hidden'>

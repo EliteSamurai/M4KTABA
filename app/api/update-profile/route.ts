@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      await (writeClient as any)
+      const patch = (writeClient as any)
         .patch(userId.toString())
         .set({
           bio: bio
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
                 {
                   _type: 'block',
                   _key: uuidv4(),
-                  children: [{ _type: 'span', text: bio }],
+                  children: [{ _type: 'span', _key: uuidv4(), text: bio }],
                 },
               ]
             : [],
@@ -88,9 +88,13 @@ export async function POST(req: NextRequest) {
             zip: verifiedAddress.zip,
             country: verifiedAddress.country,
           },
-          image: imageReference,
-        })
-        .commit();
+        });
+
+      if (imageReference) {
+        patch.set({ image: imageReference });
+      }
+
+      await patch.commit();
     }
 
     return NextResponse.json({ success: true });

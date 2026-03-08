@@ -34,7 +34,23 @@ export default async function ProductPage({
         _id,
         name,
         email,
-        "image": avatar.asset->{
+        "image": coalesce(
+          avatar.asset->{
+            _ref,
+            url
+          },
+          image.asset->{
+            _ref,
+            url
+          }
+        ),
+        bio,
+        location,
+        ratings[]{
+          score,
+          review
+        },
+        "avatarImage": avatar.asset->{
           _ref,
           url
         }

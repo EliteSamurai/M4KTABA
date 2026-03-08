@@ -5,10 +5,10 @@ import { getToken } from 'next-auth/jwt';
 const protectedRoutes = ['/checkout', '/dashboard', '/orders', '/sell'];
 
 // Routes that require complete profile
-const profileRequiredRoutes = ['/checkout', '/sell'];
+const profileRequiredRoutes = ['/sell'];
 
 // Public routes that don't require profile completion (users can browse these)
-const publicRoutes = ['/', '/all', '/books', '/about', '/help', '/privacy', '/terms', '/blog', '/signup/complete-profile', '/login', '/signup', '/api'];
+const publicRoutes = ['/', '/all', '/books', '/seller', '/about', '/help', '/privacy', '/terms', '/blog', '/signup/complete-profile', '/login', '/signup', '/api'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

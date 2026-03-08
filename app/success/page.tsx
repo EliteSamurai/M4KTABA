@@ -35,6 +35,7 @@ import { Separator } from '@/components/ui/separator';
 import type { CartItem } from '@/types/shipping-types';
 import { useCart } from '@/contexts/CartContext';
 import { useSession } from 'next-auth/react';
+import { track } from '@/lib/analytics';
 
 // Loading Spinner UI
 const LoadingUI = () => {
@@ -282,6 +283,16 @@ export function SuccessContent() {
                   const savedOrder = await saveOrderRes.json();
                   console.log('Order saved:', savedOrder);
                   setOrderSaved(true);
+                  track('purchase_success', {
+                    paymentIntentId,
+                    orderId: savedOrder?.order?._id,
+                    itemCount: parsedCartData.length,
+                    value: parsedCartData.reduce(
+                      (sum: number, item: CartItem) =>
+                        sum + Number(item.price || 0) * Number(item.quantity || 0),
+                      0
+                    ),
+                  });
 
                   // Only clear cart after successful order save
                   try {

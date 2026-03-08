@@ -7,6 +7,7 @@ import { prefetchCheckoutData } from '@/lib/prefetch';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart } from 'lucide-react';
+import { track } from '@/lib/analytics';
 
 export default function CheckoutButton() {
   const { cart } = useCart();
@@ -31,7 +32,11 @@ export default function CheckoutButton() {
       console.error('Failed to store cart in session storage', error);
     }
 
-    router.push(`/checkout?cart=${encodeURIComponent(JSON.stringify(cart))}`);
+    track('begin_checkout', {
+      itemCount: cart.length,
+      value: cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    });
+    router.push('/checkout');
   };
 
   const isDisabled = cart.length === 0;

@@ -92,8 +92,8 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 ## Configuration
 
 ### Environment Variables
-- `ADMIN_EMAIL`: Primary email for error reports
-- `ALERT_EMAIL`: Fallback email for alerts
+- `ADMIN_EMAIL`: Primary email for error reports (required in production — set in Vercel → Project → Settings → Environment Variables; otherwise you'll see "No admin email configured" and reports only in server logs)
+- `ALERT_EMAIL`: Fallback if `ADMIN_EMAIL` is not set
 - `RESEND_API_KEY`: Required for sending emails
 
 ### Email Templates

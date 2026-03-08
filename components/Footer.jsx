@@ -1,8 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import { Facebook, Instagram, Twitter } from 'lucide-react';
 import SubscribeForm from '@/components/SubscribeForm';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { usePathname } from 'next/navigation';
 
 const footerLinks = [
   {
@@ -53,22 +56,45 @@ const socialLinks = [
 ];
 
 export default function Footer() {
+  const pathname = usePathname() || '/';
+
+  // Newsletter performs best on discovery/content pages, not task-completion flows.
+  const hideNewsletterOnPrefixes = [
+    '/login',
+    '/signup',
+    '/checkout',
+    '/success',
+    '/order-confirmation',
+    '/orders',
+    '/dashboard',
+    '/profile',
+    '/account',
+    '/billing',
+    '/onboarding',
+    '/internal',
+    '/confirm-shipment',
+  ];
+  const shouldShowNewsletter = !hideNewsletterOnPrefixes.some((prefix) =>
+    pathname.startsWith(prefix)
+  );
+
   return (
     <footer className='w-full border-t bg-background'>
-      {/* Newsletter Section */}
-      <section className='container mx-auto px-4 py-16'>
-        <div className='mx-auto max-w-3xl text-center'>
-          <h2 className='mb-4 text-3xl font-bold tracking-tight'>
-            Join our newsletter
-          </h2>
-          <p className='mb-8 text-lg text-muted-foreground'>
-            Get early access to new listings, seller tips, and Islamic book insights delivered weekly.
-          </p>
-          <div className='mx-auto max-w-md'>
-            <SubscribeForm />
+      {shouldShowNewsletter ? (
+        <section className='container mx-auto px-4 py-16'>
+          <div className='mx-auto max-w-3xl text-center'>
+            <h2 className='mb-4 text-3xl font-bold tracking-tight'>
+              Join our newsletter
+            </h2>
+            <p className='mb-8 text-lg text-muted-foreground'>
+              Get early access to new listings, seller tips, and Islamic book insights delivered weekly.
+            </p>
+            <div className='mx-auto max-w-md'>
+              <SubscribeForm />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <Separator />
 

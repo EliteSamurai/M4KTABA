@@ -23,7 +23,6 @@ import BookProductCard from '@/components/ProductCard';
 import { Book as BookType } from '@/types/shipping-types';
 import ModalWrapper from '@/components/ModalWrapper';
 import { TrustBadges } from '@/components/trust/TrustBadges';
-import { UserReviews } from '@/components/trust/UserReviews';
 
 async function fetchLatestBooks() {
   const query = `*[_type == "book" && quantity > 0] | order(_createdAt desc) [0...5] {
@@ -225,25 +224,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Trust & Reviews Section */}
-      <section className='py-16 bg-muted/50'>
-        <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-12'>
-            <div>
-              <h2 className='text-3xl font-bold tracking-tight mb-6'>
-                Why Trust M4ktaba?
-              </h2>
-              <TrustBadges variant='detailed' />
-            </div>
-            <div>
-              <h2 className='text-3xl font-bold tracking-tight mb-6'>
-                What Our Users Say
-              </h2>
-              <UserReviews variant='grid' maxReviews={3} reviews={[]} />
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

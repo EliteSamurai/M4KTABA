@@ -7,6 +7,9 @@ interface ErrorReport {
   message: string;
   stack?: string;
   componentStack?: string;
+  filename?: string;
+  lineno?: number;
+  colno?: number;
   timestamp: string;
   url: string;
   userAgent: string;
@@ -47,6 +50,9 @@ export async function POST(req: NextRequest) {
         error: errorReport.message,
         stack: errorReport.stack,
         componentStack: errorReport.componentStack,
+        filename: errorReport.filename,
+        lineno: errorReport.lineno,
+        colno: errorReport.colno,
         url: errorReport.url,
         userAgent: errorReport.userAgent,
         userId: errorReport.userId,

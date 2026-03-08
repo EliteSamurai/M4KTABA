@@ -1,15 +1,25 @@
 import { Star, StarHalf } from 'lucide-react';
 import { urlFor } from '@/utils/imageUrlBuilder';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface SellerInfoProps {
   email: string;
   rating: number;
   image: string | { _ref: string; url: string } | null;
   name?: string | null;
+  sellerId?: string | null;
+  reviewCount?: number;
 }
 
-export function SellerInfo({ email, rating, image, name }: SellerInfoProps) {
+export function SellerInfo({
+  email,
+  rating,
+  image,
+  name,
+  sellerId,
+  reviewCount = 0,
+}: SellerInfoProps) {
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;
 
@@ -67,31 +77,41 @@ export function SellerInfo({ email, rating, image, name }: SellerInfoProps) {
 
   const imageUrl = displayImage();
   const initials = getInitials();
+  const displayName = name || email.split('@')[0];
+  const sellerIdentity = (
+    <span className='flex items-center gap-2 text-sm font-medium'>
+      {imageUrl ? (
+        <Image
+          className='rounded-full w-8 h-8 object-cover object-top'
+          src={imageUrl}
+          alt='sellers image'
+          width={32}
+          height={32}
+          onError={e => {
+            // If image fails to load, show initials instead
+            e.currentTarget.style.display = 'none';
+            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+          }}
+        />
+      ) : null}
+      <div
+        className={`rounded-full w-8 h-8 flex items-center justify-center text-white text-sm font-semibold bg-gradient-to-br from-purple-500 to-blue-500 ${imageUrl ? 'hidden' : ''}`}
+      >
+        {initials}
+      </div>
+      <span>{displayName}</span>
+    </span>
+  );
 
   return (
     <div className='flex items-center justify-between pt-5'>
-      <span className='flex items-center gap-2 text-sm font-medium'>
-        {imageUrl ? (
-          <Image
-            className='rounded-full w-8 h-8 object-cover object-top'
-            src={imageUrl}
-            alt='sellers image'
-            width={32}
-            height={32}
-            onError={e => {
-              // If image fails to load, show initials instead
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-            }}
-          />
-        ) : null}
-        <div
-          className={`rounded-full w-8 h-8 flex items-center justify-center text-white text-sm font-semibold bg-gradient-to-br from-purple-500 to-blue-500 ${imageUrl ? 'hidden' : ''}`}
-        >
-          {initials}
-        </div>
-        {email.split('@')[0]}
-      </span>
+      {sellerId ? (
+        <Link href={`/seller/${sellerId}`} className='hover:opacity-90 transition-opacity'>
+          {sellerIdentity}
+        </Link>
+      ) : (
+        sellerIdentity
+      )}
       <div className='flex items-center'>
         {[...Array(5)].map((_, i) => {
           if (i < fullStars) {
@@ -112,6 +132,9 @@ export function SellerInfo({ email, rating, image, name }: SellerInfoProps) {
             return <Star key={i} className='w-4 h-4 text-gray-300' />;
           }
         })}
+        <span className='ml-2 text-xs text-muted-foreground'>
+          ({reviewCount})
+        </span>
       </div>
     </div>
   );

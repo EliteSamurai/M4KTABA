@@ -79,30 +79,33 @@ export async function POST(req: Request) {
       }
     }
 
-    // Update user profile in Sanity
-    const updatedUser = await (writeClient as any)
-      .patch(userId)
-      .set({
-        image: sanityImage,
-        location,
-        profileComplete: true, // Mark profile as complete
-        bio: bio
-          ? [
-              {
-                _key: crypto.randomUUID(),
-                _type: 'block',
-                children: [
-                  {
-                    _key: crypto.randomUUID(),
-                    _type: 'span',
-                    text: bio,
-                  },
-                ],
-              },
-            ]
-          : [],
-      })
-      .commit();
+    // Update user profile in Sanity. Only write image when we actually have
+    // a valid Sanity image object; never write null/undefined to image fields.
+    const patch = (writeClient as any).patch(userId).set({
+      location,
+      profileComplete: true, // Mark profile as complete
+      bio: bio
+        ? [
+            {
+              _key: crypto.randomUUID(),
+              _type: 'block',
+              children: [
+                {
+                  _key: crypto.randomUUID(),
+                  _type: 'span',
+                  text: bio,
+                },
+              ],
+            },
+          ]
+        : [],
+    });
+
+    if (sanityImage) {
+      patch.set({ image: sanityImage });
+    }
+
+    const updatedUser = await patch.commit();
 
     return NextResponse.json(
       { message: 'Profile updated successfully', user: updatedUser },
