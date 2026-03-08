@@ -21,6 +21,7 @@ export default async function ProductPage({
       price,
       quantity,
       views,
+      status,
       selectedCondition,
       "photos": photos[]{
         _key,

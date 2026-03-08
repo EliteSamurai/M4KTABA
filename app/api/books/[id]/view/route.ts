@@ -3,6 +3,27 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { readClient, writeClient } from '@/studio-m4ktaba/client';
 
+/** GET: return current view count (uses writeClient to bypass CDN cache so count is fresh) */
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const book = await (writeClient as any).fetch(
+      `*[_type == "book" && _id == $id][0]{ views }`,
+      { id }
+    );
+    if (!book) {
+      return NextResponse.json({ error: 'Book not found' }, { status: 404 });
+    }
+    return NextResponse.json({ views: book.views ?? 0 });
+  } catch (error) {
+    console.error('Error fetching view count:', error);
+    return NextResponse.json({ error: 'Failed to fetch views' }, { status: 500 });
+  }
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

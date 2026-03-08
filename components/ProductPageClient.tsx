@@ -33,7 +33,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
   const [loadingRelated, setLoadingRelated] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
-  // const [bookViews, setBookViews] = useState((book as any)?.views || 0);
+  const [bookViews, setBookViews] = useState<number>((book as any)?.views ?? 0);
   const { data: session } = useSession();
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -61,30 +61,36 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
     }
   }, [searchParams, book._id, (book as any)?.user?._id, session?.user?._id]);
 
-  // Track view when component mounts
+  // Fetch live view count (bypasses CDN so deployed site shows correct number)
+  useEffect(() => {
+    if (!book?._id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/books/${book._id}/view`, { method: 'GET' });
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (typeof data.views === 'number' && !cancelled) setBookViews(data.views);
+      } catch (e) {
+        if (!cancelled) console.error('Error fetching view count:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [book?._id]);
+
+  // Track view when component mounts (logged-in users only)
   useEffect(() => {
     async function trackView() {
       if (!book?._id || !session?.user?._id) return;
-
       try {
-        const response = await fetch(`/api/books/${book._id}/view`, {
+        await fetch(`/api/books/${book._id}/view`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
         });
-
-        if (response.ok) {
-          // const data = await response.json();
-          // if (data.isNewView) {
-          //   setBookViews(data.views);
-          // }
-        }
       } catch (error) {
         console.error('Error tracking view:', error);
       }
     }
-
     trackView();
   }, [book?._id, session?.user?._id]);
 
@@ -224,6 +230,9 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                   <Badge variant='secondary'>
                     {(selectedCategory as any)?.title}
                   </Badge>
+                  <Badge variant='outline' className='font-normal'>
+                    {(book as any)?.status === 'draft' ? 'Draft' : 'Published'}
+                  </Badge>
                   {isAvailable ? (
                     <Badge variant='default' className='bg-green-600'>
                       In Stock
@@ -237,10 +246,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                         <span className='inline-flex items-center gap-1.5 rounded-full bg-muted/80 px-2.5 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border/50'>
                           <Eye className='h-3.5 w-3.5' aria-hidden />
                           <span>
-                            {(book as any)?.views != null
-                              ? Number((book as any).views).toLocaleString()
-                              : '0'}{' '}
-                            views
+                            {bookViews.toLocaleString()} views
                           </span>
                         </span>
                       </TooltipTrigger>
