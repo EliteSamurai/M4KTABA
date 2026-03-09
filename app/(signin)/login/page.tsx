@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Loader2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,14 +33,20 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [showPassword] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const [safeCallbackUrl, setSafeCallbackUrl] = useState('/');
 
   const { register, handleSubmit } = useForm();
-  const callbackUrl = searchParams?.get('callbackUrl') || '/';
-  const safeCallbackUrl =
-    callbackUrl.startsWith('/') && !callbackUrl.startsWith('//')
-      ? callbackUrl
-      : '/';
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const callbackUrl =
+      new URLSearchParams(window.location.search).get('callbackUrl') || '/';
+    setSafeCallbackUrl(
+      callbackUrl.startsWith('/') && !callbackUrl.startsWith('//')
+        ? callbackUrl
+        : '/'
+    );
+  }, []);
 
   const handleLogin = async () => {
     if (!email || !password) {
