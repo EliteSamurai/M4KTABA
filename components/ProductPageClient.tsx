@@ -168,7 +168,12 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update images');
+        let details = 'Failed to update images';
+        try {
+          const payload = await response.json();
+          if (payload?.error) details = String(payload.error);
+        } catch {}
+        throw new Error(details);
       }
 
       const data = await response.json();
