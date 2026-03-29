@@ -6,6 +6,7 @@ import {
   isSameRegion,
   isGCC,
   getRegion,
+  normalizeCountryCode,
   FREE_SHIPPING_THRESHOLDS,
 } from '../lib/shipping-smart';
 
@@ -261,6 +262,11 @@ describe('Shipping Calculator', () => {
     it('should handle unknown countries as international', () => {
       const shipping = calculateShipping('XX', 'YY', 1);
       expect(shipping.tier).toBe('international'); // Unknown countries default to international
+    });
+
+    it('should normalize Somalia country names', () => {
+      expect(normalizeCountryCode('Somalia')).toBe('SO');
+      expect(getShippingTier('US', 'Somalia')).toBe('international');
     });
   });
 });

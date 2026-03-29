@@ -112,7 +112,7 @@ export function getRegion(countryCode: string): string | null {
  */
 export function normalizeCountryCode(countryInput: string | undefined | null): string {
   if (!countryInput || typeof countryInput !== 'string') {
-    return 'US'; // Default fallback
+    return 'ZZ'; // Unknown country fallback (safe: treated as international)
   }
   
   // Trim whitespace and convert to uppercase
@@ -142,6 +142,23 @@ export function normalizeCountryCode(countryInput: string | undefined | null): s
     'EMIRATES': 'AE',
     'DUBAI': 'AE',
     'ABU DHABI': 'AE',
+    'SOMALIA': 'SO',
+    'SOMALILAND': 'SO',
+    'EGYPT': 'EG',
+    'IRAQ': 'IQ',
+    'YEMEN': 'YE',
+    'JORDAN': 'JO',
+    'LEBANON': 'LB',
+    'QATAR': 'QA',
+    'KUWAIT': 'KW',
+    'OMAN': 'OM',
+    'BAHRAIN': 'BH',
+    'PAKISTAN': 'PK',
+    'INDIA': 'IN',
+    'BANGLADESH': 'BD',
+    'TURKEY': 'TR',
+    'GERMANY': 'DE',
+    'FRANCE': 'FR',
   };
   
   // Check if it's a country name
@@ -149,9 +166,11 @@ export function normalizeCountryCode(countryInput: string | undefined | null): s
     return countryNameMap[code];
   }
   
-  // Default to US if we can't determine
-  console.warn(`[Shipping] Could not normalize country code: "${countryInput}", defaulting to US`);
-  return 'US';
+  // Unknown country code: choose neutral sentinel to avoid accidental domestic undercharge.
+  console.warn(
+    `[Shipping] Could not normalize country code: "${countryInput}", defaulting to ZZ`
+  );
+  return 'ZZ';
 }
 
 /**
@@ -183,6 +202,11 @@ export function getShippingTier(
   // Normalize both country codes to ensure consistency
   const seller = normalizeCountryCode(sellerCountry);
   const buyer = normalizeCountryCode(buyerCountry);
+
+  // If either side is unknown, default to international pricing (safer than undercharging).
+  if (seller === 'ZZ' || buyer === 'ZZ') {
+    return 'international';
+  }
   
   // Debug log for troubleshooting
   if (process.env.NODE_ENV === 'development') {

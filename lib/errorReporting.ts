@@ -56,6 +56,15 @@ export async function reportError(details: ErrorDetails): Promise<void> {
   }
 }
 
+function isKnownThirdPartyNoise(message: string, source?: string): boolean {
+  const msg = (message || '').toLowerCase();
+  const src = (source || '').toLowerCase();
+  // Instagram/iOS in-app browser and third-party script noise
+  if (msg.includes('webkit.messagehandlers')) return true;
+  if (src.includes('facebook.com') || src.includes('connect.facebook.net')) return true;
+  return false;
+}
+
 /**
  * Initialize global error handlers
  */
@@ -64,6 +73,7 @@ export function initializeErrorReporting(): void {
 
   // Handle uncaught JavaScript errors
   window.addEventListener('error', (event) => {
+    if (isKnownThirdPartyNoise(event.message, event.filename)) return;
     reportError({
       message: event.message,
       stack: event.error?.stack,
@@ -77,13 +87,17 @@ export function initializeErrorReporting(): void {
 
   // Handle unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
+    const rejectionMessage = event.reason?.message || String(event.reason);
+    if (isKnownThirdPartyNoise(rejectionMessage)) return;
     reportError({
-      message: event.reason?.message || String(event.reason),
+      message: rejectionMessage,
       stack: event.reason?.stack,
       type: 'promise_rejection',
       severity: 'high',
       additionalData: {
         reason: event.reason,
+        reasonType: typeof event.reason,
+        reasonName: event.reason?.name,
       },
     });
   });

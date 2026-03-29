@@ -112,7 +112,7 @@ export const authOptions: NextAuthOptions = {
                 _id: user._id || uuidv4(),
                 email: user.email,
                 ...(user.location && { location: user.location }),
-                image: imageRef || null,
+                ...(imageRef && { image: imageRef }),
                 stripeAccountId: user.stripeAccountId || null,
                 profileComplete: false, // Track if profile is complete
               };

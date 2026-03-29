@@ -4,6 +4,65 @@ import { authOptions } from '../auth/[...nextauth]/options';
 import { writeClient } from '@/studio-m4ktaba/client';
 import { verifyCsrf } from '@/lib/csrf';
 import { CartMutationSchema } from '@/lib/validation';
+import { CartItem } from '@/types/shipping-types';
+
+function normalizeCartItem(item: any, index: number): CartItem | null {
+  if (!item || typeof item !== 'object') return null;
+  if (!item.id || !item.title) return null;
+  if (typeof item.price !== 'number' || !Number.isFinite(item.price)) return null;
+  if (
+    typeof item.quantity !== 'number' ||
+    !Number.isFinite(item.quantity) ||
+    item.quantity <= 0
+  ) {
+    return null;
+  }
+
+  const normalized: CartItem = {
+    _key:
+      typeof item._key === 'string' && item._key.trim().length > 0
+        ? item._key
+        : `cart-${item.id}-${index}-${Date.now()}`,
+    id: item.id,
+    title: item.title,
+    price: item.price,
+    quantity: item.quantity,
+    user:
+      item.user && typeof item.user === 'object'
+        ? {
+            email:
+              typeof item.user.email === 'string' ? item.user.email : undefined,
+            location:
+              item.user.location && typeof item.user.location === 'object'
+                ? {
+                    street:
+                      typeof item.user.location.street === 'string'
+                        ? item.user.location.street
+                        : undefined,
+                    city:
+                      typeof item.user.location.city === 'string'
+                        ? item.user.location.city
+                        : undefined,
+                    state:
+                      typeof item.user.location.state === 'string'
+                        ? item.user.location.state
+                        : undefined,
+                    zip:
+                      typeof item.user.location.zip === 'string'
+                        ? item.user.location.zip
+                        : undefined,
+                    country:
+                      typeof item.user.location.country === 'string'
+                        ? item.user.location.country
+                        : undefined,
+                  }
+                : undefined,
+          }
+        : undefined,
+  };
+
+  return normalized;
+}
 
 export async function POST(req: Request) {
   const csrf = await verifyCsrf();
@@ -57,7 +116,14 @@ export async function POST(req: Request) {
       );
     }
 
-    await (writeClient as any).patch(session.user._id).set({ cart: cartArray }).commit();
+    const sanitizedCart = cartArray
+      .map((item: any, index: number) => normalizeCartItem(item, index))
+      .filter(Boolean);
+
+    await (writeClient as any)
+      .patch(session.user._id)
+      .set({ cart: sanitizedCart })
+      .commit();
 
     return NextResponse.json({ message: 'Cart updated successfully' });
   } catch (error) {
