@@ -56,13 +56,69 @@ export async function reportError(details: ErrorDetails): Promise<void> {
   }
 }
 
+function getUserAgent(): string {
+  return typeof window !== 'undefined' ? window.navigator.userAgent : '';
+}
+
+function isCrawlerUserAgent(userAgent?: string): boolean {
+  const ua = (userAgent || getUserAgent()).toLowerCase();
+  return /bot|crawler|spider|bingbot|applebot|googlebot|facebookexternalhit|linkedinbot|slackbot|twitterbot|headless/i.test(
+    ua
+  );
+}
+
+function isBenignClientError(
+  message: string,
+  options?: { userAgent?: string; stack?: string }
+): boolean {
+  const msg = (message || '').toLowerCase();
+  const ua = options?.userAgent || getUserAgent();
+
+  if (isCrawlerUserAgent(ua)) return true;
+
+  if (msg.includes('failed to load chunk')) return true;
+
+  if (
+    msg.includes('insertbefore') &&
+    (msg.includes('not a child') || msg.includes('notfounderror'))
+  ) {
+    return true;
+  }
+  if (
+    msg.includes('removechild') &&
+    (msg.includes('not a child') || msg.includes('notfounderror'))
+  ) {
+    return true;
+  }
+
+  if (msg.includes('session has expired') || msg.includes('please sign in again')) {
+    return true;
+  }
+  if (msg.includes('complete your stripe setup')) return true;
+  if (msg.includes('stripe setup in the billing')) return true;
+  if (msg.includes('please complete your stripe')) return true;
+  if (msg.includes('typeerror: failed to fetch')) return true;
+
+  return false;
+}
+
 function isKnownThirdPartyNoise(message: string, source?: string): boolean {
   const msg = (message || '').toLowerCase();
   const src = (source || '').toLowerCase();
   // Instagram/iOS in-app browser and third-party script noise
   if (msg.includes('webkit.messagehandlers')) return true;
   if (src.includes('facebook.com') || src.includes('connect.facebook.net')) return true;
+  if (isBenignClientError(message)) return true;
   return false;
+}
+
+function shouldReportClientError(
+  message: string,
+  options?: { userAgent?: string; stack?: string; source?: string }
+): boolean {
+  if (isKnownThirdPartyNoise(message, options?.source)) return false;
+  if (isBenignClientError(message, options)) return false;
+  return true;
 }
 
 /**
@@ -73,7 +129,14 @@ export function initializeErrorReporting(): void {
 
   // Handle uncaught JavaScript errors
   window.addEventListener('error', (event) => {
-    if (isKnownThirdPartyNoise(event.message, event.filename)) return;
+    if (
+      !shouldReportClientError(event.message, {
+        source: event.filename,
+        stack: event.error?.stack,
+      })
+    ) {
+      return;
+    }
     reportError({
       message: event.message,
       stack: event.error?.stack,
@@ -88,7 +151,13 @@ export function initializeErrorReporting(): void {
   // Handle unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
     const rejectionMessage = event.reason?.message || String(event.reason);
-    if (isKnownThirdPartyNoise(rejectionMessage)) return;
+    if (
+      !shouldReportClientError(rejectionMessage, {
+        stack: event.reason?.stack,
+      })
+    ) {
+      return;
+    }
     reportError({
       message: rejectionMessage,
       stack: event.reason?.stack,
@@ -108,17 +177,44 @@ export function initializeErrorReporting(): void {
     // Call original console.error
     originalConsoleError.apply(console, args);
 
-    // Report critical console errors
-    if (args.length > 0 && typeof args[0] === 'string' && args[0].includes('Error')) {
-      reportError({
-        message: args.join(' '),
-        type: 'javascript_error',
-        severity: 'medium',
-        additionalData: {
-          consoleArgs: args,
-        },
-      });
+    if (args.length === 0) return;
+
+    const first = args[0];
+    const message =
+      typeof first === 'string'
+        ? args
+            .map(arg =>
+              typeof arg === 'string'
+                ? arg
+                : arg instanceof Error
+                  ? arg.message
+                  : ''
+            )
+            .filter(Boolean)
+            .join(' ')
+        : first instanceof Error
+          ? first.message
+          : '';
+
+    if (!message || !message.toLowerCase().includes('error')) return;
+    if (
+      !shouldReportClientError(message, {
+        stack: first instanceof Error ? first.stack : undefined,
+      })
+    ) {
+      return;
     }
+
+    reportError({
+      message,
+      type: 'javascript_error',
+      severity: 'medium',
+      additionalData: {
+        consoleArgs: args.map(arg =>
+          arg instanceof Error ? { name: arg.name, message: arg.message } : arg
+        ),
+      },
+    });
   };
 }
 
@@ -204,6 +300,15 @@ export function reportAuthError(message: string, additionalData?: Record<string,
  * Report React component errors (used by ErrorBoundary)
  */
 export function reportReactError(error: Error, errorInfo?: React.ErrorInfo): void {
+  if (
+    !shouldReportClientError(error.message, {
+      stack: error.stack,
+      userAgent: getUserAgent(),
+    })
+  ) {
+    return;
+  }
+
   reportError({
     message: error.message,
     stack: error.stack,

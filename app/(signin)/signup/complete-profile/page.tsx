@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { Camera, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -65,8 +65,9 @@ export function CompleteProfileContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session, update: updateSession } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
   const [isLoading, setIsLoading] = useState(false);
+  const [authRedirecting, setAuthRedirecting] = useState(false);
 
   const [imageBlob, setImage] = useState<string | null>(null);
   const [street, setStreet] = useState('');
@@ -84,6 +85,17 @@ export function CompleteProfileContent() {
       setUserId(searchParams.get('userId') as string);
     }
   }, [session?.user?._id, searchParams]);
+
+  useEffect(() => {
+    if (status === 'loading' || status !== 'unauthenticated' || authRedirecting) {
+      return;
+    }
+
+    const returnTo = searchParams.get('returnTo') || '/';
+    const callbackUrl = `/signup/complete-profile?returnTo=${encodeURIComponent(returnTo)}`;
+    setAuthRedirecting(true);
+    router.replace(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+  }, [status, searchParams, authRedirecting, router]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -130,13 +142,15 @@ export function CompleteProfileContent() {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!userId) {
-      console.error('No userId found');
+    if (status !== 'authenticated' || !session?.user?._id) {
       toast({
-        title: 'Error',
-        description: 'User ID not found',
+        title: 'Session expired',
+        description: 'Please sign in again to complete your profile.',
         variant: 'destructive',
       });
+      const returnTo = searchParams.get('returnTo') || '/';
+      const callbackUrl = `/signup/complete-profile?returnTo=${encodeURIComponent(returnTo)}`;
+      router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
       setIsLoading(false);
       return;
     }
@@ -224,7 +238,15 @@ export function CompleteProfileContent() {
         
         // Check for specific error types
         if (response.status === 401) {
-          throw new Error('Your session has expired. Please sign in again.');
+          toast({
+            title: 'Session expired',
+            description: 'Please sign in again to complete your profile.',
+            variant: 'destructive',
+          });
+          const returnTo = searchParams.get('returnTo') || '/';
+          const callbackUrl = `/signup/complete-profile?returnTo=${encodeURIComponent(returnTo)}`;
+          router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+          return;
         } else if (response.status === 400) {
           throw new Error(errorMessage || 'Please check your information and try again.');
         } else {
@@ -232,8 +254,6 @@ export function CompleteProfileContent() {
         }
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      
       let errorMessage = 'An error occurred. Please try again.';
       if (error instanceof Error) {
         // Check for network errors
@@ -301,15 +321,13 @@ export function CompleteProfileContent() {
                     <Label htmlFor='avatar'>Profile Picture (Optional)</Label>
                     <div className='flex items-center gap-4'>
                       <Avatar className='h-20 w-20'>
-                        <AvatarImage
-                          src={
-                            imageBlob ||
-                            urlFor(session?.user?.image) ||
-                            undefined
-                          }
-                          alt='Profile picture'
-                          className='object-cover'
-                        />
+                        {imageBlob || session?.user?.image ? (
+                          <AvatarImage
+                            src={imageBlob || urlFor(session?.user?.image) || ''}
+                            alt='Profile picture'
+                            className='object-cover'
+                          />
+                        ) : null}
                         <AvatarFallback>
                           <Camera className='h-8 w-8 text-muted-foreground' />
                         </AvatarFallback>
@@ -393,7 +411,9 @@ export function CompleteProfileContent() {
                 <Button
                   type='submit'
                   className='w-full bg-purple-600 hover:bg-purple-700'
-                  disabled={isLoading}
+                  disabled={
+                    isLoading || status === 'loading' || status === 'unauthenticated'
+                  }
                 >
                   {isLoading && (
                     <Loader2 className='mr-2 h-4 w-4 animate-spin' />

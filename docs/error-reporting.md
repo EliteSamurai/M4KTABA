@@ -1,5 +1,15 @@
 # Error Reporting System
 
+## Filtered noise (not reported)
+
+The client reporter intentionally ignores:
+
+- Crawler/bot sessions (Bingbot, Applebot, Googlebot, etc.)
+- Stale Next.js chunk load failures after deploys
+- Instagram/in-app browser `webkit.messageHandlers` errors
+- Expected user flows (session expired, Stripe setup required, network blips)
+- React DOM `insertBefore`/`removeChild` races during navigation
+
 ## Overview
 
 M4KTABA includes a comprehensive error reporting system that automatically captures and reports errors to administrators for debugging and monitoring.
