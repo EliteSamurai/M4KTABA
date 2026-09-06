@@ -14,7 +14,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   
   // Check if this is a protected route
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+  const isProtectedRoute = protectedRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
   const requiresProfile = profileRequiredRoutes.some(route => pathname.startsWith(route));
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
   
@@ -24,8 +24,12 @@ export async function middleware(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET 
   });
 
+  // The /sell marketing landing is public for unauthenticated visitors so
+  // they can read it; exact '/sell' is exempted here, but /sell/* sub-routes
+  // stay auth-gated via the startsWith match above.
+  const isSellLanding = pathname === '/sell';
   // Redirect to login if accessing protected route without auth
-  if (isProtectedRoute && !token) {
+  if (isProtectedRoute && !token && !isSellLanding) {
     const loginUrl = new URL('/login', req.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
