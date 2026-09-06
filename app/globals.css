@@ -29,6 +29,18 @@ body {
   font-family: var(--font-montserrat), sans-serif;
 }
 
+/* CLS guard — reserve size for images/video inside @tailwindcss/typography
+   articles so body content (PortableText) can't shift the layout on load. */
+.prose img,
+.prose video {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+.prose img {
+  object-fit: contain;
+}
+
 .link-shadow {
   transition-property: box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);

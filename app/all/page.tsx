@@ -8,21 +8,24 @@ import { notFound } from 'next/navigation';
 export const revalidate = 60;
 
 async function fetchInitialBooks(limit: number = 10) {
-  const books = await (readClient as any).fetch(
-    `*[_type == "book" && quantity > 0] | order(_createdAt desc) [0...${limit}] {
+  // Parallelize all reads so we pay one RTT instead of three on a cache miss.
+  // Explicit force-cache + revalidate mirrors the ISR config used blog-wide.
+  const [books, total, categories] = await Promise.all([
+    (readClient as any).fetch(
+      `*[_type == "book" && quantity > 0] | order(_createdAt desc) [0...${limit}] {
       _id,
       title,
-      "user": user->{_id, email, location, stripeAccountId}, 
+      "user": user->{_id, email, location, stripeAccountId},
       price,
       "image": photos[0].asset._ref,
       selectedCategory->{ title },
     _createdAt
-    }`
-  );
-
-  const [total, categories] = await Promise.all([
-    (readClient as any).fetch(`count(*[_type == "book"])`),
-    (readClient as any).fetch(`*[_type == "category"] { title, _id }`),
+    }`,
+      {},
+      { next: { revalidate: 60 }, cache: 'force-cache' as RequestCache },
+    ),
+    (readClient as any).fetch(`count(*[_type == "book"])`, {}, { next: { revalidate: 60 }, cache: 'force-cache' as RequestCache }),
+    (readClient as any).fetch(`*[_type == "category"] { title, _id }`, {}, { next: { revalidate: 60 }, cache: 'force-cache' as RequestCache }),
   ]);
 
   return { books, total, categories };

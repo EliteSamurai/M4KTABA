@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCart, Loader2 } from 'lucide-react';
@@ -25,14 +26,23 @@ import { urlFor } from '@/utils/imageUrlBuilder';
 import { calculateShipping, getShippingBadge } from '@/lib/shipping-smart';
 import { track } from '@/lib/analytics';
 
-export default function BookProductCard({
+function BookProductCard({
   id,
   title,
   user,
   price,
   image,
+    condition = '',
   loading = false,
 }) {
+  const CONDITION_LABEL = {
+    new: 'New',
+    'like-new': 'Like New',
+    good: 'Good',
+    fair: 'Fair',
+    poor: 'Poor',
+  };
+  const conditionLabel = condition ? CONDITION_LABEL[condition] ?? condition : null;
   const { addToCart, isInCart } = useCart();
   const { data: session } = useSession();
   
@@ -40,8 +50,11 @@ export default function BookProductCard({
   // Pass raw country codes - shipping calculator will normalize them
   const sellerCountry = user?.location?.country || 'US';
   const buyerCountry = session?.user?.location?.country || 'US';
-  const shippingInfo = calculateShipping(sellerCountry, buyerCountry, 1);
-  const badge = getShippingBadge(shippingInfo.tier);
+    const shippingInfo = useMemo(
+    () => calculateShipping(sellerCountry, buyerCountry, 1),
+    [sellerCountry, buyerCountry],
+  );
+  const badge = useMemo(() => getShippingBadge(shippingInfo?.tier), [shippingInfo?.tier]);
 
   // Validate and get image URL
   const imageUrl = urlFor(image);
@@ -134,6 +147,11 @@ export default function BookProductCard({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+        {conditionLabel && (
+          <Badge variant="secondary" className="w-fit">
+            {conditionLabel}
+          </Badge>
+        )}
         <div className="space-y-1">
           <p className='text-sm text-muted-foreground'>
             Sold by {user?.email ? user.email.split('@')[0] : 'Unknown Seller'}
@@ -200,7 +218,9 @@ export default function BookProductCard({
             <Loader2 className='absolute right-4 h-4 w-4 animate-spin' />
           )}
         </Button>
-      </CardFooter>
+            </CardFooter>
     </Card>
   );
 }
+
+export default memo(BookProductCard);

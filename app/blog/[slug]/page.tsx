@@ -4,12 +4,15 @@ import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 import { readClient } from '@/studio-m4ktaba/client';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Calendar, Clock, User } from 'lucide-react';
 import Image from 'next/image';
+import { Suspense } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import RelatedBooks from '@/components/blog/RelatedBooks';
 
 const POST_QUERY = `
 *[_type == "post" && slug.current == $slug][0]{
@@ -21,7 +24,9 @@ const POST_QUERY = `
     email,
     image
   },
-  body
+  body,
+  "categories": categories[]->{_id, title, slug},
+  "shopCategories": shopCategories[]->{_id, title, slug}
 }
 `;
 
@@ -74,6 +79,36 @@ const calculateWordCount = (
   return wordCount;
 };
 
+// Skeleton that exactly mirrors BookProductCard's loading state (aspect-[3/4]
+// image box + two title lines + full-width button) so the Suspense fallback
+// has the same dimensions as the loaded related-books grid.
+function RelatedBooksSkeleton() {
+  return (
+    <section className='mt-16 border-t pt-12'>
+      <div className='mb-6 flex items-center justify-between'>
+        <Skeleton className='h-7 w-40' />
+        <Skeleton className='h-9 w-32 rounded-full' />
+      </div>
+      <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-4'>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Card key={i} className='group h-full overflow-hidden flex flex-col'>
+            <CardContent className='p-0'>
+              <Skeleton className='aspect-[3/4] w-full' />
+            </CardContent>
+            <CardHeader className='space-y-2 p-4'>
+              <Skeleton className='h-4 w-3/4' />
+              <Skeleton className='h-4 w-1/2' />
+            </CardHeader>
+            <CardFooter className='p-4 pt-0 mt-auto'>
+              <Skeleton className='h-10 w-full' />
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // Main Component
 export default async function PostPage({
   params: asyncParams,
@@ -118,6 +153,18 @@ export default async function PostPage({
   const wordCount = calculateWordCount(post.body || []);
   const readTime = wordCount ? Math.ceil(wordCount / 200) : 0;
 
+  // Related books connected to this post via build-linked `shopCategories`,
+  // falling back to editorial `categories`.
+  const relatedCategories: any[] =
+    post.shopCategories?.length ? post.shopCategories : (post.categories || []);
+  const relatedCategoryId = relatedCategories[0]?._id;
+  const relatedCategoryTitle = relatedCategories[0]?.title;
+  const relatedCategorySlug = relatedCategories[0]?.slug?.current;
+
+    // Related books are fetched + rendered by <RelatedBooks /> below, deferred
+  // behind a Suspense boundary so the post + hero paint are not blocked by
+  // this second Sanity round-trip (the category already comes from POST_QUERY).
+
   return (
     <article className='mx-auto min-h-screen max-w-3xl px-4 py-12'>
       <header className='mb-8 space-y-6'>
@@ -131,13 +178,15 @@ export default async function PostPage({
 
         {/* Post Image */}
         {postImageUrl && (
-          <div className='overflow-hidden rounded-xl border bg-muted'>
+                    <div className='overflow-hidden rounded-xl border bg-muted'>
             <Image
               src={postImageUrl}
               alt={post.title}
               className='aspect-video w-full object-cover transition-transform hover:scale-105'
               width={1200}
               height={675}
+              priority
+              sizes='(max-width: 768px) 100vw, 60vw'
             />
           </div>
         )}
@@ -145,13 +194,13 @@ export default async function PostPage({
         {/* Post Header */}
         <div className='space-y-4'>
           <div className='flex flex-wrap items-center gap-2'>
-            {post.categories?.map((category: string) => (
+            {post.categories?.map((category: any) => (
               <Badge
-                key={category}
+                key={category._id}
                 variant='secondary'
                 className='rounded-full px-3'
               >
-                {category}
+                {category.title}
               </Badge>
             ))}
           </div>
@@ -217,6 +266,15 @@ export default async function PostPage({
       <div className='prose prose-gray mx-auto max-w-none dark:prose-invert prose-headings:scroll-m-20 prose-headings:font-display prose-headings:font-bold prose-headings:tracking-tight prose-h2:text-3xl prose-h3:text-2xl prose-h4:text-xl prose-pre:rounded-xl prose-pre:border prose-pre:bg-muted prose-pre:p-4'>
         {Array.isArray(post.body) && <PortableText value={post.body} />}
       </div>
+
+            {/* Related books — deferred via Suspense so the post + hero paint first. */}
+      <Suspense fallback={<RelatedBooksSkeleton />}>
+        <RelatedBooks
+          categoryId={relatedCategoryId}
+          categorySlug={relatedCategorySlug}
+          categoryTitle={relatedCategoryTitle}
+        />
+      </Suspense>
 
       {/* Post Footer */}
       <CardFooter className='mt-12 flex items-center justify-between rounded-lg border bg-card p-4'>
