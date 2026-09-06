@@ -4,9 +4,6 @@ import { getToken } from 'next-auth/jwt';
 // Protected routes that require authentication
 const protectedRoutes = ['/checkout', '/dashboard', '/orders', '/sell'];
 
-// Routes that require complete profile
-const profileRequiredRoutes = ['/sell'];
-
 // Public routes that don't require profile completion (users can browse these)
 const publicRoutes = ['/', '/all', '/books', '/seller', '/about', '/help', '/privacy', '/terms', '/blog', '/signup/complete-profile', '/login', '/signup', '/api'];
 
@@ -15,7 +12,6 @@ export async function middleware(req: NextRequest) {
   
   // Check if this is a protected route
   const isProtectedRoute = protectedRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
-  const requiresProfile = profileRequiredRoutes.some(route => pathname.startsWith(route));
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
   
   // Get the session token
