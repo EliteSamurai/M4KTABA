@@ -156,7 +156,8 @@ export async function POST(req: NextRequest) {
     // Fetch the created book with populated image data to return to client
     const populatedBook = await readClient.fetch(
       `*[_type == "book" && _id == $id][0]{
-        _id,
+                _id,
+        status,
         title,
         author,
         description,
@@ -233,10 +234,36 @@ export async function GET() {
       );
     }
 
-    // Get user's listings
+        // Get user's listings — consolidated on the `book` type (the legacy `listing`
+    // type is orphaned/unregistered; books are the canonical published inventory).
     const listings = await readClient.fetch(
-      `*[_type == "listing" && sellerId == $sellerId] | order(createdAt desc)`,
-      { sellerId: session.user._id }
+      `*[_type == "book" && user._ref == $userId] | order(_createdAt desc){
+        _id,
+        _type,
+        title,
+        author,
+        price,
+        quantity,
+        selectedCondition,
+        status,
+        views,
+        sales,
+        revenue,
+        language,
+        "selectedCategory": selectedCategory->{
+          _id,
+          title
+        },
+        "photos": photos[]{
+          _key,
+          asset->{
+            _ref,
+            url
+          }
+        },
+        publishedAt
+      }`,
+      { userId: session.user._id }
     );
 
     return NextResponse.json({ listings });
