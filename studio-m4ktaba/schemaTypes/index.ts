@@ -3,6 +3,7 @@ import category from './category'
 import post from './post'
 import user from './user'
 import book from './book'
+import review from './review'
 import order from './order.js'
 import event_outbox from './system/event_outbox'
 import dlq from './system/dlq'
@@ -14,6 +15,7 @@ export const schemaTypes = [
   user,
   category,
   book,
+  review,
   blockContent,
   order,
   event_outbox,
