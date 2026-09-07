@@ -56,6 +56,7 @@ export default function BillingPage() {
   const [isOrdersLoading, setIsOrdersLoading] = useState(false);
   const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
   const [selectedCartItemId, setSelectedCartItemId] = useState<string | null>(
     null
   );
@@ -121,8 +122,16 @@ export default function BillingPage() {
     fetchOrderHistory();
   }, [session?.user?._id]);
 
-  const handleLeaveReview = (sellerId: string) => {
+  const handleLeaveReview = (
+    orderId: string,
+    sellerId: string,
+    bookId: string
+  ) => {
+    setSelectedOrderId(orderId);
     setSelectedSellerId(sellerId);
+    setSelectedBookId(bookId);
+    setRating(null);
+    setReviewText('');
     setIsReviewModalOpen(true);
   };
 
@@ -327,6 +336,15 @@ export default function BillingPage() {
       return;
     }
 
+    if (!selectedOrderId || !selectedSellerId) {
+      toast({
+        title: 'Error',
+        description: 'Missing order or seller context for review.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsSubmittingReview(true);
 
     if (reviewText && reviewText.trim().length > 500) {
@@ -338,16 +356,34 @@ export default function BillingPage() {
       return;
     }
 
+    // CSRF — the auth'd review route enforces verifyCsrf (cookie == x-csrf-token),
+    // mirroring handleConfirmDelivery.
+    let csrfToken = document.cookie.match(/(?:^|; )csrf_token=([^;]+)/)?.[1];
+    if (!csrfToken) {
+      try {
+        const csrfResponse = await fetch('/api/csrf-token');
+        if (csrfResponse.ok) {
+          csrfToken = (await csrfResponse.json()).csrfToken;
+        }
+      } catch (error) {
+        console.warn('Failed to fetch CSRF token from API:', error);
+      }
+    }
+
     const reviewPayload = {
       score: rating,
       review: reviewText,
+      orderId: selectedOrderId,
+      bookId: selectedBookId ?? undefined,
     };
 
     try {
       const response = await fetch(`/api/sellers/${selectedSellerId}/reviews`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken || '',
         },
         body: JSON.stringify(reviewPayload),
       });
@@ -741,7 +777,9 @@ export default function BillingPage() {
                                                 onClick={() => {
                                                   if (item?.user?._id) {
                                                     handleLeaveReview(
-                                                      item.user._id
+                                                      order._id,
+                                                      item.user._id,
+                                                      item.id
                                                     );
                                                   } else {
                                                     console.error(
