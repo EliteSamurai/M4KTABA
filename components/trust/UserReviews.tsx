@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, Quote, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,15 +22,16 @@ interface Review {
 }
 
 interface UserReviewsProps {
-  reviews: Review[];
+  reviews?: Review[];
   showHeader?: boolean;
   maxReviews?: number;
   variant?: 'card' | 'list' | 'grid';
   className?: string;
 }
 
-// No mock reviews - only show real reviews from users
-const mockReviews: Review[] = [];
+// Real reviews are fetched from /api/reviews/approved (see the component
+// below). `mockReviews` was removed: the trust widget now always renders real
+// approved reviews.
 
 const StarRating: React.FC<{ rating: number; size?: 'sm' | 'md' | 'lg' }> = ({
   rating,
@@ -144,18 +145,87 @@ const ReviewCard: React.FC<{ review: Review; variant?: 'card' | 'list' }> = ({
 };
 
 export function UserReviews({
-  reviews = mockReviews,
+  reviews: preloaded,
   showHeader = true,
   maxReviews = 6,
   variant = 'card',
   className,
 }: UserReviewsProps) {
+  const [reviews, setReviews] = useState<Review[]>(() =>
+    Array.isArray(preloaded) && preloaded.length ? preloaded : []
+  );
+  const [loading, setLoading] = useState(
+    !preloaded || preloaded.length === 0
+  );
+
+  useEffect(() => {
+    // A non-empty preloaded set is authoritative; otherwise fetch the real,
+    // approved reviews via the public read endpoint (the page is client-side
+    // and has no direct Sanity token).
+    if (Array.isArray(preloaded) && preloaded.length) return;
+
+    let cancelled = false;
+    const ac = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch(`/api/reviews/approved?limit=${maxReviews}`, {
+          signal: ac.signal,
+        });
+        if (!res.ok) throw new Error('Failed to load reviews');
+        const rows = (await res.json()) as any[];
+        const mapped: Review[] = (rows || []).map((r) => ({
+          id: r._id,
+          rating: Number(r.score) || 0,
+          comment: r.body || r.title || '',
+          date: r.publishedAt
+            ? new Date(r.publishedAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })
+            : '',
+          user: {
+            name: r.reviewerName || 'Anonymous',
+            avatar: r.reviewerImage || undefined,
+            verified: false,
+          },
+        }));
+        if (!cancelled) setReviews(mapped);
+      } catch {
+        if (!cancelled) setReviews([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      ac.abort();
+    };
+  }, [preloaded, maxReviews]);
+
   const displayReviews = reviews.slice(0, maxReviews);
   const averageRating =
     reviews.length > 0
       ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
       : 0;
-  const verifiedReviews = reviews.filter(review => review.verified).length;
+  const verifiedReviews = reviews.filter((review) => review.verified).length;
+
+  // Loading state: real reviews are streaming in.
+  if (loading && reviews.length === 0) {
+    if (variant === 'grid' || variant === 'list') {
+      return (
+        <div className={cn('space-y-6', className)}>
+          {showHeader && (
+            <div className='text-center'>
+              <h3 className='text-2xl font-bold mb-2'>What Our Users Say</h3>
+              <p className='text-sm text-muted-foreground'>Loading reviews…</p>
+            </div>
+          )}
+        </div>
+      );
+    }
+    return null;
+  }
 
   // Don't show reviews section if there are no reviews
   if (reviews.length === 0) {
@@ -250,7 +320,7 @@ interface ReviewSummaryProps {
 }
 
 export function ReviewSummary({
-  reviews = mockReviews,
+  reviews = [],
   className,
 }: ReviewSummaryProps) {
   const averageRating =

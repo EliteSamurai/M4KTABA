@@ -25,6 +25,8 @@ import { useCart } from '@/contexts/CartContext';
 import { urlFor } from '@/utils/imageUrlBuilder';
 import { calculateShipping, getShippingBadge } from '@/lib/shipping-smart';
 import { track } from '@/lib/analytics';
+import { SellerBadge } from '@/components/SellerBadge';
+import { useSellerStats } from '@/hooks/useSellerStats';
 
 function BookProductCard({
   id,
@@ -45,6 +47,7 @@ function BookProductCard({
   const conditionLabel = condition ? CONDITION_LABEL[condition] ?? condition : null;
   const { addToCart, isInCart } = useCart();
   const { data: session } = useSession();
+  const sellerStats = useSellerStats(user?._id ?? null);
   
   // Calculate shipping estimate
   // Pass raw country codes - shipping calculator will normalize them
@@ -154,7 +157,14 @@ function BookProductCard({
         )}
         <div className="space-y-1">
           <p className='text-sm text-muted-foreground'>
-            Sold by {user?.email ? user.email.split('@')[0] : 'Unknown Seller'}
+            <SellerBadge
+              sellerType='marketplace'
+              sellerId={user?._id || null}
+              sellerEmail={user?.email || null}
+              rating={sellerStats?.rating}
+              reviewCount={sellerStats?.reviewCount}
+              showRating
+            />
             {user?.location?.country && (
               <span className='ml-1 text-xs'>({user.location.country.toUpperCase()})</span>
             )}

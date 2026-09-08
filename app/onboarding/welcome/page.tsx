@@ -208,7 +208,7 @@ export default function WelcomePage() {
           <h2 className='text-2xl font-bold text-center mb-6'>
             What Our Users Say
           </h2>
-          <UserReviews variant='grid' maxReviews={4} reviews={[]} />
+                    <UserReviews variant='grid' maxReviews={4} />
         </div>
 
         {/* Features Grid */}

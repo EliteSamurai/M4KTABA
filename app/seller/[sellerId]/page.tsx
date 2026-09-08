@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { Star } from 'lucide-react';
 import { readClient } from '@/studio-m4ktaba/client';
 import calculateAverageRating from '@/utils/calculateAverageRating';
+import { SellerBadge } from '@/components/SellerBadge';
 
 type Rating = {
   score?: number;
@@ -43,10 +44,6 @@ export default async function SellerProfilePage({
       email,
       bio,
       location,
-      ratings[]{
-        score,
-        review
-      },
       "image": coalesce(
         avatar.asset->{
           _ref,
@@ -60,6 +57,21 @@ export default async function SellerProfilePage({
     }`,
     { sellerId }
   );
+
+  // Approved reviews for this seller. `body` is aliased to `review` so the
+  // existing `entry.review` JSX below compiles unchanged.
+  const reviews = await (readClient as any).fetch(
+    groq`*[_type == 'review' && seller._ref == $sellerId && status == 'approved']
+         | order(coalesce(publishedAt, _createdAt) desc)[0...20]{
+           _id,
+           score,
+           "review": body,
+           title,
+           "reviewerName": coalesce(reviewer->name, reviewer->email, 'Anonymous'),
+           "publishedAt": coalesce(publishedAt, _createdAt)
+         }`,
+    { sellerId }
+  ) ?? [];
 
   if (!seller) {
     notFound();
@@ -80,7 +92,7 @@ export default async function SellerProfilePage({
     { sellerId }
   );
 
-  const ratings: Rating[] = Array.isArray(seller.ratings) ? seller.ratings : [];
+  const ratings: Rating[] = Array.isArray(reviews) ? reviews : [];
   const averageRating = Number(calculateAverageRating(ratings) || 0);
   const reviewCount = ratings.length;
   const writtenReviews = ratings.filter((r) => typeof r?.review === 'string' && r.review.trim());
@@ -111,13 +123,14 @@ export default async function SellerProfilePage({
               )}
               <div className='space-y-2'>
                 <h1 className='text-2xl font-bold'>{displayName}</h1>
-                <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-                  <Star className='h-4 w-4 fill-yellow-400 text-yellow-400' />
-                  <span>
-                    {averageRating.toFixed(1)} ({reviewCount} review
-                    {reviewCount === 1 ? '' : 's'})
-                  </span>
-                </div>
+                <SellerBadge
+                  sellerType='marketplace'
+                  sellerName={displayName}
+                  rating={averageRating}
+                  reviewCount={reviewCount}
+                  showRating
+                  label={null}
+                />
                 {locationText ? (
                   <p className='text-sm text-muted-foreground'>Ships from {locationText}</p>
                 ) : null}
