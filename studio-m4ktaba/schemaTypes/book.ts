@@ -122,5 +122,55 @@ export default defineType({
       initialValue: false,
       description: 'Whether the seller has manually set a main image',
     }),
+    defineField({
+      name: 'language',
+      title: 'Language',
+      type: 'string',
+      options: {
+        list: [{title: 'Arabic', value: 'arabic'}],
+      },
+      initialValue: 'arabic',
+      description: 'The language of the book text. Currently Arabic-only (site policy).',
+    }),
+    defineField({
+      name: 'madhab',
+      title: 'Madhab',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Hanafi', value: 'hanafi'},
+          {title: 'Maliki', value: 'maliki'},
+          {title: "Shafi'i", value: 'shafi-i'},
+          {title: 'Hanbali', value: 'hanbali'},
+        ],
+      },
+      description: 'School of jurisprudence. Relevant mainly for Fiqh books.',
+    }),
+    defineField({
+      name: 'sellerType',
+      title: 'Seller Type',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Independent Seller', value: 'marketplace'},
+          {title: 'M4KTABA Direct (first-party)', value: 'first_party'},
+        ],
+      },
+      initialValue: 'marketplace',
+      description:
+        'first_party = stock sold directly by M4KTABA (e.g. honey). marketplace = listed by an independent seller.',
+    }),
+    defineField({
+      name: 'edition',
+      title: 'Edition',
+      type: 'string',
+      description: 'e.g. "2nd Edition" or "Revised". Optional.',
+    }),
+    defineField({
+      name: 'publisher',
+      title: 'Publisher',
+      type: 'string',
+      description: 'Name of the publisher (optional).',
+    }),
   ],
 })
