@@ -7,6 +7,7 @@ import {
   PaymentElement,
 } from '@stripe/react-stripe-js';
 import { Loader2, LockOpenIcon as LockClosedIcon } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -153,6 +154,17 @@ export function CheckoutForm({ cart }: CheckoutFormProps) {
               </>
             )}
           </Button>
+          <div className='mt-3 flex items-center gap-2 text-center text-xs text-muted-foreground'>
+            <LockClosedIcon className='h-3 w-3' />
+            <span>Secure checkout powered by Stripe. </span>
+            <Link
+              href='/returns'
+              className='underline underline-offset-2 hover:text-foreground'
+            >
+              Returns & refunds policy
+            </Link>
+            .
+          </div>
         </CardFooter>
       </Card>
 
