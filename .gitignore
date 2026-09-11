@@ -7,3 +7,9 @@ node_modules
 .env.production
 .env.development
 .env.test
+
+# Build artifacts
+.next/
+coverage/
+tsconfig.tsbuildinfo
+next-env.d.ts
