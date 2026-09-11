@@ -4,10 +4,11 @@
 
 The client reporter intentionally ignores:
 
-- Crawler/bot sessions (Bingbot, Applebot, Googlebot, etc.)
+- Crawler/bot sessions (Bingbot, Applebot, Googlebot, GoogleOther, etc.)
 - Stale Next.js chunk load failures after deploys
 - Instagram/in-app browser `webkit.messageHandlers` errors
 - Expected user flows (session expired, Stripe setup required, network blips)
+- Cross-origin `Script error.` from third-party tags (GA, Meta Pixel) with no stack/location
 - React DOM `insertBefore`/`removeChild` races during navigation
 
 ## Overview

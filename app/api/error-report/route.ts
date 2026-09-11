@@ -20,9 +20,55 @@ interface ErrorReport {
   additionalData?: Record<string, any>;
 }
 
+function isCrawlerUserAgent(userAgent?: string): boolean {
+  const ua = (userAgent || '').toLowerCase();
+  return /bot|crawler|spider|bingbot|applebot|googlebot|googleother|google-inspectiontool|facebookexternalhit|linkedinbot|slackbot|twitterbot|headless|petalbot|yandexbot|duckduckbot|semrushbot|ahrefsbot|bytespider/i.test(
+    ua
+  );
+}
+
+function isBenignServerError(
+  message: string,
+  userAgent?: string,
+  options?: { filename?: string; lineno?: number; colno?: number }
+): boolean {
+  const msg = (message || '').toLowerCase();
+  if (isCrawlerUserAgent(userAgent)) return true;
+  if (msg === 'script error.' || msg === 'script error') return true;
+  if (
+    (msg === 'script error.' || msg === 'script error') &&
+    !options?.filename &&
+    (options?.lineno ?? 0) === 0 &&
+    (options?.colno ?? 0) === 0
+  ) {
+    return true;
+  }
+  if (msg.includes('failed to fetch')) return true;
+  if (msg.includes('error reporting failed')) return true;
+  if (msg.includes('error fetching view count')) return true;
+  if (msg.includes('error fetching related books')) return true;
+  if (msg.includes('error fetching categories')) return true;
+  if (msg.includes('error tracking view')) return true;
+  if (msg.includes('failed to load chunk')) return true;
+  return false;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const errorReport: ErrorReport = await req.json();
+
+    if (
+      isBenignServerError(errorReport.message, errorReport.userAgent, {
+        filename: errorReport.filename,
+        lineno: errorReport.lineno,
+        colno: errorReport.colno,
+      })
+    ) {
+      return NextResponse.json({
+        success: true,
+        message: 'Error ignored (benign or crawler)',
+      });
+    }
 
     // Get user session if available
     const session = await getServerSession(authOptions);

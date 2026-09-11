@@ -24,12 +24,25 @@ interface ErrorDetails {
  * Report an error to the admin
  */
 export async function reportError(details: ErrorDetails): Promise<void> {
+  const userAgent =
+    details.userAgent ||
+    (typeof window !== 'undefined' ? window.navigator.userAgent : 'unknown');
+
+  if (
+    !shouldReportClientError(details.message, {
+      userAgent,
+      stack: details.stack,
+    })
+  ) {
+    return;
+  }
+
   try {
     const errorReport = {
       ...details,
       timestamp: details.timestamp || new Date().toISOString(),
       url: details.url || (typeof window !== 'undefined' ? window.location.href : 'unknown'),
-      userAgent: details.userAgent || (typeof window !== 'undefined' ? window.navigator.userAgent : 'unknown'),
+      userAgent,
     };
 
     console.log('📤 Sending error report:', errorReport);
@@ -60,21 +73,61 @@ function getUserAgent(): string {
   return typeof window !== 'undefined' ? window.navigator.userAgent : '';
 }
 
-function isCrawlerUserAgent(userAgent?: string): boolean {
+/** Exported for client components that should skip optional fetches for bots. */
+export function isCrawlerUserAgent(userAgent?: string): boolean {
   const ua = (userAgent || getUserAgent()).toLowerCase();
-  return /bot|crawler|spider|bingbot|applebot|googlebot|facebookexternalhit|linkedinbot|slackbot|twitterbot|headless/i.test(
+  return /bot|crawler|spider|bingbot|applebot|googlebot|googleother|google-inspectiontool|facebookexternalhit|linkedinbot|slackbot|twitterbot|headless|petalbot|yandexbot|duckduckbot|semrushbot|ahrefsbot|bytespider/i.test(
     ua
   );
 }
 
+function extractArgMessage(arg: unknown): string {
+  if (typeof arg === 'string') return arg;
+  if (arg instanceof Error) return arg.message;
+  if (arg && typeof arg === 'object' && 'message' in arg) {
+    const message = (arg as { message?: unknown }).message;
+    return typeof message === 'string' ? message : '';
+  }
+  return '';
+}
+
+function extractConsoleErrorMessage(args: unknown[]): string {
+  return args.map(extractArgMessage).filter(Boolean).join(' ');
+}
+
+function isCrossOriginScriptError(
+  message: string,
+  options?: { filename?: string; lineno?: number; colno?: number }
+): boolean {
+  const msg = (message || '').trim().toLowerCase();
+  if (msg === 'script error.' || msg === 'script error') return true;
+  // Browsers sanitize third-party script failures to a generic message with no source
+  if (
+    (msg === 'script error.' || msg === 'script error') &&
+    !options?.filename &&
+    (options?.lineno ?? 0) === 0 &&
+    (options?.colno ?? 0) === 0
+  ) {
+    return true;
+  }
+  return false;
+}
+
 function isBenignClientError(
   message: string,
-  options?: { userAgent?: string; stack?: string }
+  options?: {
+    userAgent?: string;
+    stack?: string;
+    filename?: string;
+    lineno?: number;
+    colno?: number;
+  }
 ): boolean {
   const msg = (message || '').toLowerCase();
   const ua = options?.userAgent || getUserAgent();
 
   if (isCrawlerUserAgent(ua)) return true;
+  if (isCrossOriginScriptError(message, options)) return true;
 
   if (msg.includes('failed to load chunk')) return true;
 
@@ -97,7 +150,12 @@ function isBenignClientError(
   if (msg.includes('complete your stripe setup')) return true;
   if (msg.includes('stripe setup in the billing')) return true;
   if (msg.includes('please complete your stripe')) return true;
-  if (msg.includes('typeerror: failed to fetch')) return true;
+  if (msg.includes('failed to fetch')) return true;
+  if (msg.includes('error reporting failed')) return true;
+  if (msg.includes('error fetching view count')) return true;
+  if (msg.includes('error fetching related books')) return true;
+  if (msg.includes('error fetching categories')) return true;
+  if (msg.includes('error tracking view')) return true;
 
   return false;
 }
@@ -114,7 +172,14 @@ function isKnownThirdPartyNoise(message: string, source?: string): boolean {
 
 function shouldReportClientError(
   message: string,
-  options?: { userAgent?: string; stack?: string; source?: string }
+  options?: {
+    userAgent?: string;
+    stack?: string;
+    source?: string;
+    filename?: string;
+    lineno?: number;
+    colno?: number;
+  }
 ): boolean {
   if (isKnownThirdPartyNoise(message, options?.source)) return false;
   if (isBenignClientError(message, options)) return false;
@@ -126,6 +191,7 @@ function shouldReportClientError(
  */
 export function initializeErrorReporting(): void {
   if (typeof window === 'undefined') return;
+  if (isCrawlerUserAgent()) return;
 
   // Handle uncaught JavaScript errors
   window.addEventListener('error', (event) => {
@@ -133,6 +199,9 @@ export function initializeErrorReporting(): void {
       !shouldReportClientError(event.message, {
         source: event.filename,
         stack: event.error?.stack,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
       })
     ) {
       return;
@@ -180,21 +249,7 @@ export function initializeErrorReporting(): void {
     if (args.length === 0) return;
 
     const first = args[0];
-    const message =
-      typeof first === 'string'
-        ? args
-            .map(arg =>
-              typeof arg === 'string'
-                ? arg
-                : arg instanceof Error
-                  ? arg.message
-                  : ''
-            )
-            .filter(Boolean)
-            .join(' ')
-        : first instanceof Error
-          ? first.message
-          : '';
+    const message = extractConsoleErrorMessage(args);
 
     if (!message || !message.toLowerCase().includes('error')) return;
     if (
@@ -211,7 +266,14 @@ export function initializeErrorReporting(): void {
       severity: 'medium',
       additionalData: {
         consoleArgs: args.map(arg =>
-          arg instanceof Error ? { name: arg.name, message: arg.message } : arg
+          arg instanceof Error
+            ? { name: arg.name, message: arg.message }
+            : arg && typeof arg === 'object' && 'message' in arg
+              ? {
+                  name: 'name' in arg ? String((arg as { name?: unknown }).name) : 'Error',
+                  message: String((arg as { message?: unknown }).message),
+                }
+              : arg
         ),
       },
     });
