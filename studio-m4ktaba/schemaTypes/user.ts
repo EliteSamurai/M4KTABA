@@ -71,45 +71,6 @@ export default defineType({
       initialValue: false,
     }),
     defineField({
-      name: 'ratings',
-      title: 'Ratings',
-      type: 'array',
-      of: [
-        {
-          type: 'object',
-          name: 'rating',
-          fields: [
-            defineField({
-              name: 'score',
-              title: 'Score',
-              type: 'number',
-              validation: (Rule) =>
-                Rule.required().min(1).max(5).error('Rating must be between 1 and 5.'),
-            }),
-            defineField({
-              name: 'review',
-              title: 'Review',
-              type: 'string',
-              description: 'Optional review message.',
-              validation: (Rule) => Rule.max(500).warning('Keep reviews under 500 characters.'),
-            }),
-          ],
-          preview: {
-            select: {
-              score: 'score',
-              review: 'review',
-            },
-            prepare({score, review}) {
-              return {
-                title: `Rating: ${score}/5`,
-                subtitle: review || 'No review provided',
-              }
-            },
-          },
-        },
-      ],
-    }),
-    defineField({
       name: 'cart',
       title: 'Cart',
       type: 'array',
