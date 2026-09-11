@@ -33,11 +33,19 @@ export default defineType({
         hotspot: true,
       },
     }),
-    defineField({
+        defineField({
       name: 'categories',
       title: 'Categories',
       type: 'array',
       of: [{type: 'reference', to: {type: 'category'}}],
+    }),
+    defineField({
+      name: 'shopCategories',
+      title: 'Shop Categories (links)',
+      type: 'array',
+      of: [{type: 'reference', to: {type: 'category'}}],
+      description:
+        'Categories this post links to in the store. Used for the "Shop This Topic" internal links. Falls back to "categories" when empty.',
     }),
     defineField({
       name: 'publishedAt',

@@ -35,6 +35,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { isCrawlerUserAgent } from '@/lib/errorReporting';
 // import { readClient } from '@/studio-m4ktaba/client';
 
 const conditions = [
@@ -114,6 +115,8 @@ export default function EditProductForm({
   }, [book, form]);
 
   useEffect(() => {
+    if (!isOpen || isCrawlerUserAgent()) return;
+
     async function fetchCategories() {
       try {
         const response = await fetch('/api/get-categories');
@@ -121,7 +124,6 @@ export default function EditProductForm({
           const fetchedCategories = await response.json();
           setCategories(fetchedCategories);
         } else {
-          // Fallback categories if API fails
           setCategories([
             { _id: 'fiction', title: 'Fiction' },
             { _id: 'non-fiction', title: 'Non-Fiction' },
@@ -131,9 +133,7 @@ export default function EditProductForm({
             { _id: 'other', title: 'Other' },
           ]);
         }
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        // Fallback categories
+      } catch {
         setCategories([
           { _id: 'fiction', title: 'Fiction' },
           { _id: 'non-fiction', title: 'Non-Fiction' },
@@ -151,7 +151,7 @@ export default function EditProductForm({
       }
     }
     fetchCategories();
-  }, [toast]);
+  }, [isOpen, toast]);
 
   async function onSubmit(data: z.infer<typeof editProductSchema>) {
     if (!session?.user?._id) {

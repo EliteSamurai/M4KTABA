@@ -104,7 +104,6 @@ export function TrustBadges({
   if (variant === 'detailed') {
     return (
       <div className={cn('space-y-4', className)}>
-        <h3 className='text-lg font-semibold'>Why Trust M4ktaba?</h3>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           {badgesToShow.map((badge, index) => (
             <Card key={index} className='border-0 shadow-sm'>
