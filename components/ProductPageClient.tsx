@@ -9,7 +9,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Edit, Truck, Info, Eye } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import ThumbnailSwitcher from '@/components/ThumbnailSwitcher';
 import AddToCartButton from '@/components/AddToCartButton';
 import QuantitySelector from '@/components/QuantitySelector';
@@ -22,6 +27,7 @@ import EditableThumbnailManager from './EditableThumbnailManager';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams } from 'next/navigation';
 import { calculateShipping, getShippingBadge } from '@/lib/shipping-smart';
+import { isCrawlerUserAgent } from '@/lib/errorReporting';
 
 interface ProductPageClientProps {
   book: { _id?: string; [key: string]: unknown };
@@ -63,32 +69,37 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
 
   // Fetch live view count (bypasses CDN so deployed site shows correct number)
   useEffect(() => {
-    if (!book?._id) return;
+    if (!book?._id || isCrawlerUserAgent()) return;
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/books/${book._id}/view`, { method: 'GET' });
+        const res = await fetch(`/api/books/${book._id}/view`, {
+          method: 'GET',
+        });
         if (!res.ok || cancelled) return;
         const data = await res.json();
-        if (typeof data.views === 'number' && !cancelled) setBookViews(data.views);
-      } catch (e) {
-        if (!cancelled) console.error('Error fetching view count:', e);
+        if (typeof data.views === 'number' && !cancelled)
+          setBookViews(data.views);
+      } catch {
+        // Optional enhancement — don't log or report for bots/offline clients
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [book?._id]);
 
   // Track view when component mounts (logged-in users only)
   useEffect(() => {
     async function trackView() {
-      if (!book?._id || !session?.user?._id) return;
+      if (!book?._id || !session?.user?._id || isCrawlerUserAgent()) return;
       try {
         await fetch(`/api/books/${book._id}/view`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
         });
-      } catch (error) {
-        console.error('Error tracking view:', error);
+      } catch {
+        // Non-critical
       }
     }
     trackView();
@@ -102,6 +113,11 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
         return;
       }
 
+      if (isCrawlerUserAgent()) {
+        setLoadingRelated(false);
+        return;
+      }
+
       try {
         const response = await fetch(
           `/api/related-books?bookId=${book._id}&categoryId=${(book as any).selectedCategory._id}`
@@ -111,7 +127,12 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
           setRelatedBooks(data.books || []);
         }
       } catch (error) {
-        console.error('Error fetching related books:', error);
+        if (
+          process.env.NODE_ENV !== 'test' &&
+          process.env.NODE_ENV !== 'production'
+        ) {
+          console.warn('Failed to fetch related books (non-critical):', error);
+        }
       } finally {
         setLoadingRelated(false);
       }
@@ -247,9 +268,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                       <TooltipTrigger asChild>
                         <span className='inline-flex items-center gap-1.5 rounded-full bg-muted/80 px-2.5 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border/50'>
                           <Eye className='h-3.5 w-3.5' aria-hidden />
-                          <span>
-                            {bookViews.toLocaleString()} views
-                          </span>
+                          <span>{bookViews.toLocaleString()} views</span>
                         </span>
                       </TooltipTrigger>
                       <TooltipContent side='bottom' className='text-xs'>
@@ -311,7 +330,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                     ${(price as number)?.toFixed(2) || 'N/A'}
                   </span>
                 </div>
-                
+
                 {/* Shipping Information */}
                 {!isOwner && (
                   <>
@@ -326,28 +345,30 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                           </Badge>
                         </div>
                         <span className='font-medium'>
-                          {shippingInfo.buyerPays > 0 
+                          {shippingInfo.buyerPays > 0
                             ? `$${shippingInfo.buyerPays.toFixed(2)}`
-                            : 'FREE'
-                          }
+                            : 'FREE'}
                         </span>
                       </div>
                       <div className='flex items-start gap-1 text-xs text-muted-foreground'>
                         <Info className='mt-0.5 h-3 w-3 flex-shrink-0' />
                         <span>
-                          {shippingInfo.carrier} - Estimated delivery: {shippingInfo.estimatedDays.min}-{shippingInfo.estimatedDays.max} days
+                          {shippingInfo.carrier} - Estimated delivery:{' '}
+                          {shippingInfo.estimatedDays.min}-
+                          {shippingInfo.estimatedDays.max} days
                           {shippingInfo.note && ` • ${shippingInfo.note}`}
                         </span>
                       </div>
                       {(user as any)?.location?.country && (
                         <div className='text-xs text-muted-foreground'>
-                          Ships from: {(user as any).location.country.toUpperCase()}
+                          Ships from:{' '}
+                          {(user as any).location.country.toUpperCase()}
                         </div>
                       )}
                     </div>
                   </>
                 )}
-                
+
                 <Separator className='mb-4' />
                 <div className='space-y-4'>
                   <QuantitySelector
