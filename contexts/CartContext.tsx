@@ -14,6 +14,10 @@ type CartContextType = {
   getCartCount: () => number;
   isInCart: (id: string) => boolean;
   handleLogout: () => void;
+  // Cart sheet control — shared between Navbar and MobileBottomNav
+  isCartSheetOpen: boolean;
+  openCartSheet: () => void;
+  closeCartSheet: () => void;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -22,6 +26,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartSheetOpen, setIsCartSheetOpen] = useState(false);
   const { data: session, status } = useSession();
 
   useEffect(() => {
@@ -193,6 +198,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     return cart.some(item => item.id === id);
   };
 
+  const openCartSheet = () => setIsCartSheetOpen(true);
+  const closeCartSheet = () => setIsCartSheetOpen(false);
+
   return (
     <CartContext.Provider
       value={{
@@ -205,6 +213,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         getCartCount,
         isInCart,
         handleLogout,
+        isCartSheetOpen,
+        openCartSheet,
+        closeCartSheet,
       }}
     >
       {children}

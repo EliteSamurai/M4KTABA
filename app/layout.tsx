@@ -15,6 +15,7 @@ import dynamic from 'next/dynamic';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { ErrorReportingInitializer } from '@/components/ErrorReportingInitializer';
 import MobileBottomNav from '@/components/MobileBottomNav';
+import { ControlledCartSheet } from '@/components/CartSheet';
 
 // Dynamically import heavy components to reduce initial bundle size
 const SupportWidget = dynamic(() => import('@/components/SupportWidget'), {
@@ -169,6 +170,7 @@ export default function RootLayout({
             <CartProvider>
               <ErrorBoundary>
                 <ErrorReportingInitializer />
+                <ControlledCartSheet />
                 <Navbar />
                 <A11yLiveRegion />
                 {process.env.NEXT_PUBLIC_DISABLE_VITALS !== 'true' ? (

@@ -74,35 +74,31 @@ function CartItemRow({
   );
 }
 
-export function CartSheet() {
-  const [isOpen, setIsOpen] = useState(false);
+export function CartSheet({ 
+  open: controlledOpen, 
+  onOpenChange: controlledOnOpenChange,
+}: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+} = {}) {
+  // Use controlled state if provided, otherwise use internal state
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  const isOpen = isControlled ? controlledOpen! : internalOpen;
+  const setIsOpen = isControlled ? controlledOnOpenChange! : setInternalOpen;
+  
   const { cart, getCartTotal, getCartCount } = useCart();
   const pathname = usePathname();
 
   useEffect(() => {
+    if (isControlled) return; // Don't close from internal state when controlled
     setIsOpen(false);
-  }, [pathname]);
+  }, [pathname, isControlled]);
 
-  return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <Button
-          variant='outline'
-          size='icon'
-          className='relative w-9 h-9 transition-colors hover:bg-muted'
-          aria-label='Open cart'
-        >
-          <ShoppingCart className='h-5 w-5' />
-          {getCartCount() > 0 && (
-            <Badge
-              variant='destructive'
-              className='absolute -right-2 -top-2 h-5 w-5 justify-center rounded-full p-0'
-            >
-              {getCartCount()}
-            </Badge>
-          )}
-        </Button>
-      </SheetTrigger>
+  // The sheet content (shared between controlled and uncontrolled modes)
+  const sheetContent = (
+    <>
       <SheetContent className='flex flex-col'>
         <SheetHeader className='space-y-2.5'>
           <SheetTitle>Cart</SheetTitle>
@@ -128,6 +124,42 @@ export function CartSheet() {
           </div>
         </div>
       </SheetContent>
+    </>
+  );
+
+  return (
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      {!isControlled && (
+        <SheetTrigger asChild>
+          <Button
+            variant='outline'
+            size='icon'
+            className='relative w-9 h-9 transition-colors hover:bg-muted'
+            aria-label='Open cart'
+          >
+            <ShoppingCart className='h-5 w-5' />
+            {getCartCount() > 0 && (
+              <Badge
+                variant='destructive'
+                className='absolute -right-2 -top-2 h-5 w-5 justify-center rounded-full p-0'
+              >
+                {getCartCount()}
+              </Badge>
+            )}
+          </Button>
+        </SheetTrigger>
+      )}
+      {sheetContent}
     </Sheet>
   );
+}
+
+/**
+ * ControlledCartSheet — a headless version of CartSheet that is driven by
+ * CartContext.  Rendered once at the root layout so that ANY component
+ * (Navbar, MobileBottomNav) can open / close it via `openCartSheet()`.
+ */
+export function ControlledCartSheet() {
+  const { isCartSheetOpen, closeCartSheet } = useCart();
+  return <CartSheet open={isCartSheetOpen} onOpenChange={closeCartSheet} />;
 }

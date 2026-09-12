@@ -4,7 +4,9 @@ import React from 'react';
 import Link from 'next/link';
 import LoginButton from '@/components/LoginButton';
 import { Button } from './ui/button';
-import { CartSheet } from './CartSheet';
+import { Badge } from './ui/badge';
+import { ShoppingCart } from 'lucide-react';
+import { useCart } from '@/contexts/CartContext';
 import { cn } from '@/lib/utils';
 import { MobileNav } from './mobile-nav';
 import { event } from '@/lib/fbpixel';
@@ -14,6 +16,29 @@ const Links = [
   { href: '/honey', text: 'Honey' },
   { href: '/blog', text: 'Blog' },
 ];
+
+const CartButton = () => {
+  const { openCartSheet, getCartCount } = useCart();
+  return (
+    <Button
+      variant='outline'
+      size='icon'
+      className='relative w-9 h-9 transition-colors hover:bg-muted'
+      aria-label='Open cart'
+      onClick={openCartSheet}
+    >
+      <ShoppingCart className='h-5 w-5' />
+      {getCartCount() > 0 && (
+        <Badge
+          variant='destructive'
+          className='absolute -right-2 -top-2 h-5 w-5 justify-center rounded-full p-0'
+        >
+          {getCartCount()}
+        </Badge>
+      )}
+    </Button>
+  );
+};
 
 const Navbar = () => {
   const handleClick = () => {
@@ -68,7 +93,7 @@ const Navbar = () => {
               </Button>
             </Link>
           </div>
-          <CartSheet />
+          <CartButton />
         </div>
       </nav>
     </header>
