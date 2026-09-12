@@ -18,7 +18,11 @@ async function fetchInitialBooks(limit: number = 10) {
       "user": user->{_id, email, location, stripeAccountId},
       price,
       "image": photos[0].asset._ref,
-      selectedCategory->{ title },
+            selectedCategory->{ title },
+      selectedCondition,
+      edition,
+      publisher,
+      language,
     _createdAt
     }`,
       {},

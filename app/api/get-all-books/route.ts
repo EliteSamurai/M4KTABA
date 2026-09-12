@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       params.language = language;
     }
     if (condition) {
-      filters.push('condition == $condition');
+      filters.push('selectedCondition == $condition');
       params.condition = condition;
     }
     if (category) {
@@ -70,9 +70,11 @@ export async function GET(req: NextRequest) {
         title,
         "user": user->{_id, email, location, stripeAccountId},
         price,
-        "image": photos[0].asset._ref,
+                "image": photos[0].asset._ref,
         language,
-        condition
+        selectedCondition,
+        edition,
+        publisher
       }`,
       params
     );

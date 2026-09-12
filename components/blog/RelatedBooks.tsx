@@ -18,7 +18,11 @@ const RELATED_BOOKS_QUERY = `*[_type == "book" && quantity > 0 && selectedCatego
   _id,
   title,
   "user": user->{_id, email, location},
-  price,
+    price,
+  selectedCondition,
+  edition,
+  publisher,
+  language,
   "image": photos[0].asset._ref
 }`;
 
@@ -74,7 +78,10 @@ export default async function RelatedBooks({
             title={book.title}
             user={book.user || { email: 'unknown@example.com', location: {} }}
             price={book.price}
-            image={book.image}
+                        image={book.image}
+            condition={book.selectedCondition}
+            edition={book.edition}
+                        publisher={book.publisher}
           />
         ))}
       </div>

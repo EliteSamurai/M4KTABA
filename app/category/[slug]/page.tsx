@@ -94,7 +94,10 @@ export default async function CategoryPage({
     title,
     "user": user->{_id, email, location},
     price,
-    selectedCondition, "image": photos[0].asset._ref
+        selectedCondition, "image": photos[0].asset._ref,
+    edition,
+    publisher,
+    language
   }`;
   const countQuery = `count(*[_type == "book" && quantity > 0 && selectedCategory._ref == $categoryId])`;
 
@@ -187,7 +190,9 @@ export default async function CategoryPage({
                 }
                 price={book.price}
                 image={book.image}
-                condition={book.selectedCondition}
+                                condition={book.selectedCondition}
+                edition={book.edition}
+                                publisher={book.publisher}
               />
             ))}
           </div>

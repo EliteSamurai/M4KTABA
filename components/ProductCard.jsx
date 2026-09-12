@@ -35,6 +35,8 @@ function BookProductCard({
   price,
   image,
     condition = '',
+    edition = '',
+  publisher = '',
   loading = false,
 }) {
   const CONDITION_LABEL = {
@@ -153,6 +155,16 @@ function BookProductCard({
         {conditionLabel && (
           <Badge variant="secondary" className="w-fit">
             {conditionLabel}
+          </Badge>
+        )}
+        {edition && (
+          <Badge variant="outline" className="w-fit text-xs">
+            {edition}
+          </Badge>
+        )}
+                {publisher && (
+          <Badge variant="outline" className="w-fit text-xs">
+            {publisher}
           </Badge>
         )}
         <div className="space-y-1">

@@ -36,7 +36,11 @@ async function fetchLatestBooks() {
       location,
       stripeAccountId
     },
-    "image": photos[0].asset->url
+        "image": photos[0].asset->url,
+    selectedCondition,
+    edition,
+    publisher,
+    language
   }`;
 
   const endpoint =
@@ -210,6 +214,9 @@ export default async function Home() {
                   user={book.user || 'Unknown'}
                   price={book.price || 0}
                   image={book.image || '/islamiclibrary.jpg'}
+                  condition={book.selectedCondition}
+                  edition={book.edition}
+                  publisher={book.publisher}
                   loading={false}
                 />
               ))}

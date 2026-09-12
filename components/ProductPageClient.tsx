@@ -30,7 +30,22 @@ import { calculateShipping, getShippingBadge } from '@/lib/shipping-smart';
 import { isCrawlerUserAgent } from '@/lib/errorReporting';
 
 interface ProductPageClientProps {
-  book: { _id?: string; [key: string]: unknown };
+  book: {
+    _id?: string;
+    title?: string;
+    user?: unknown;
+    description?: string;
+    selectedCondition?: string;
+    edition?: string;
+    publisher?: string;
+    language?: string;
+    price?: number;
+    selectedCategory?: { _ref?: string; title?: string };
+    quantity?: number;
+    views?: number;
+    status?: string;
+    [key: string]: unknown;
+  };
 }
 
 export default function ProductPageClient({ book }: ProductPageClientProps) {
@@ -153,7 +168,10 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
     user,
     title,
     description,
-    selectedCondition,
+        selectedCondition,
+    edition,
+    publisher,
+    language,
     price,
     selectedCategory,
     quantity: availableQuantity,
@@ -310,7 +328,7 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                 <p className='text-sm leading-relaxed text-muted-foreground'>
                   {(description as string) || 'No description available.'}
                 </p>
-                <div className='flex items-center gap-2 text-sm'>
+                                <div className='flex items-center gap-2 text-sm'>
                   <span className='font-medium'>Condition:</span>
                   <span className='text-muted-foreground'>
                     {selectedCondition
@@ -319,6 +337,26 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                       : 'Not specified'}
                   </span>
                 </div>
+                {edition && (
+                  <div className='flex items-center gap-2 text-sm'>
+                    <span className='font-medium'>Edition:</span>
+                    <span className='text-muted-foreground'>{edition as string}</span>
+                  </div>
+                )}
+                {publisher && (
+                  <div className='flex items-center gap-2 text-sm'>
+                    <span className='font-medium'>Publisher:</span>
+                    <span className='text-muted-foreground'>{publisher as string}</span>
+                  </div>
+                )}
+                {language && (
+                  <div className='flex items-center gap-2 text-sm'>
+                    <span className='font-medium'>Language:</span>
+                    <span className='text-muted-foreground'>
+                      {language === 'arabic' ? 'Arabic' : (language as string)}
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

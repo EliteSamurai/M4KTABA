@@ -227,7 +227,10 @@ export default function AllBooksClient({
               title={book.title}
               user={book.user || { email: 'unknown@example.com', location: {} }}
               price={book.price}
-              image={urlFor(book.image) || '/islamiclibrary.jpg'}
+                            image={urlFor(book.image) || '/islamiclibrary.jpg'}
+              condition={book.selectedCondition}
+              edition={book.edition}
+                            publisher={book.publisher}
             />
           ))}
           {(loading || searching) &&

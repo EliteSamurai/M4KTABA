@@ -22,7 +22,10 @@ export default async function ProductPage({
       quantity,
       views,
       status,
-      selectedCondition,
+            selectedCondition,
+      edition,
+      publisher,
+      language,
       "photos": photos[]{
         _key,
         asset->{
