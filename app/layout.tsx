@@ -14,6 +14,7 @@ import VitalsClient from './vitals-client';
 import dynamic from 'next/dynamic';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { ErrorReportingInitializer } from '@/components/ErrorReportingInitializer';
+import MobileBottomNav from '@/components/MobileBottomNav';
 
 // Dynamically import heavy components to reduce initial bundle size
 const SupportWidget = dynamic(() => import('@/components/SupportWidget'), {
@@ -173,7 +174,10 @@ export default function RootLayout({
                 {process.env.NEXT_PUBLIC_DISABLE_VITALS !== 'true' ? (
                   <VitalsClient />
                 ) : null}
-                {children}
+                <div className="pb-16 md:pb-0">
+                  {children}
+                </div>
+                <MobileBottomNav />
                 <Footer />
                 <SupportWidget />
                 <Toaster />
