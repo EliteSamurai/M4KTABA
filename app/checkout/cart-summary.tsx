@@ -2,12 +2,37 @@ import { CartItem, ShippingTier } from '@/types/shipping-types';
 import { checkoutCopy } from '@/copy/checkout';
 import { Info, Home, Package as PackageIcon, Plane } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { SellerBadge } from '@/components/SellerBadge';
+import { useSellerStats } from '@/hooks/useSellerStats';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+
+function SellerTrustBadge({
+  sellerId,
+  sellerName,
+  sellerEmail,
+}: {
+  sellerId?: string | null;
+  sellerName?: string | null;
+  sellerEmail?: string | null;
+}) {
+  const stats = useSellerStats(sellerId ?? null);
+  return (
+    <SellerBadge
+      sellerType="marketplace"
+      sellerId={sellerId ?? null}
+      sellerName={sellerName ?? null}
+      sellerEmail={sellerEmail ?? null}
+      rating={stats?.rating}
+      reviewCount={stats?.reviewCount}
+      showRating
+    />
+  );
+}
 
 interface CartSummaryProps {
   cart: CartItem[];
@@ -73,6 +98,13 @@ export function CartSummary({
           <div key={index} className='flex gap-4'>
             <div className="flex-1">
               <h3 className='font-medium'>{item.title}</h3>
+              {item.user && (
+                <SellerTrustBadge
+                  sellerId={item.user._id}
+                  sellerName={item.user.name}
+                  sellerEmail={item.user.email}
+                />
+              )}
               <p className='text-sm text-gray-500'>
                 {checkoutCopy.cartSummary.quantity}: {item.quantity}
               </p>
