@@ -18,9 +18,9 @@ import {
 import ThumbnailSwitcher from '@/components/ThumbnailSwitcher';
 import AddToCartButton from '@/components/AddToCartButton';
 import QuantitySelector from '@/components/QuantitySelector';
-import { SellerInfo } from '@/components/seller-info';
+import { SellerBadge } from '@/components/SellerBadge';
 import EditProductForm from '@/components/EditProductForm';
-import calculateAverageRating from '@/utils/calculateAverageRating';
+import { useSellerStats } from '@/hooks/useSellerStats';
 import { urlFor } from '@/utils/imageUrlBuilder';
 import Link from 'next/link';
 import EditableThumbnailManager from './EditableThumbnailManager';
@@ -177,8 +177,8 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
     quantity: availableQuantity,
     _id,
   } = book;
-  const userRatings = (user as any)?.ratings || [];
-  const averageRating = calculateAverageRating(userRatings);
+    const sellerStats = useSellerStats((user as any)?._id ?? null);
+
   const isAvailable = (availableQuantity as number) > 0;
   const isOwner = session?.user?._id === (user as any)?._id;
 
@@ -310,14 +310,64 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
               <h1 className='text-3xl font-bold tracking-tight md:text-4xl'>
                 {(title as string) || 'Untitled Book'}
               </h1>
-              <SellerInfo
-                image={(user as any)?.image || null}
-                email={(user as any)?.email || 'anonymous@example.com'}
-                name={(user as any)?.name || null}
-                sellerId={(user as any)?._id || null}
-                rating={Number(averageRating)}
-                reviewCount={userRatings.length}
-              />
+                            {/* Seller identity: avatar + SellerBadge (unified trust data via useSellerStats) */}
+              <div className='flex items-center gap-3'>
+                {(() => {
+                  const sellerImage = (user as any)?.image;
+                  const sellerEmail = (user as any)?.email || 'anonymous@example.com';
+                  const sellerName = (user as any)?.name || null;
+                  const sellerId = (user as any)?._id || null;
+
+                  // Avatar resolution: direct URL → Sanity asset ref → Gmail profile → initials
+                  let avatarUrl: string | null = null;
+                  if (typeof sellerImage === 'string') {
+                    avatarUrl = sellerImage;
+                  } else if (sellerImage && typeof sellerImage === 'object' && sellerImage._ref) {
+                    avatarUrl = urlFor(sellerImage);
+                  } else if (sellerImage && typeof sellerImage === 'object' && sellerImage.url) {
+                    avatarUrl = sellerImage.url;
+                  } else if (sellerEmail.includes('@gmail.com')) {
+                    avatarUrl = 'https://lh3.googleusercontent.com/a/default-user=s64-c';
+                  }
+
+                  const initials = (sellerName || sellerEmail.split('@')[0])
+                    .split(' ')
+                    .map((n: string) => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2);
+
+                  return (
+                    <>
+                      {avatarUrl ? (
+                        <Image
+                          src={avatarUrl}
+                          alt={sellerName || 'Seller'}
+                          width={32}
+                          height={32}
+                          className='rounded-full object-cover object-top w-8 h-8'
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className='rounded-full w-8 h-8 flex items-center justify-center text-white text-sm font-semibold bg-gradient-to-br from-purple-500 to-blue-500'>
+                          {initials}
+                        </div>
+                      )}
+                      <SellerBadge
+                        sellerType='marketplace'
+                        sellerId={sellerId}
+                        sellerName={sellerName}
+                        sellerEmail={sellerEmail}
+                        rating={sellerStats?.rating}
+                        reviewCount={sellerStats?.reviewCount}
+                        showRating
+                      />
+                    </>
+                  );
+                })()}
+              </div>
             </div>
 
             <Card>
