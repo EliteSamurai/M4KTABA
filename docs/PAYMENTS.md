@@ -5,7 +5,7 @@
 - `transfer_group` is set to `orderId`.
 - Idempotency: client sends `Idempotency-Key`; server derives if missing using userId+orderId+step and passes to Stripe request.
 - Webhooks are deduped via `lib/idempotency` using keys of the form `stripe:webhook:<event.id>`.
-- Future: for multi-seller carts, fallback to platform charges and issue transfers per seller in webhook, or split payments.
+- For multi-seller carts: platform charges + webhook issues per-seller transfers (see docs/multiseller-payments-design.md)
 
 Env:
 

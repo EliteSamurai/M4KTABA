@@ -1,3 +1,29 @@
+/**
+ * 🚨 MULTI-SELLER PAYMENT BUG — KNOWN LIMITATION (see docs/multiseller-payments-design.md)
+ *
+ * Destination charges (transfer_data.destination) are only set when there is
+ * exactly ONE seller with a connected Stripe account. For multi-seller carts,
+ * sellerStripeAccountId is null (line ~169), so the PaymentIntent becomes a
+ * PLATFORM charge with NO funds routed to any seller.
+ *
+ * The webhook (app/api/webhooks/stripe-webhook/route.ts) sends emails and
+ * creates DB orders for each seller, but does NOT call stripe.transfers.create()
+ * to move money to their accounts.
+ *
+ * Consequence: Multi-seller checkouts route all money into the platform's
+ * Stripe balance. Sellers do NOT receive funds automatically. A manual transfer
+ * is required.
+ *
+ * Verified: 0 multi-seller PaymentIntents have been created to date
+ * (54 total PIs: 15 single-seller, 39 test/no-seller, 0 multi-seller).
+ * The bug is latent — it will cause financial harm as soon as a real
+ * multi-seller checkout completes.
+ *
+ * FIX: Separate Charges & Transfers (one platform charge + webhook creates
+ * per-seller transfers after charge.succeeded). See design doc for full plan.
+ * DO NOT proceed with a multi-seller checkout in production until fixed.
+ */
+
 import { createPaymentIntentWithDestinationCharge } from '@/lib/stripe';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
