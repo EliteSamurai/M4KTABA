@@ -1,3 +1,21 @@
+/**
+ * ⚠️ UNWIRED REFERENCE IMPLEMENTATION — NOT IMPORTED, NOT FUNCTIONAL
+ *
+ * This component was built as a reference for the future multi-seller checkout
+ * UI. It is NOT imported anywhere in the application (confirmed via grep).
+ *
+ * The "Payment will be split between sellers" and "Automatic payment splitting
+ * between sellers" messages in this component are INACCURATE for the current
+ * codebase — multi-seller checkouts create a single platform-level PaymentIntent
+ * with no per-seller Stripe transfers (see docs/multiseller-payments-design.md).
+ *
+ * Do not import or use this component until the backend fix lands (Phase 2-5 of
+ * the design doc). When rebuilding, this file's grouping/shipping/tax logic
+ * can serve as reference, but all payment-related messaging must be updated.
+ *
+ * Related: lib/multi-seller-cart.ts (calculateSellerPayments also unwired)
+ */
+
 'use client';
 
 import { useState, useEffect } from 'react';
