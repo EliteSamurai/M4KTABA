@@ -1,8 +1,10 @@
 import { CartItem, ShippingTier } from '@/types/shipping-types';
 import { checkoutCopy } from '@/copy/checkout';
-import { Info, Home, Package as PackageIcon, Plane } from 'lucide-react';
+import { Info, Home, Package as PackageIcon, Plane, Store } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SellerBadge } from '@/components/SellerBadge';
+import { getSellerCount } from '@/lib/multi-seller-cart';
 import { useSellerStats } from '@/hooks/useSellerStats';
 import {
   Tooltip,
@@ -70,7 +72,11 @@ export function CartSummary({
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  
+
+  // Count distinct sellers in cart for multi-seller shipping notice
+  const sellerCount = getSellerCount(cart);
+  const isMultiSeller = sellerCount > 1;
+
   // NO PLATFORM FEES - sellers receive full amount
   const platformFee = 0;
   const total = subtotal + shippingCost;
@@ -92,6 +98,17 @@ export function CartSummary({
           No Platform Fees
         </Badge>
       </div>
+
+      {/* Multi-seller shipping notice */}
+      {isMultiSeller && (
+        <Alert className="mb-4">
+          <Store className="h-4 w-4" />
+          <AlertDescription>
+            Your order includes items from <strong>{sellerCount} sellers</strong>{' '}
+            and will ship separately.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className='space-y-4'>
         {cart.map((item, index) => (

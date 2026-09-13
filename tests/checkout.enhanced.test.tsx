@@ -153,6 +153,48 @@ describe('Enhanced Checkout Components', () => {
     });
   });
 
+  describe('Multi-Seller Shipping Notice', () => {
+    const multiSellerCart = [
+      {
+        id: '1',
+        title: 'Test Book 1',
+        price: 29.99,
+        quantity: 1,
+        user: { _id: 'seller1', name: 'Seller One' },
+      },
+      {
+        id: '2',
+        title: 'Test Book 2',
+        price: 19.99,
+        quantity: 1,
+        user: { _id: 'seller2', name: 'Seller Two' },
+      },
+    ];
+
+    const singleSellerCart = [
+      {
+        id: '1',
+        title: 'Test Book 1',
+        price: 29.99,
+        quantity: 1,
+        user: { _id: 'seller1', name: 'Seller One' },
+      },
+    ];
+
+    it('shows shipping notice for multi-seller cart', () => {
+      render(<CartSummary cart={multiSellerCart} shippingCost={0} currency="USD" />);
+
+      expect(screen.getByText(/2 sellers/i)).toBeInTheDocument();
+      expect(screen.getByText(/will ship separately/i)).toBeInTheDocument();
+    });
+
+    it('does not show shipping notice for single-seller cart', () => {
+      render(<CartSummary cart={singleSellerCart} shippingCost={0} currency="USD" />);
+
+      expect(screen.queryByText(/will ship separately/i)).not.toBeInTheDocument();
+    });
+  });
+
   describe('Fee Transparency', () => {
     it('shows processor fee information', () => {
       const mockCart = [
