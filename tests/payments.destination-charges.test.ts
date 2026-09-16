@@ -9,6 +9,9 @@ jest.mock('@/lib/stripe', () => {
       paymentIntents: {
         create: jest.fn(),
       },
+      transfers: {
+        create: jest.fn(),
+      },
     },
   };
 });

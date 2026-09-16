@@ -105,6 +105,41 @@ export async function createPaymentIntentWithDestinationCharge(
   return pi;
 }
 
+/**
+ * Create a per-seller transfer from a platform charge.
+ *
+ * Uses source_transaction (the charge ID from the platform charge) to link
+ * each transfer to its source charge. The sourceTransaction parameter is
+ * REQUIRED — without it, transfers become bare balance-to-balance operations
+ * that interfere with automatic payouts. (See design doc Section 6.2.)
+ *
+ * @param amountCents       - transfer amount in cents
+ * @param currency          - currency code (e.g., usd)
+ * @param destination       - seller Stripe Connect account ID
+ * @param sourceTransaction - charge ID from paymentIntent.latest_charge
+ * @param transferGroup     - transfer_group matching PaymentIntent transfer_group
+ * @param idempotencyKey    - prevents duplicate transfers if webhook fires twice
+ */
+export async function createTransfer(params: {
+  amountCents: number;
+  currency: string;
+  destination: string;
+  sourceTransaction: string;
+  transferGroup: string;
+  idempotencyKey?: string;
+}): Promise<Stripe.Transfer> {
+  return await (stripe as any).transfers.create(
+    {
+      amount: params.amountCents,
+      currency: params.currency,
+      destination: params.destination,
+      source_transaction: params.sourceTransaction,
+      transfer_group: params.transferGroup,
+    },
+    params.idempotencyKey ? { idempotencyKey: params.idempotencyKey } : undefined
+  );
+}
+
 export async function getTransactions(timeframe: 'week' | 'month' | 'year') {
   const now = new Date();
   const startDate = new Date();

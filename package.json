@@ -18,6 +18,7 @@
     "test:integration": "jest --testPathPatterns=integration --runInBand",
     "test:e2e": "playwright test",
     "test:unit": "jest --testPathPatterns=unit --runInBand",
+    "test:phase3": "tsx scripts/e2e-multiseller-transfers.ts",
     "test:clear": "jest --clearCache",
     "test:a11y": "playwright test tests/a11y.checkout.axe.test.ts",
     "test:perf": "node tests/perf.lazyload.test.ts",

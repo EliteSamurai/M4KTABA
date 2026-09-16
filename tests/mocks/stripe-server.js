@@ -48,6 +48,18 @@ async function createPaymentIntentWithDestinationCharge(args = {}) {
   return res;
 }
 
+async function createTransfer(args = {}) {
+  const s = module.exports.stripe;
+  const res = await s.transfers.create({
+    amount: args.amountCents,
+    currency: args.currency ?? 'usd',
+    destination: args.destination,
+    source_transaction: args.sourceTransaction,
+    transfer_group: args.transferGroup,
+  }, args.idempotencyKey ? { idempotencyKey: args.idempotencyKey } : undefined);
+  return res;
+}
+
 module.exports = {
   __esModule: true,
   get config() {
@@ -58,6 +70,9 @@ module.exports = {
   },
   get createPaymentIntentWithDestinationCharge() {
     return createPaymentIntentWithDestinationCharge;
+  },
+  get createTransfer() {
+    return createTransfer;
   },
   // Provide a getter so tests can spy with access type 'get'
   get stripe() {

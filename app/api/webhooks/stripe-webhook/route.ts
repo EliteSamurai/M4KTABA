@@ -1,9 +1,10 @@
-import { stripe } from '@/lib/stripe';
+import { stripe, createTransfer } from '@/lib/stripe';
 import { NextResponse } from 'next/server';
 import type { Stripe } from 'stripe';
 import { createTransport } from 'nodemailer';
 import { readClient, writeClient } from '@/studio-m4ktaba/client';
 import { emailTemplates } from '@/lib/email';
+import { makeKey, begin, commit, fail } from '@/lib/idempotency';
 
 async function sendEmail({
   to,
@@ -82,12 +83,18 @@ async function sendEmail({
   return result;
 }
 
-async function processRealOrder(
+export async function processRealOrder(
   userEmail: string,
   shippingDetails: any,
   cart: any[],
-  paymentIntent: Stripe.PaymentIntent
+  paymentIntent: Stripe.PaymentIntent,
+  /** Phase-3 E2E test seam: lets the standalone verification script
+   *  (scripts/e2e-multiseller-transfers.ts) substitute a fake Sanity write
+   *  client so no test orders are ever written to the real dataset.
+   *  Production callers never pass this. */
+  overrides?: { writeClient?: any }
 ) {
+  const wc = (overrides?.writeClient ?? writeClient) as any;
   console.log('🛒 Processing real order...');
   console.log('🛒 User email:', userEmail);
   console.log('🛒 Cart items:', cart.length);
@@ -107,6 +114,36 @@ async function processRealOrder(
 
   console.log('🛒 Grouped sellers:', Object.keys(groupedSellers));
 
+  // Parse shipping breakdown from PI metadata for per-seller transfer amounts
+  let shippingBreakdown: any = null;
+  if (paymentIntent.metadata.shippingBreakdown) {
+    try {
+      shippingBreakdown = JSON.parse(paymentIntent.metadata.shippingBreakdown);
+    } catch {
+      console.warn("Failed to parse shippingBreakdown from metadata");
+    }
+  }
+
+  // Determine if this was a destination charge (single-seller, funds already
+  // routed via transfer_data.destination). If so, skip webhook transfers.
+  const isDestinationCharge = paymentIntent.transfer_data?.destination;
+
+  // Extract charge ID from latest_charge (string or expanded Charge object).
+  // Guaranteed non-null on payment_intent.succeeded per Stripe docs.
+  const latestCharge = paymentIntent.latest_charge;
+  const chargeId = typeof latestCharge === "string"
+    ? latestCharge
+    : (latestCharge as any)?.id;
+
+  if (!chargeId) {
+    console.error("No latest_charge on PaymentIntent -- transfers skipped, order creation continues");
+  } else {
+    console.log(`Charge ID for transfers: ${chargeId}`);
+  }
+  console.log(
+    `Destination charge: ${isDestinationCharge ? "YES (skip transfers)" : "NO (create transfers if chargeId available)"}`
+  );
+
   // Process each seller
   for (const [sellerId, items] of Object.entries(groupedSellers) as [
     string,
@@ -121,6 +158,9 @@ async function processRealOrder(
 
     console.log(`🛒 Seller email: ${sellerEmail}`);
     console.log(`🛒 Seller Stripe account: ${sellerStripeAccountId}`);
+
+    // Declare at loop scope so transfer logic below can access it
+    let orderResponse: any = null;
 
     if (sellerEmail) {
       try {
@@ -160,6 +200,7 @@ async function processRealOrder(
           _type: 'order',
           status: 'pending',
           paymentId: paymentIntent.id,
+          transfersCreated: false,
           cart: items.map((item: any) => ({
             _key: `${item.id}_${Date.now()}`,
             id: item.id,
@@ -173,13 +214,14 @@ async function processRealOrder(
         };
 
         try {
-          const orderResponse = await (writeClient as any).create(
+          orderResponse = await wc.create(
             orderDocument
           );
           console.log('✅ Order created successfully:', {
             id: orderResponse._id,
             paymentId: orderDocument.paymentId,
             status: orderDocument.status,
+            transfersCreated: orderDocument.transfersCreated,
           });
         } catch (orderError) {
           console.error('❌ Failed to create order:', orderError);
@@ -190,6 +232,106 @@ async function processRealOrder(
         console.error(`❌ Error sending email to seller:`, emailError);
       }
     }
+    // --- Per-seller transfer creation (multi-seller fix) ---
+    // Only for platform charges (not destination charges).
+    if (!isDestinationCharge && sellerStripeAccountId && chargeId) {
+      const sellerSubtotal = items.reduce(
+        (sum: number, item: any) => sum + (item.price || 0) * (item.quantity || 1),
+        0
+      );
+      let sellerShippingBuyerPays = 0;
+      if (shippingBreakdown?.sellers) {
+        const shippingEntry = shippingBreakdown.sellers.find(
+          (s: any) => s.sellerId === sellerId
+        );
+        if (shippingEntry) {
+          sellerShippingBuyerPays = shippingEntry.shipping?.buyerPays || 0;
+        }
+      }
+      const transferAmountCents = Math.round(
+        (sellerSubtotal + sellerShippingBuyerPays) * 100
+      );
+      const transferGroup = paymentIntent.transfer_group || paymentIntent.id;
+      // Stripe-level idempotency key (passed to Stripe API)
+      const stripeIdempotencyKey = makeKey([
+        paymentIntent.id, "transfer", sellerId,
+      ]);
+      // App-level idempotency key (for begin/commit/fail)
+      const appTransferKey = makeKey([
+        "stripe", "transfer", paymentIntent.id, sellerId,
+      ]);
+      const idemEntry = await begin(appTransferKey);
+      if (idemEntry?.status === "committed") {
+        console.log("Transfer already processed for seller", sellerId, "skipping");
+        if (orderResponse) {
+          try {
+            await wc
+              .patch(orderResponse._id)
+              .set({
+                transfersCreated: true,
+                transferId: (idemEntry as any).result?.transferId,
+              })
+              .commit();
+          } catch (patchError) {
+            console.error("Failed to patch order with existing transfer info:", patchError);
+          }
+        }
+      } else {
+        try {
+          const transfer = await createTransfer({
+            amountCents: transferAmountCents,
+            currency: paymentIntent.currency,
+            destination: sellerStripeAccountId,
+            sourceTransaction: chargeId,
+            transferGroup,
+            idempotencyKey: stripeIdempotencyKey,
+          });
+          await commit(appTransferKey, {
+            transferId: transfer.id,
+            amount: transferAmountCents,
+          });
+          console.log("Transfer", transfer.id, "created for seller", sellerId, "(" + transferAmountCents + " cents)");
+          if (orderResponse) {
+            try {
+              await wc
+                .patch(orderResponse._id)
+                .set({
+                  transfersCreated: true,
+                  transferId: transfer.id,
+                })
+                .commit();
+            } catch (patchError) {
+              console.error("Failed to patch order with transfer success:", patchError);
+            }
+          }
+        } catch (transferError) {
+          const errorMessage =
+            transferError instanceof Error
+              ? transferError.message
+              : String(transferError);
+          await fail(appTransferKey);
+          console.error("Transfer failed for seller", sellerId + ":", errorMessage);
+          if (orderResponse) {
+            try {
+              await wc
+                .patch(orderResponse._id)
+                .set({
+                  transfersCreated: false,
+                  transferError: errorMessage,
+                })
+                .commit();
+            } catch (patchError) {
+              console.error("Failed to patch order with transfer failure:", patchError);
+            }
+          }
+          // Continue processing other sellers (partial failure handling)
+        }
+      }
+    } else if (!sellerStripeAccountId && !isDestinationCharge) {
+      console.error("Seller", sellerId, "has no stripeAccountId -- cannot create transfer");
+    }
+    // If isDestinationCharge, funds already routed via transfer_data.destination -- skip
+
   }
 
   // Send buyer email
