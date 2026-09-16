@@ -93,8 +93,13 @@ export async function POST(req: Request) {
       );
     }
 
+    // Dedup ONLY against buyer-view orders (combined, created by the success
+    // page) or legacy orders written before orderKind existed. Per-seller
+    // fulfillment orders (orderKind 'seller', created by the Stripe webhook)
+    // share the same paymentId and must never be mistaken for the buyer's
+    // combined order (previously they were, silently swallowing it).
     const existingOrder = await (readClient as any).fetch(
-      `*[_type == "order" && paymentId == $paymentId][0]`,
+      `*[_type == "order" && paymentId == $paymentId && (!defined(orderKind) || orderKind == "buyer")][0]`,
       { paymentId }
     );
 
@@ -107,6 +112,7 @@ export async function POST(req: Request) {
 
     const orderDocument = {
       _type: 'order',
+      orderKind: 'buyer', // Buyer-facing combined order (vs webhook 'seller' orders)
       status,
       paymentId,
       cart: simplifiedCart, // Use the simplified cart for storage
@@ -181,8 +187,11 @@ export async function GET() {
 
   try {
     // Optimized query - get orders directly by userEmail instead of complex reference lookup
+    // Buyer history = combined buyer orders + legacy pre-orderKind orders.
+    // Webhook 'seller' fulfillment fragments share userEmail and must not
+    // appear as duplicate purchases.
     const orders = await (readClient as any).fetch(
-      `*[_type == "order" && userEmail == $userEmail] | order(_createdAt desc) {
+      `*[_type == "order" && userEmail == $userEmail && (!defined(orderKind) || orderKind == "buyer")] | order(_createdAt desc) {
           _id,
           status,
           cart,

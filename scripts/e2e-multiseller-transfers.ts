@@ -275,6 +275,12 @@ async function main() {
   console.log(
     'PATCH records (fake writeClient): 2× transfersCreated=true + real transferId'
   );
+  assert.ok(
+    fake.created.every(
+      (o: any) => o.orderKind === 'seller' && o.status === 'paid'
+    ),
+    'webhook orders must be seller-kind with status paid'
+  );
 
   // -------------------------------------------------------------------------
   // PHASE C — Partial failure: unfinished-onboarding seller + valid seller

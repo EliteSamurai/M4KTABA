@@ -90,6 +90,10 @@ export async function GET() {
 
     // Filter orders where current user is a seller
     const orders = allOrdersWithDetails.filter((order: any) => {
+      // Buyer-facing combined orders are not fulfillment lines; drop them so
+      // sellers never see the same purchase twice (once on the combined order,
+      // once on their per-seller fragment).
+      if (order.orderKind === 'buyer') return false;
       const hasSellerItems = order.cart.some((item: any) => {
         const isSeller =
           item.user?._id === session.user._id ||

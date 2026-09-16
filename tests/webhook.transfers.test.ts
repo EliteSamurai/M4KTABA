@@ -126,6 +126,10 @@ describe('Webhook Transfer Creation', () => {
     const cart = [makeItem(10, 1, 'seller1'), makeItem(20, 2, 'seller2')];
     await processRealOrder('buyer@example.com', {}, cart, pi);
     expect(ct).toHaveBeenCalledTimes(2);
+    // Phase 4: webhook orders are per-seller fulfillment artifacts, paid.
+    expect(wcc).toHaveBeenCalledWith(
+      expect.objectContaining({ orderKind: 'seller', status: 'paid' })
+    );
     expect(ct).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({

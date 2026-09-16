@@ -198,7 +198,12 @@ export async function processRealOrder(
         // Create order in database
         const orderDocument = {
           _type: 'order',
-          status: 'pending',
+          // A payment_intent.succeeded webhook is, by definition, paid.
+          status: 'paid',
+          // Fulfillment fragment for ONE seller. The success page separately
+          // creates the buyer-facing combined order (orderKind 'buyer').
+          // Distinct kinds keep buyer history and seller views deduped.
+          orderKind: 'seller',
           paymentId: paymentIntent.id,
           transfersCreated: false,
           cart: items.map((item: any) => ({

@@ -238,7 +238,7 @@ export function SuccessContent() {
                     (item: { id: string; quantity: number }) =>
                       item.id !== 'unknown' && item.quantity > 0
                   ),
-                status: 'pending',
+                status: 'paid', // payment has already succeeded at this point
                 paymentId: paymentIntentId,
                 userId,
                 shippingDetails,
@@ -392,6 +392,23 @@ export function SuccessContent() {
     return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
+  // Group displayed items per seller so buyers can see who ships what.
+  const sellerGroups = cart.reduce<{
+    [sellerKey: string]: { label: string; items: CartItem[] };
+  }>((acc, item) => {
+    const sellerKey = item.user?._id || 'unknown';
+    if (!acc[sellerKey]) {
+      acc[sellerKey] = {
+        label: item.user?.name || item.user?.email || 'Seller',
+        items: [],
+      };
+    }
+    acc[sellerKey].items.push(item);
+    return acc;
+  }, {});
+  const sellerList = Object.entries(sellerGroups);
+  const isMultiSeller = sellerList.length > 1;
+
   if (isLoading) {
     return <LoadingUI />; // Show loading UI while loading
   }
@@ -413,6 +430,11 @@ export function SuccessContent() {
               ? 'Thank you for your purchase. Your order is on its way!'
               : 'There was an issue saving your order. Please check the details below.'}
           </p>
+          {isMultiSeller && orderSaved && (
+            <p className='mt-2 text-sm text-muted-foreground'>
+              This order ships from {sellerList.length} different sellers.
+            </p>
+          )}
         </div>
 
         {error && (
@@ -443,38 +465,64 @@ export function SuccessContent() {
           <CardContent>
             {cart.length > 0 ? (
               <ScrollArea className='h-full max-h-[400px]'>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead className='text-right'>Quantity</TableHead>
-                      <TableHead className='text-right'>Price</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {cart.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell className='font-medium'>
-                          {item.title}
-                        </TableCell>
-                        <TableCell className='text-right'>
-                          <Badge variant='secondary'>{item.quantity}</Badge>
-                        </TableCell>
-                        <TableCell className='text-right'>
-                          ${item.price.toFixed(2)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                  <TableFooter>
-                    <TableRow>
-                      <TableCell colSpan={2}>Total</TableCell>
-                      <TableCell className='text-right'>
-                        ${calculateTotal().toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                  </TableFooter>
-                </Table>
+                {sellerList.map(([sellerKey, group]) => (
+                  <div key={sellerKey} className='mb-6 last:mb-0'>
+                    <div className='mb-2 flex items-center justify-between'>
+                      <h3 className='text-sm font-semibold'>{group.label}</h3>
+                      <span className='text-xs text-muted-foreground'>
+                        Seller
+                      </span>
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Item</TableHead>
+                          <TableHead className='text-right'>Quantity</TableHead>
+                          <TableHead className='text-right'>Price</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {group.items.map((item, index) => (
+                          <TableRow key={index}>
+                            <TableCell className='font-medium'>
+                              {item.title}
+                            </TableCell>
+                            <TableCell className='text-right'>
+                              <Badge variant='secondary'>{item.quantity}</Badge>
+                            </TableCell>
+                            <TableCell className='text-right'>
+                              ${item.price.toFixed(2)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                      <TableFooter>
+                        <TableRow>
+                          <TableCell colSpan={2}>
+                            {isMultiSeller ? 'Seller Total' : 'Total'}
+                          </TableCell>
+                          <TableCell className='text-right'>
+                            $
+                            {group.items
+                              .reduce(
+                                (sum, item) => sum + item.price * item.quantity,
+                                0
+                              )
+                              .toFixed(2)}
+                          </TableCell>
+                        </TableRow>
+                      </TableFooter>
+                    </Table>
+                  </div>
+                ))}
+                {isMultiSeller && (
+                  <div className='flex items-center justify-between border-t pt-4'>
+                    <p className='text-sm font-medium'>Total (all sellers)</p>
+                    <p className='text-lg font-semibold'>
+                      ${calculateTotal().toFixed(2)}
+                    </p>
+                  </div>
+                )}
               </ScrollArea>
             ) : (
               <Alert>

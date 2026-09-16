@@ -376,5 +376,60 @@ Before this code path is ever used in production:
    sellers and should NOT be included in transfer amounts.
 
 3. **Test mode verification:** What test connected account IDs and test cards
+---
+
+## 8. Phase 4: Success page / per-seller order artifacts (completed)
+
+Two semantically distinct order documents now exist per purchase on purpose:
+
+- **Combined buyer order** — `orderKind: 'buyer'`, status `paid`, full cart,
+  buyer `userEmail`, appended to the buyer's `orderHistory`. Created by the
+  success page (`POST /api/orders`), the only component holding the exact
+  checkout cart snapshot. Feeds buyer order history (`GET /api/orders`) and
+  the buyer order detail page (`/orders/[id]`).
+- **Per-seller fulfillment orders** — `orderKind: 'seller'`, status `paid`,
+  one per seller, cart subset, `transfersCreated`/`transferId`/`transferError`
+  patched by the Stripe webhook. Feeds seller views (`/api/orders/seller`) and
+  holds the per-seller transfer linkage.
+
+Cross-view filtering (all backward compatible with legacy docs that have no
+`orderKind`): buyer history and `POST /api/orders` dedup match only
+`(!defined(orderKind) || orderKind == "buyer")`; seller views skip
+`orderKind == "buyer"`. Shared ownership authorization lives in
+`lib/order-access.ts` (used by GET `/api/orders/[orderId]`,
+`/orders/[id]`, and the tracking route).
+
+Existing Sanity data was verified duplicate-free before this phase: 5 orders,
+5 distinct paymentIds, all created by the webhook path
+(`transfersCreated` present), all single-seller carts — no migration needed.
+
+### Status vocabulary
+
+Both order writers now persist `paid` on confirmed payments (previously both
+wrote `pending`). `pending` remains only on legacy orders or abandoned
+purchases. The billing page and order-detail page recognize
+`paid`/`shipped`/`delivered`/`pending`/`disputed`.
+
+### FOLLOWUP-CART-SNAPSHOT — cart fidelity between checkout, webhook and order records
+
+Observed (Phase 4 planning): the PaymentIntent `metadata` stores
+`lineItemIds` but **not** a cart snapshot. The webhook reconstructs the cart
+from `lineItemIds` → current book prices in Sanity at webhook time, while the
+success page uses the cart the buyer actually checked out with (URL param or
+`checkout_cart` session storage). If a book price changes between checkout and
+webhook delivery, transfer amounts (webhook) and the stored order cart
+(success page) can diverge from each other and from what the buyer paid.
+
+Options to resolve (not yet implemented):
+1. Store the cart snapshot in PaymentIntent `metadata.cart` at
+   `app/api/create-payment-intent` time (watch the 500-char-per-key metadata
+   budget; a large cart may exceed limits).
+2. Persist the exact cart snapshot in Sanity at checkout, referenced by
+   `paymentId`, and have the webhook read that instead of `lineItemIds`.
+3. Accept the drift and reconcile transfers against the stored combined order
+   in a periodic audit (current `scripts/sync-stripe-to-sanity.ts` base).
+
+Tag for tracking: `FOLLOWUP-CART-SNAPSHOT`.
+
    to use for end-to-end validation? (Stripe supports test account IDs in
    Dashboard → Developers → Test data.)

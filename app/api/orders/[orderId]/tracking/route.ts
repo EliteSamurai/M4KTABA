@@ -6,6 +6,7 @@ import {
   OrderStatus,
   OrderTrackingInfo,
 } from '@/lib/order-status';
+import { getOrderAccess } from '@/lib/order-access';
 
 export async function GET(
   req: NextRequest,
@@ -24,7 +25,9 @@ export async function GET(
       `*[_type == "order" && _id == $orderId][0]{
         _id,
         status,
+        orderKind,
         paymentId,
+        userEmail,
         cart,
         trackingNumber,
         carrier,
@@ -45,13 +48,10 @@ export async function GET(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // Check if user has access to this order
-    const isOwner = order.user?._id === session.user._id;
-    const isSeller = order.cart?.some(
-      (item: any) => item.user?._id === session.user._id
-    );
-
-    if (!isOwner && !isSeller) {
+    // Unified ownership check (see lib/order-access.ts) — handles buyer docs
+    // (userEmail) and seller lines (cart[].user) alike.
+    const access = getOrderAccess(order, session.user as any);
+    if (!access) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 

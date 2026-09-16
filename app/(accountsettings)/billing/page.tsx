@@ -640,13 +640,15 @@ export default function BillingPage() {
                         <div className='flex flex-col items-end gap-2'>
                           <Badge
                             variant={
-                              order.status === 'completed'
+                              ['paid', 'completed', 'shipped', 'delivered'].includes(
+                                order.status
+                              )
                                 ? 'default'
                                 : order.status === 'pending'
                                   ? 'secondary'
                                   : order.status === 'refunded'
                                     ? 'outline'
-                                    : 'destructive'
+                                    : 'secondary'
                             }
                           >
                             {order.status.charAt(0).toUpperCase() +
