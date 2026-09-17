@@ -3,28 +3,17 @@ name: Deploy
 on:
   push:
     branches: [main]
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        default: 'staging'
-        type: choice
-        options:
-          - staging
-          - production
 
 env:
   NODE_VERSION: '18'
   PNPM_VERSION: '8'
 
 jobs:
-  # Deploy to Staging
-  deploy-staging:
-    name: Deploy to Staging
+  # Single deploy path: any push to main deploys straight to production.
+  deploy-production:
+    name: Deploy to Production
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
-    environment: staging
+    environment: production
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
@@ -45,35 +34,21 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Secrets preflight
-        id: staging_preflight
+        id: deploy_preflight
         run: |
-          missing=0
-          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
-            echo "::warning::Missing VERCEL_TOKEN secret. Staging deploy will be skipped."
-            missing=1
-          fi
-          if [ -z "${{ secrets.VERCEL_ORG_ID }}" ]; then
-            echo "::warning::Missing VERCEL_ORG_ID secret. Staging deploy will be skipped."
-            missing=1
-          fi
-          if [ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
-            echo "::warning::Missing VERCEL_PROJECT_ID secret. Staging deploy will be skipped."
-            missing=1
-          fi
-          if [ $missing -eq 1 ]; then
-            echo "skip_deploy=true" >> $GITHUB_OUTPUT
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ] || [ -z "${{ secrets.VERCEL_ORG_ID }}" ] || [ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
+            echo "::error::Vercel secrets missing (VERCEL_TOKEN/VERCEL_ORG_ID/VERCEL_PROJECT_ID). Push did NOT deploy. Set them in repo Settings → Secrets and variables → Actions, then re-push."
+            exit 1
           fi
 
       - name: Build application
-        if: steps.staging_preflight.outputs.skip_deploy != 'true'
         run: pnpm build
         env:
           NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           NODE_ENV: production
 
-      - name: Deploy to Vercel (Staging)
-        if: steps.staging_preflight.outputs.skip_deploy != 'true'
+      - name: Deploy to Vercel (Production)
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -82,10 +57,9 @@ jobs:
           vercel-args: '--prod'
           working-directory: ./
 
-      - name: Run smoke tests
-        if: steps.staging_preflight.outputs.skip_deploy != 'true'
+      - name: Run production smoke tests
         run: |
-          echo "Running smoke tests against staging environment"
+          echo "Running smoke tests against production environment"
           # Add smoke tests here
 
       - name: Notify deployment
@@ -96,104 +70,8 @@ jobs:
           channel: '#deployments'
           webhook_url: ${{ env.SLACK_WEBHOOK_URL }}
 
-  # Deploy to Production
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
-    environment: production
-    needs: deploy-staging
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-
-      - name: Secrets preflight
-        id: production_preflight
-        run: |
-          missing=0
-          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
-            echo "::warning::Missing VERCEL_TOKEN secret. Production deploy will be skipped."
-            missing=1
-          fi
-          if [ -z "${{ secrets.VERCEL_ORG_ID }}" ]; then
-            echo "::warning::Missing VERCEL_ORG_ID secret. Production deploy will be skipped."
-            missing=1
-          fi
-          if [ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
-            echo "::warning::Missing VERCEL_PROJECT_ID secret. Production deploy will be skipped."
-            missing=1
-          fi
-          if [ $missing -eq 1 ]; then
-            echo "skip_deploy=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Build application
-        if: steps.production_preflight.outputs.skip_deploy != 'true'
-        run: pnpm build
-        env:
-          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          NODE_ENV: production
-
-      - name: Deploy to Vercel (Production)
-        if: steps.production_preflight.outputs.skip_deploy != 'true'
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
-          working-directory: ./
-
-      - name: Run production smoke tests
-        if: steps.production_preflight.outputs.skip_deploy != 'true'
-        run: |
-          echo "Running smoke tests against production environment"
-          # Add production smoke tests here
-
-      - name: Create GitHub Release
-        if: steps.production_preflight.outputs.skip_deploy != 'true'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ github.run_number }}
-          release_name: Release v${{ github.run_number }}
-          body: |
-            Production deployment v${{ github.run_number }}
-
-            Changes in this release:
-            - See commit history for details
-
-            Deployed to: Production
-            Environment: ${{ github.event.inputs.environment }}
-          draft: false
-          prerelease: false
-
-      - name: Notify deployment
-        uses: 8398a7/action-slack@v3
-        if: always() && env.SLACK_WEBHOOK_URL != ''
-        with:
-          status: ${{ job.status }}
-          channel: '#deployments'
-          webhook_url: ${{ env.SLACK_WEBHOOK_URL }}
-
-  # Rollback
+  # Rollback stub — currently just logs. TODO (standalone future item):
+  # implement real rollback-to-previous-version behavior.
   rollback:
     name: Rollback
     runs-on: ubuntu-latest
