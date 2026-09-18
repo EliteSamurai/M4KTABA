@@ -22,6 +22,7 @@ import { SellerBadge } from '@/components/SellerBadge';
 import EditProductForm from '@/components/EditProductForm';
 import { useSellerStats } from '@/hooks/useSellerStats';
 import { urlFor } from '@/utils/imageUrlBuilder';
+import { resolveAvatarUrl } from '@/lib/resolveAvatarUrl';
 import Link from 'next/link';
 import EditableThumbnailManager from './EditableThumbnailManager';
 import { useToast } from '@/hooks/use-toast';
@@ -318,24 +319,11 @@ export default function ProductPageClient({ book }: ProductPageClientProps) {
                   const sellerName = (user as any)?.name || null;
                   const sellerId = (user as any)?._id || null;
 
-                  // Avatar resolution: direct URL → Sanity asset ref → Gmail profile → initials
-                  let avatarUrl: string | null = null;
-                  if (typeof sellerImage === 'string') {
-                    avatarUrl = sellerImage;
-                  } else if (sellerImage && typeof sellerImage === 'object' && sellerImage._ref) {
-                    avatarUrl = urlFor(sellerImage);
-                  } else if (sellerImage && typeof sellerImage === 'object' && sellerImage.url) {
-                    avatarUrl = sellerImage.url;
-                  } else if (sellerEmail.includes('@gmail.com')) {
-                    avatarUrl = 'https://lh3.googleusercontent.com/a/default-user=s64-c';
-                  }
-
-                  const initials = (sellerName || sellerEmail.split('@')[0])
-                    .split(' ')
-                    .map((n: string) => n[0])
-                    .join('')
-                    .toUpperCase()
-                    .slice(0, 2);
+                  const { avatarUrl, initials } = resolveAvatarUrl({
+                    image: sellerImage,
+                    email: sellerEmail,
+                    name: sellerName,
+                  });
 
                   return (
                     <>
