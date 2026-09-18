@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
-
 export async function GET(req: NextRequest) {
   try {
+    // Lazy-init Stripe so module import doesn't require a key.
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
     const searchParams = req.nextUrl.searchParams;
     const paymentIntentId = searchParams.get('payment_intent');
 
