@@ -78,24 +78,6 @@ jobs:
           channel: '#deployments'
           webhook_url: ${{ env.SLACK_WEBHOOK_URL }}
 
-  # Rollback stub — currently just logs. TODO (standalone future item):
-  # implement real rollback-to-previous-version behavior.
-  rollback:
-    name: Rollback
-    runs-on: ubuntu-latest
-    if: failure()
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-    steps:
-      - name: Rollback to previous version
-        run: |
-          echo "Rolling back to previous version..."
-          # Add rollback logic here
-
-      - name: Notify rollback
-        uses: 8398a7/action-slack@v3
-        if: always() && env.SLACK_WEBHOOK_URL != ''
-        with:
-          status: failure
-          channel: '#deployments'
-          webhook_url: ${{ env.SLACK_WEBHOOK_URL }}
+  # Rollback is intentionally manual: if a deploy goes wrong, roll back in the
+  # Vercel dashboard (Deployments → choose previous deployment → Promote/Redeploy).
+  # An automated rollback stub that only logs would be a false safety net.
