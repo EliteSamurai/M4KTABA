@@ -1,10 +1,6 @@
 import Stripe from 'stripe';
 import { NextRequest, NextResponse } from 'next/server';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia',
-});
-
 export async function POST(req: NextRequest) {
   try {
     const { stripeAccountId } = await req.json();
@@ -15,6 +11,11 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Lazy-init Stripe on first use so module import doesn't require a key.
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-02-24.acacia',
+    });
 
     // Retrieve the Stripe account
     const account = await (stripe as any).accounts.retrieve(stripeAccountId);

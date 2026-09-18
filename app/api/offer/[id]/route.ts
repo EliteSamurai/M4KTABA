@@ -6,11 +6,6 @@ import { Resend } from 'resend';
 import Stripe from 'stripe';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia',
-});
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }
@@ -78,6 +73,10 @@ export async function PATCH(
 
     switch (action) {
       case 'accept':
+        // Lazy-init Stripe so module import doesn't require a key.
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+          apiVersion: '2025-02-24.acacia',
+        });
         // Create Stripe checkout session
         const checkoutSession = await (stripe as any).checkout.sessions.create({
           payment_method_types: ['card'],
@@ -216,6 +215,11 @@ export async function PATCH(
     // Send email notification
     if (emailData) {
       try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        if (!process.env.RESEND_API_KEY) {
+          console.warn('RESEND_API_KEY not set, skipping offer email');
+          return NextResponse.json({ offer: updatedOffer });
+        }
         await resend.emails.send({
           from: 'M4KTABA <contact@m4ktaba.com>',
           ...emailData,

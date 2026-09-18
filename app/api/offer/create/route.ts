@@ -5,8 +5,6 @@ import { groq } from 'next-sanity';
 import { Resend } from 'resend';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -122,6 +120,11 @@ export async function POST(req: Request) {
     // Send email notification to seller
     if (seller?.email) {
       try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        if (!process.env.RESEND_API_KEY) {
+          console.warn('RESEND_API_KEY not set, skipping offer email');
+          return NextResponse.json({ offer });
+        }
         await resend.emails.send({
           from: 'M4KTABA <contact@m4ktaba.com>',
           to: seller.email,

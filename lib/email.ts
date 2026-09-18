@@ -5,8 +5,15 @@
 
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@m4ktaba.com';
+
+// Lazy-init so module import never needs a key / never throws at eval time.
+let resendInstance: Resend | null = null;
+function getResend(): Resend | null {
+  if (!process.env.RESEND_API_KEY) return null;
+  if (!resendInstance) resendInstance = new Resend(process.env.RESEND_API_KEY);
+  return resendInstance;
+}
 
 export interface EmailOptions {
   to: string | string[];
@@ -37,6 +44,11 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
       options.html ?? (options.text ? `<pre>${options.text}</pre>` : undefined);
     const textBody =
       options.text ?? stripHtml(options.html ?? '');
+    const resend = getResend();
+    if (!resend) {
+      console.warn('RESEND_API_KEY not set, skipping email send');
+      return;
+    }
 
     const payload: {
       from: string;
