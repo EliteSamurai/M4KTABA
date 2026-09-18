@@ -395,6 +395,67 @@ async function main() {
     'OK   patch recorded transfersCreated:true, transferId=' + okPatch.transferId
   );
 
+
+  // -------------------------------------------------------------------------
+  // PHASE C2 — Phase 5: refund/dispute flagging (manual-review, no auto-reverse)
+  // Real Stripe test-mode charge + transfers, real handlers.
+  // -------------------------------------------------------------------------
+  console.log('\n--- Phase 5: full refund flags pendingReversal, no auto-reversal ----');
+  const { handleChargeRefunded, handleDisputeCreated } = await import(
+    '@/app/api/webhooks/stripe-webhook/route'
+  );
+
+  // Real charge + 2 real transfers to the two payout-ready test accounts.
+  const chargeP5 = await s.charges.create({
+    amount: 5000,
+    currency: 'usd',
+    source: 'tok_visa',
+  });
+  const grpP5 = 'p5_' + runId;
+  const trP5a = await s.transfers.create({
+    amount: 1000, currency: 'usd', destination: seller1.id,
+    source_transaction: chargeP5.id, transfer_group: grpP5,
+  });
+  const trP5b = await s.transfers.create({
+    amount: 4000, currency: 'usd', destination: seller2.id,
+    source_transaction: chargeP5.id, transfer_group: grpP5,
+  });
+  const groupsP5 = [grpP5];
+  console.log('P5 charge:', chargeP5.id, 'transfers:', trP5a.id, trP5b.id);
+
+  const p5PaymentId = 'pi_p5_' + runId;
+
+  await handleChargeRefunded({
+    id: chargeP5.id,
+    amount: 5000,
+    amount_refunded: 5000,
+    currency: 'usd',
+    payment_intent: p5PaymentId,
+  } as any);
+
+  // Assert: NO transfer was auto-reversed after the full refund.
+  const trP5aAfter = await s.transfers.retrieve(trP5a.id);
+  const trP5bAfter = await s.transfers.retrieve(trP5b.id);
+  assert.strictEqual(trP5aAfter.reversed, false, 'P5: transfer must NOT auto-reverse on refund');
+  assert.strictEqual(trP5bAfter.reversed, false, 'P5: transfer must NOT auto-reverse on refund');
+  assert.strictEqual(trP5aAfter.amount_reversed, 0, 'P5: no reversal amount on refund');
+  assert.strictEqual(trP5bAfter.amount_reversed, 0, 'P5: no reversal amount on refund');
+  console.log('NO AUTO-REVERSAL confirmed: transfers', trP5a.id, trP5b.id, 'reversed=false after full refund');
+
+  // -------------------------------------------------------------------------
+  // Flag-only on dispute.created (no reversal, no pendingReversal yet).
+  await handleDisputeCreated({
+    id: 'dp_1_test',
+    amount: 5000,
+    currency: 'usd',
+    payment_intent: p5PaymentId,
+  } as any);
+  const trP5aDisp = await s.transfers.retrieve(trP5a.id);
+  assert.strictEqual(trP5aDisp.reversed, false, 'P5: dispute.created must NOT reverse');
+  console.log('DISPUTE flag-only confirmed: no reversal on dispute.created');
+
+  groups.push(...groupsP5);
+
   // -------------------------------------------------------------------------
   // PHASE D — Final report + explicit SANITY WRITE SAFETY assertion
   // -------------------------------------------------------------------------

@@ -1,141 +1,84 @@
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { readClient, writeClient } from '@/studio-m4ktaba/client';
-import { createTransport } from 'nodemailer'; // Assuming you're using Nodemailer
+import { verifyCsrf } from '@/lib/csrf';
 
-const transporter = createTransport({
-  service: 'SMTP',
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false, // Optional, useful for self-signed certs
-  },
-  debug: true,
-});
+/**
+ * POST /api/orders/[orderId]/request-refund
+ * Body: { cartItemId, refundReason, refundAmount }
+ *
+ * Phase 5: buyer-facing refund REQUEST. This only records the request on the
+ * correct field (cart[].refundDetails.refundStatus = 'requested') and
+ * flags for manual review (the webhook/marketplace operator issues the actual
+ * Stripe refund in the Dashboard per decision C). It never touches Stripe.
+ */
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ orderId: string }> }
+) {
+  const csrf = await verifyCsrf();
+  if (csrf) return csrf;
 
-export async function POST(req: Request) {
   try {
-    const { orderId, cartItemId, refundReason, refundAmount } =
-      await req.json();
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
+    }
 
-    if (!cartItemId || !refundReason || refundAmount <= 0) {
-      return new Response(JSON.stringify({ message: 'Invalid refund data.' }), {
-        status: 400,
-      });
+    const { orderId } = await params;
+    const body = await req.json().catch(() => ({}));
+    const { cartItemId, refundReason, refundAmount } = body || {};
+
+    if (!cartItemId || !refundReason || !(Number(refundAmount) > 0)) {
+      return NextResponse.json({ message: 'Invalid refund data.' }, { status: 400 });
     }
 
     // Fetch the order document from Sanity
     const order = await (readClient as any).fetch(
       `*[_type == "order" && _id == $orderId][0]`,
-      { orderId: orderId }
+      { orderId }
     );
-
     if (!order) {
-      return new Response(JSON.stringify({ message: 'Order not found.' }), {
-        status: 404,
-      });
+      return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
     }
 
-    // Fetch user and seller information
-    const user = await (readClient as any).fetch(
-      `*[_type == "user" && $orderId in orderHistory[]._ref][0]
-`,
-      {
-        orderId: orderId,
-      }
-    );
-
-    const cartItem = order.cart?.find(
-      (item: { id: string }) => item.id === cartItemId
-    );
-
-    if (!cartItem) {
-      console.error(
-        'Cart item not found.',
-        'Cart items:',
-        order.cart,
-        'Provided cartItemId:',
-        cartItemId
-      );
-      throw new Error('Cart item not found.');
+    // Only the buyer (owner) may request a refund.
+    if (order.userEmail !== session.user.email) {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
-    const sellerUserId = cartItem.user._id;
-
-    const seller = await (readClient as any).fetch(
-      `*[_type == "user" && _id == $sellerId][0]`,
-      { sellerId: sellerUserId }
+    const itemIndex = (order.cart || []).findIndex(
+      (item: any) => item.id === cartItemId || item._key === cartItemId
     );
-
-    if (!user || !seller) {
-      return new Response(
-        JSON.stringify({ message: 'User or seller not found.' }),
-        {
-          status: 404,
-        }
+    if (itemIndex === -1) {
+      return NextResponse.json(
+        { message: 'Cart item not found in order.' },
+        { status: 404 }
       );
     }
 
-    // Update refund status
+    // Write into the correct per-item refundDetails (matches the schema used
+    // by the webhook/order docs; previously this wrote to a non-existent
+    // `cartItems` array).
     const updatedOrder = await (writeClient as any)
       .patch(orderId)
-      .setIfMissing({ cartItems: [] })
-      .insert('replace', 'cartItems[_key == $cartItemId]', [
-        {
-          _key: cartItemId,
-          refundStatus: 'requested',
-          refundReason: refundReason,
-          refundAmount: refundAmount,
-          refundDate: new Date().toISOString(),
-        },
-      ])
+      .set({ [`cart[${itemIndex}].refundDetails`]: {
+        refundStatus: 'requested',
+        refundReason,
+        refundAmount: Number(refundAmount),
+        refundDate: new Date().toISOString(),
+      }})
       .commit();
 
-    // Send emails
-    const sellerEmail = seller.email; // Assuming seller document has an `email` field
-    const userEmail = user.email; // Assuming user document has an `email` field
-
-    await transporter.sendMail({
-      from: `M4KTABA <contact@m4ktaba.com>`,
-      to: sellerEmail,
-      subject: 'Refund Requested for Your Product',
-      text: `A refund has been requested for a product you sold. 
-
-      Order ID: ${orderId}
-      Refund Reason: ${refundReason}
-      Refund Amount: $${refundAmount}
-User Location: 
-${user.location.street}, 
-${user.location.city}, 
-${user.location.state} ${user.location.zip}, 
-${user.location.country}
-      
-      The item is being returned to you. Please confirm its arrival once you receive it to proceed with the refund.`,
-    });
-
-    await transporter.sendMail({
-      from: `M4KTABA <contact@m4ktaba.com>`,
-      to: userEmail,
-      subject: 'Refund Request Update',
-      text: `Your refund request has been submitted successfully. \n\nOrder ID: ${orderId}\nRefund Reason: ${refundReason}\nRefund Amount: $${refundAmount}\n\nNote: Your refund will be processed once the seller confirms receiving the returned item. Please ensure the item is sent back in its original condition.`,
-    });
-
-    return new Response(
-      JSON.stringify({
-        message: 'Refund request submitted successfully. Emails sent.',
-        order: updatedOrder,
-      }),
-      { status: 200 }
-    );
+    return NextResponse.json({
+      message: 'Refund request submitted successfully.',
+      order: updatedOrder,
+    }, { status: 200 });
   } catch (error) {
     console.error('Error processing refund request:', error);
-    return new Response(
-      JSON.stringify({
-        message: 'Error processing refund request.',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      }),
+    return NextResponse.json(
+      { message: 'Error processing refund request.' },
       { status: 500 }
     );
   }

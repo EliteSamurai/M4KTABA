@@ -602,6 +602,30 @@ export async function POST(req: Request) {
   console.log(
         '🔄 Charge succeeded event received, but skipping to avoid duplicate emails'
       );
+    } else if (
+      event.type === 'charge.refunded' ||
+      event.type === 'refund.updated'
+    ) {
+      console.log('💸 Processing charge refunded event...');
+      setImmediate(() => {
+        handleChargeRefunded(event.data.object as Stripe.Charge).catch(error => {
+          console.error('❌ Error processing charge refunded:', error);
+        });
+      });
+    } else if (event.type === 'charge.dispute.created') {
+      console.log('⚖️ Processing dispute created event...');
+      setImmediate(() => {
+        handleDisputeCreated(event.data.object as Stripe.Dispute).catch(error => {
+          console.error('❌ Error processing dispute created:', error);
+        });
+      });
+    } else if (event.type === 'charge.dispute.closed') {
+      console.log('⚖️ Processing dispute closed event...');
+      setImmediate(() => {
+        handleDisputeClosed(event.data.object as Stripe.Dispute).catch(error => {
+          console.error('❌ Error processing dispute closed:', error);
+        });
+      });
     }
 
     return NextResponse.json({ received: true }, { status: 200 });
@@ -609,4 +633,302 @@ export async function POST(req: Request) {
     console.error('❌ Webhook error:', error);
     return NextResponse.json({ received: true }, { status: 200 }); // Always return success
   }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 5: Refund and dispute reconciliation handlers.
+// (See docs/multiseller-payments-design.md Phase 5.)
+//
+// Decision B/C/D: refunds are issued manually in the Stripe Dashboard. The
+// webhook DETECTS them (charge.refunded / refund.updated) and creates
+// pendingReversal docs for manual approval. It NEVER auto-reverses.
+// Disputes: on created, flag only. On closed + outcome 'lost', create a
+// pendingReversal for manual approval. Outcome 'won' just clears flags.
+//
+// Reversal amount calc (shipping-excluded, explicit): for a partial refund,
+// only the seller's ITEM SUBTOTAL pool scales down proportionally; shipping
+// (buyerPays) is excluded from the clawback. On a FULL refund the entire
+// transfer (subtotal + shipping) is flagged.
+// ---------------------------------------------------------------------------
+
+function orderSubtotal(order: any): number {
+  return (order?.cart || []).reduce(
+    (sum: number, item: any) =>
+      sum + (Number(item.price) || 0) * (Number(item.quantity) || 1),
+    0
+  );
+}
+
+/**
+ * Compute the amount (cents) to flag for reversal on one seller's transfer.
+ * Full refund = whole transfer. Partial = proportional on item subtotal only.
+ */
+export function computeReversalAmountCents(args: {
+  transferAmount: number;
+  sellerSubtotal: number;
+  grandSubtotal: number;
+  refundedAmount: number;
+  chargeAmount: number;
+}): number {
+  const { transferAmount, sellerSubtotal, grandSubtotal, refundedAmount, chargeAmount } = args;
+  if (chargeAmount > 0 && refundedAmount >= chargeAmount) {
+    return transferAmount;
+  }
+  if (grandSubtotal <= 0) return 0;
+  const share = Math.round(refundedAmount * (sellerSubtotal / grandSubtotal));
+  return Math.min(share, sellerSubtotal);
+}
+
+async function findPendingReversal(paymentId: string, transferId: string) {
+  const existing = await (readClient as any).fetch(
+    `*[_type == "pendingReversal" && paymentId == $paymentId && transferId == $transferId][0]`,
+    { paymentId, transferId }
+  );
+  return existing || null;
+}
+
+async function createPendingReversalDoc(data: {
+  paymentId: string;
+  transferId: string;
+  amountCents: number;
+  currency: string;
+  sellerOrderId: string;
+  buyerOrderId: string;
+  source: 'refund' | 'dispute';
+  reason: string;
+}) {
+  const doc = await (writeClient as any).create({
+    _type: 'pendingReversal',
+    paymentId: data.paymentId,
+    transferId: data.transferId,
+    amountCents: data.amountCents,
+    currency: data.currency,
+    sellerOrderId: data.sellerOrderId,
+    buyerOrderId: data.buyerOrderId,
+    source: data.source,
+    reason: data.reason,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+  });
+  return doc as { _id: string };
+}
+
+async function flagOrder(orderId: string, patchFields: Record<string, unknown>) {
+  await (writeClient as any).patch(orderId).set(patchFields).commit();
+}
+
+
+/**
+ * Handle charge.refunded / refund.updated — create pendingReversal per affected
+ * transfer (manual approval), update seller + buyer order records. Never reverses.
+ */
+export async function handleChargeRefunded(charge: Stripe.Charge) {
+  const chargeId = charge.id;
+  const chargeAmountCents = charge.amount;
+  const amountRefundedCents = charge.amount_refunded || 0;
+  const currency = charge.currency;
+
+  const paymentIntentId = (charge as any).payment_intent as string | undefined;
+  if (!paymentIntentId) {
+    console.log('[Phase5] charge.refunded: no payment_intent on charge, skipping', chargeId);
+    return;
+  }
+
+  const transfersRes = (await (stripe as any).transfers.list({
+    limit: 100,
+  })) as { data: any[] };
+  // The Stripe SDK doesn't accept source_transaction as a list filter — filter
+  // client-side on the charge id (transfers carry source_transaction).
+  const chargeTransfers = transfersRes.data.filter(
+    (t: any) => t.source_transaction === chargeId
+  );
+  if (!chargeTransfers.length) {
+    console.log('[Phase5] charge.refunded: no transfers for charge', chargeId);
+    return;
+  }
+  console.log('[Phase5] charge.refunded: found', chargeTransfers.length, 'transfers for', chargeId);
+
+  const sellerOrders = (await (readClient as any).fetch(
+    `*[_type == "order" && paymentId == $paymentId && orderKind == "seller"]`,
+    { paymentId: paymentIntentId }
+  )) as any[];
+  const buyerOrder = (await (readClient as any).fetch(
+    `*[_type == "order" && paymentId == $paymentId && (!defined(orderKind) || orderKind == "buyer")][0]`,
+    { paymentId: paymentIntentId }
+  )) as any;
+
+  const grandSubtotal = sellerOrders.reduce((sum: number, o) => sum + orderSubtotal(o), 0);
+  const totalTransfered = chargeTransfers.reduce((sum: number, t: any) => sum + t.amount, 0);
+
+  let flaggedCount = 0;
+  for (const tr of chargeTransfers) {
+    const sellerOrder = sellerOrders.find((o) =>
+      (o.cart || []).some(
+        (it: any) =>
+          it.user?.stripeAccountId === tr.destination || it.user?._id === tr.destination
+      )
+    );
+    if (!sellerOrder) {
+      console.log('[Phase5]   no seller order matched transfer', tr.id, 'dest', tr.destination);
+      continue;
+    }
+
+    const reversalCents = computeReversalAmountCents({
+      transferAmount: tr.amount,
+      sellerSubtotal: orderSubtotal(sellerOrder),
+      grandSubtotal: grandSubtotal || totalTransfered,
+      refundedAmount: amountRefundedCents,
+      chargeAmount: chargeAmountCents,
+    });
+    if (reversalCents <= 0) continue;
+
+    const existing = await findPendingReversal(paymentIntentId, tr.id);
+    if (existing) continue;
+
+    const key = makeKey(['phase5', 'pendingReversal', paymentIntentId, tr.id]);
+    const idem = await begin(key);
+    if (idem?.status === 'committed') continue;
+
+    const created = await createPendingReversalDoc({
+      paymentId: paymentIntentId,
+      transferId: tr.id,
+      amountCents: reversalCents,
+      currency,
+      sellerOrderId: sellerOrder._id,
+      buyerOrderId: buyerOrder?._id || '',
+      source: 'refund',
+      reason: `Refund ${chargeId} (${amountRefundedCents}¢ of ${chargeAmountCents}¢)`,
+    });
+    await commit(key, { pendingReversalId: created._id });
+
+    await flagOrder(sellerOrder._id, {
+      pendingReversalStatus: 'pending',
+      refundMeta: {
+        refundId: chargeId,
+        refundAmountCents: amountRefundedCents,
+        refundStatus: amountRefundedCents >= chargeAmountCents ? 'full' : 'partial',
+      },
+    });
+    flaggedCount++;
+    console.log('[Phase5]   flagged pendingReversal', created._id, 'amount', reversalCents, 'for', tr.id);
+  }
+
+  if (buyerOrder) {
+    const isFull = amountRefundedCents >= chargeAmountCents;
+    await flagOrder(buyerOrder._id, {
+      ...(isFull ? { status: 'refunded' } : {}),
+      refundMeta: {
+        refundId: chargeId,
+        refundAmountCents: amountRefundedCents,
+        refundStatus: isFull ? 'full' : 'partial',
+      },
+    });
+  }
+
+  console.log('[Phase5] charge.refunded handled:', { chargeId, flaggedCount });
+}
+
+
+/**
+ * Handle charge.dispute.created — flag the order(s) as disputed. No reversal.
+ */
+export async function handleDisputeCreated(dispute: Stripe.Dispute) {
+  const paymentIntentId = (dispute as any).payment_intent as string | undefined;
+  if (!paymentIntentId) return;
+
+  const orders = (await (readClient as any).fetch(
+    `*[_type == "order" && paymentId == $paymentId]`,
+    { paymentId: paymentIntentId }
+  )) as any[];
+  for (const o of orders) {
+    await flagOrder(o._id, {
+      disputeMeta: {
+        disputeId: dispute.id,
+        amountCents: dispute.amount,
+        status: 'open',
+      },
+    });
+  }
+  console.log('[Phase5] dispute.created flagged payment', paymentIntentId, '(', orders.length, 'orders )');
+}
+
+/**
+ * Handle charge.dispute.closed. If outcome 'lost', create pendingReversal(s)
+ * for manual approval. Otherwise clear the dispute flag. Never auto-reverses.
+ */
+export async function handleDisputeClosed(dispute: Stripe.Dispute) {
+  const paymentIntentId = (dispute as any).payment_intent as string | undefined;
+  if (!paymentIntentId) return;
+
+  const chargeId =
+    typeof dispute.charge === 'string' ? dispute.charge : (dispute.charge as any)?.id;
+  const lost = (dispute as any).outcome?.result === 'lost';
+
+  const orders = (await (readClient as any).fetch(
+    `*[_type == "order" && paymentId == $paymentId]`,
+    { paymentId: paymentIntentId }
+  )) as any[];
+
+  if (!lost) {
+    for (const o of orders) {
+      await (writeClient as any).patch(o._id).unset(['disputeMeta']).commit();
+    }
+    console.log('[Phase5] dispute.closed outcome != lost, cleared flags for', paymentIntentId);
+    return;
+  }
+
+  const transfersRes = (await (stripe as any).transfers.list({
+    limit: 100,
+  })) as { data: any[] };
+  // The Stripe SDK doesn't accept source_transaction as a list filter — filter
+  // client-side on the charge id (transfers carry source_transaction).
+  const chargeTransfers = transfersRes.data.filter(
+    (t: any) => t.source_transaction === chargeId
+  );
+  const sellerOrders = orders.filter((o) => o.orderKind === 'seller');
+  const buyerOrder = orders.find((o) => !o.orderKind || o.orderKind === 'buyer');
+  const grandSubtotal = sellerOrders.reduce((s, o) => s + orderSubtotal(o), 0);
+  const totalTransfered = chargeTransfers.reduce((s, t) => s + t.amount, 0);
+
+  let flaggedCount = 0;
+  for (const tr of chargeTransfers) {
+    const sellerOrder = sellerOrders.find((o) =>
+      (o.cart || []).some(
+        (it: any) =>
+          it.user?.stripeAccountId === tr.destination || it.user?._id === tr.destination
+      )
+    );
+    if (!sellerOrder) continue;
+
+    const reversalCents = computeReversalAmountCents({
+      transferAmount: tr.amount,
+      sellerSubtotal: orderSubtotal(sellerOrder),
+      grandSubtotal: grandSubtotal || totalTransfered,
+      refundedAmount: dispute.amount,
+      chargeAmount: totalTransfered || dispute.amount,
+    });
+    if (reversalCents <= 0) continue;
+
+    const existing = await findPendingReversal(paymentIntentId, tr.id);
+    if (existing) continue;
+
+    const key = makeKey(['phase5', 'pendingReversal', paymentIntentId, tr.id]);
+    const idem = await begin(key);
+    if (idem?.status === 'committed') continue;
+
+    const created = await createPendingReversalDoc({
+      paymentId: paymentIntentId,
+      transferId: tr.id,
+      amountCents: reversalCents,
+      currency: dispute.currency || 'usd',
+      sellerOrderId: sellerOrder._id,
+      buyerOrderId: buyerOrder?._id || '',
+      source: 'dispute',
+      reason: `Dispute ${dispute.id} LOST`,
+    });
+    await commit(key, { pendingReversalId: created._id });
+    await flagOrder(sellerOrder._id, { pendingReversalStatus: 'pending', status: 'disputed' });
+    flaggedCount++;
+  }
+  console.log('[Phase5] dispute.closed (lost) flagged', flaggedCount, 'reversals for', paymentIntentId);
 }

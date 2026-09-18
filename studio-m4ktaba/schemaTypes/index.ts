@@ -5,6 +5,7 @@ import user from './user'
 import book from './book'
 import review from './review'
 import order from './order.js'
+import pendingReversal from './pendingReversal'
 import event_outbox from './system/event_outbox'
 import dlq from './system/dlq'
 import stripe_events from './system/stripe_events'
@@ -18,6 +19,7 @@ export const schemaTypes = [
   review,
   blockContent,
   order,
+  pendingReversal,
   event_outbox,
   dlq,
   stripe_events,

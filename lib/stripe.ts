@@ -140,6 +140,29 @@ export async function createTransfer(params: {
   );
 }
 
+/**
+ * Reverse (part of) a transfer — the execution path for an approved
+ * `pendingReversal`. Manual-review only: callers must NOT auto-reverse on
+ * refund/dispute events; they create a pendingReversal for a human instead.
+ * See docs: reversing is only possible if the connected account has enough
+ * available balance (or connected reserves enabled).
+ *
+ * @param transferId   - Stripe Transfer id (tr_...) to reverse
+ * @param amountCents  - amount to reverse (partial supported)
+ * @param idempotencyKey - prevents duplicate reversals
+ */
+export async function createTransferReversal(params: {
+  transferId: string;
+  amountCents: number;
+  idempotencyKey?: string;
+}): Promise<Stripe.TransferReversal> {
+  return await (stripe as any).transfers.createReversal(
+    params.transferId,
+    { amount: params.amountCents },
+    params.idempotencyKey ? { idempotencyKey: params.idempotencyKey } : undefined
+  );
+}
+
 export async function getTransactions(timeframe: 'week' | 'month' | 'year') {
   const now = new Date();
   const startDate = new Date();

@@ -10,6 +10,13 @@ let stripeImpl = {
   },
   transfers: {
     create: jest.fn().mockResolvedValue({ id: 'tr_test' }),
+    list: jest.fn().mockResolvedValue({ data: [] }),
+    createReversal: jest
+      .fn()
+      .mockResolvedValue({ id: 'trr_test', status: 'succeeded' }),
+  },
+  refunds: {
+    create: jest.fn().mockResolvedValue({ id: 're_test' }),
   },
   charges: {
     list: jest.fn().mockResolvedValue({ data: [] }),
