@@ -47,6 +47,14 @@ jobs:
           NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           NODE_ENV: production
+          # Sanity env is required at build time on the GitHub runner: with
+          # NODE_ENV=production and no VERCEL_ENV, lib/sanity-clients.ts
+          # enforces these invariants (missing values throw during static
+          # generation). Values come from repo secrets (see .env.local).
+          SANITY_PROJECT_ID: ${{ secrets.SANITY_PROJECT_ID }}
+          SANITY_DATASET: ${{ secrets.SANITY_DATASET }}
+          SANITY_API_VERSION: ${{ secrets.SANITY_API_VERSION }}
+          SANITY_API_TOKEN: ${{ secrets.SANITY_API_TOKEN }}
 
       - name: Deploy to Vercel (Production)
         uses: amondnet/vercel-action@v25
