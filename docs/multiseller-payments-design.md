@@ -412,13 +412,22 @@ purchases. The billing page and order-detail page recognize
 
 ### FOLLOWUP-CART-SNAPSHOT — cart fidelity between checkout, webhook and order records
 
-Observed (Phase 4 planning): the PaymentIntent `metadata` stores
-`lineItemIds` but **not** a cart snapshot. The webhook reconstructs the cart
-from `lineItemIds` → current book prices in Sanity at webhook time, while the
-success page uses the cart the buyer actually checked out with (URL param or
-`checkout_cart` session storage). If a book price changes between checkout and
-webhook delivery, transfer amounts (webhook) and the stored order cart
-(success page) can diverge from each other and from what the buyer paid.
+Observed (Phase 4 planning; still accurate after Phase 5): the PaymentIntent
+`metadata` stores `lineItemIds` but **not** a cart snapshot. The webhook
+reconstructs the cart from `lineItemIds` → current book prices in Sanity at
+webhook time, while the success page uses the cart the buyer actually checked
+out with (URL param or `checkout_cart` session storage). If a book price
+changes between checkout and webhook delivery, the per-seller fulfillment
+orders + transfer amounts (webhook) and the stored **buyer** order cart
+(success page, `orderKind: 'buyer'`) can diverge from each other and from what
+the buyer actually paid.
+
+This is the one known gap the Phase 5 reconciliation deliberately does not
+close: refund/dispute handling reverses transfers based on the amounts Stripe
+holds, not on the cart snapshot — so a price drift between checkout and webhook
+means the reversal amount is correct *for the transfer that exists*, but the
+transfer itself may not match the buyer's original purchase. Picking this up
+later affects transfer creation (Phase 1 logic), not just refunds.
 
 Options to resolve (not yet implemented):
 1. Store the cart snapshot in PaymentIntent `metadata.cart` at
@@ -426,10 +435,9 @@ Options to resolve (not yet implemented):
    budget; a large cart may exceed limits).
 2. Persist the exact cart snapshot in Sanity at checkout, referenced by
    `paymentId`, and have the webhook read that instead of `lineItemIds`.
-3. Accept the drift and reconcile transfers against the stored combined order
-   in a periodic audit (current `scripts/sync-stripe-to-sanity.ts` base).
+3. Accept the drift and reconcile transfers against the stored buyer order
+   (`orderKind: 'buyer'`) in a periodic audit (current
+   `scripts/sync-stripe-to-sanity.ts` base).
 
 Tag for tracking: `FOLLOWUP-CART-SNAPSHOT`.
 
-   to use for end-to-end validation? (Stripe supports test account IDs in
-   Dashboard → Developers → Test data.)
