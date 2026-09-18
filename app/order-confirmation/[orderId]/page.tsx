@@ -1,5 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
+import { readClient } from '@/studio-m4ktaba/client';
+import { getOrderAccess } from '@/lib/order-access';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,6 +32,71 @@ export default async function OrderConfirmationPage({
       </div>
     );
   }
+
+  // Fetch the order so we can show who ships it — but only to the buyer/seller
+  // who owns it (same guard as /orders/[id], GET /api/orders/[orderId], and the
+  // tracking route; shared via lib/order-access.ts).
+  const order = (await (readClient as any).fetch(
+    `*[_type == "order" && _id == $id][0]{
+      _id, status, paymentId, userEmail, shippingDetails,
+      "cart": cart[]{
+        _key, id, title, price, quantity,
+        "user": user->{ _id, name, email }
+      }
+    }`,
+    { id: orderId }
+  )) as any;
+
+  if (!order) {
+    return (
+      <div className='container mx-auto py-8'>
+        <Card>
+          <CardContent className='p-6 text-center'>
+            <h1 className='text-2xl font-bold'>Order Not Found</h1>
+            <p className='mt-2 text-gray-600'>
+              The order you are looking for does not exist.
+            </p>
+            <Button asChild className='mt-4' variant='outline'>
+              <Link href='/'>Back to Home</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const access = getOrderAccess(order, session.user as any);
+  if (!access) {
+    return (
+      <div className='container mx-auto py-8'>
+        <Card>
+          <CardContent className='p-6 text-center'>
+            <h1 className='text-2xl font-bold'>Forbidden</h1>
+            <p className='mt-2 text-gray-600'>
+              You do not have permission to view this order.
+            </p>
+            <Button asChild className='mt-4' variant='outline'>
+              <Link href='/'>Back to Home</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Group cart items by seller for display.
+  const sellerMap = new Map<string, { name: string; items: any[] }>();
+  for (const item of order.cart ?? []) {
+    const sid = item.user?._id || 'unknown';
+    if (!sellerMap.has(sid)) {
+      sellerMap.set(sid, {
+        name: item.user?.name || item.user?.email?.split('@')[0] || 'Seller',
+        items: [],
+      });
+    }
+    sellerMap.get(sid)!.items.push(item);
+  }
+  const sellers = [...sellerMap.entries()];
 
   return (
     <div className='container mx-auto py-8 space-y-8'>
@@ -66,6 +133,48 @@ export default async function OrderConfirmationPage({
           </div>
         </CardContent>
       </Card>
+
+      {/* Seller attribution — trust chain: who ships your order */}
+      {sellers.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className='flex items-center gap-2'>
+              <Package className='h-5 w-5' />
+              {sellers.length > 1
+                ? `${sellers.length} sellers ship this order`
+                : 'Ships from one seller'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className='space-y-2'>
+            {sellers.map(([sid, seller]) => (
+              <div
+                key={sid}
+                className='flex items-center justify-between text-sm'
+              >
+                {sid !== 'unknown' ? (
+                  <Link
+                    href={`/seller/${sid}`}
+                    className='text-muted-foreground hover:text-foreground hover:underline'
+                  >
+                    {seller.name}
+                  </Link>
+                ) : (
+                  <span className='text-muted-foreground'>{seller.name}</span>
+                )}
+                <span className='text-muted-foreground'>
+                  $
+                  {seller.items
+                    .reduce(
+                      (sum: number, it: any) => sum + it.price * it.quantity,
+                      0
+                    )
+                    .toFixed(2)}
+                </span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Next Steps */}
       <Card>

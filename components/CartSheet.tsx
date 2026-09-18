@@ -19,6 +19,7 @@ import { useOptimisticQty } from '@/hooks/useOptimisticQty';
 import { useFlag } from '@/lib/flags';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import SellerBadge from '@/components/SellerBadge';
 
 function CartItemRow({
   item,
@@ -35,6 +36,15 @@ function CartItemRow({
         <p className='text-sm text-muted-foreground'>
           ${item.price} × {item.quantity}
         </p>
+        {item.user && (
+          <SellerBadge
+            sellerId={item.user._id}
+            sellerName={item.user.name}
+            sellerEmail={item.user.email}
+            showRating={false}
+            className='mt-1'
+          />
+        )}
       </div>
       <div className='flex items-center gap-2'>
         <button
@@ -105,6 +115,8 @@ export function CartSheet({
           <SheetDescription>
             {getCartCount()} {getCartCount() === 1 ? 'item' : 'items'} in your
             cart
+            {new Set(cart.map((i) => i.user?._id || 'unknown')).size > 1 &&
+              ` · ships from ${new Set(cart.map((i) => i.user?._id || 'unknown')).size} sellers`}
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className='flex-1 -mx-6 px-6'>
