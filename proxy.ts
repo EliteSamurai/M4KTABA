@@ -7,7 +7,7 @@ const protectedRoutes = ['/checkout', '/dashboard', '/orders', '/sell'];
 // Public routes that don't require profile completion (users can browse these)
 const publicRoutes = ['/', '/all', '/books', '/seller', '/about', '/help', '/privacy', '/terms', '/blog', '/signup/complete-profile', '/login', '/signup', '/api'];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   
   // Check if this is a protected route
