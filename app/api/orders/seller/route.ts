@@ -11,10 +11,11 @@ export async function GET() {
   }
 
   try {
-    // Fetch all orders and filter by the current seller in JS. (The full
-    // dataset is small; seller lines are resolved by cart[].user._id/email.)
+    // Fetch recent orders (bounded) and filter by the current seller in JS.
+    // The 200-cap prevents unbounded growth; a seller's relevant lines are
+    // resolved by cart[].user._id/email.
     const allOrdersWithDetails = await (readClient as any).fetch(
-      `*[_type == "order"] | order(_createdAt desc) {
+      `*[_type == "order"] | order(_createdAt desc)[0...200] {
         _id,
         status,
         cart[]{
