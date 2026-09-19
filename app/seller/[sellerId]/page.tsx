@@ -3,9 +3,11 @@ import Link from 'next/link';
 import { groq } from 'next-sanity';
 import { notFound } from 'next/navigation';
 import { Star } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { readClient } from '@/studio-m4ktaba/client';
 import calculateAverageRating from '@/utils/calculateAverageRating';
 import { SellerBadge } from '@/components/SellerBadge';
+import { isStripePayoutReady } from '@/lib/stripe-verification';
 
 type Rating = {
   score?: number;
@@ -44,6 +46,7 @@ export default async function SellerProfilePage({
       email,
       bio,
       location,
+      stripeAccountId,
       "image": coalesce(
         avatar.asset->{
           _ref,
@@ -98,6 +101,7 @@ export default async function SellerProfilePage({
   const writtenReviews = ratings.filter((r) => typeof r?.review === 'string' && r.review.trim());
   const bioText = extractBioText(seller.bio);
   const displayName = seller.name || seller.email?.split('@')[0] || 'Seller';
+  const verified = await isStripePayoutReady(seller.stripeAccountId);
   const locationText = [seller?.location?.city, seller?.location?.state, seller?.location?.country]
     .filter(Boolean)
     .join(', ');
@@ -131,6 +135,15 @@ export default async function SellerProfilePage({
                   showRating
                   label={null}
                 />
+                {verified && (
+                  <span
+                    className='inline-flex items-center gap-1.5 text-xs text-muted-foreground'
+                    title='This seller has completed Stripe identity verification and can receive payouts. This verifies payment identity, not book quality.'
+                  >
+                    <ShieldCheck className='h-4 w-4 text-green-600' />
+                    Seller identity verified via Stripe
+                  </span>
+                )}
                 {locationText ? (
                   <p className='text-sm text-muted-foreground'>Ships from {locationText}</p>
                 ) : null}

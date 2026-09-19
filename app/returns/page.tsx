@@ -37,6 +37,12 @@ export default function ReturnsPage() {
             We want you to be completely satisfied with your purchase. Here's
             everything you need to know about our return process.
           </p>
+          <p className='text-sm text-muted-foreground mt-3'>
+            Most books on M4KTABA are sold by independent marketplace sellers.
+            Refund requests are reviewed by our team — once approved, refunds
+            are issued to your original payment method. First-party M4KTABA
+            items follow the same process.
+          </p>
         </div>
 
         {/* Quick Overview */}
@@ -92,8 +98,9 @@ export default function ReturnsPage() {
                 <div>
                   <h3 className='font-medium'>Start Your Return</h3>
                   <p className='text-muted-foreground'>
-                    Log into your account and go to "My Orders". Click "Return
-                    Item" next to the order you want to return.
+                    Log into your account and go to Billing. In the Order
+                    History section, find the item you want to return and click
+                    "Request Refund" next to it.
                   </p>
                 </div>
               </div>
@@ -131,8 +138,9 @@ export default function ReturnsPage() {
                 <div>
                   <h3 className='font-medium'>Ship Your Return</h3>
                   <p className='text-muted-foreground'>
-                    Ship your package to our return address. Make sure to
-                    include your return authorization number.
+                    Ship your package to the seller's return address provided
+                    after your refund request is approved. Include the item and
+                    any original packaging.
                   </p>
                 </div>
               </div>
@@ -144,8 +152,10 @@ export default function ReturnsPage() {
                 <div>
                   <h3 className='font-medium'>Receive Refund</h3>
                   <p className='text-muted-foreground'>
-                    Once we receive and inspect your return, we'll process your
-                    refund within 3-5 business days.
+                    Once we receive and inspect your return, your refund request
+                    is reviewed by our team and processed after approval —
+                    typically within a few business days. You'll receive an email
+                    with the decision.
                   </p>
                 </div>
               </div>
@@ -189,7 +199,7 @@ export default function ReturnsPage() {
                     <li>• Opened honey products</li>
                     <li>• Items returned after 30 days</li>
                     <li>• Personalized or custom items</li>
-                    <li>• Items without return authorization</li>
+                    <li>• Items returned without an approved refund request</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -213,6 +223,10 @@ export default function ReturnsPage() {
                     </li>
                     <li>
                       • <strong>Refund Method:</strong> Original payment method
+                    </li>
+                    <li>
+                      • <strong>Refund Amount:</strong> The approved amount —
+                      may be the full item price or a partial amount
                     </li>
                     <li>
                       • <strong>Bank Processing:</strong> 3-10 business days
