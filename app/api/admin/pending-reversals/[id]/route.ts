@@ -5,6 +5,7 @@ import { readClient, writeClient } from '@/studio-m4ktaba/client';
 import { createTransferReversal } from '@/lib/stripe';
 import { makeKey, begin, commit, fail } from '@/lib/idempotency';
 import { verifyCsrf } from '@/lib/csrf';
+import { notifySlack } from '@/lib/notify';
 
 /**
  * POST /api/admin/pending-reversals/[id]
@@ -115,6 +116,13 @@ export async function POST(
         .set({ status: 'failed', error: error?.message || String(error), reviewedAt: new Date().toISOString() })
         .commit();
       await fail(reversalKey);
+      // Human alert: an approved reversal could not execute — needs attention.
+      await notifySlack({
+        severity: 'critical',
+        title: '❌ Reversal Execution FAILED',
+        text: `pendingReversal ${id} (transfer ${reversal.transferId}, payment ${reversal.paymentId}) failed to reverse: ${error?.message || String(error)}. Likely insufficient seller balance. Review in Sanity Studio.`,
+        footer: 'M4KTABA Payment Flow',
+      }).catch(() => {});
       return NextResponse.json(
         { ok: false, error: error?.message || 'Reversal failed', status: 'failed' },
         { status: 502 }

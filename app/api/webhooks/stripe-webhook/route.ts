@@ -5,6 +5,7 @@ import { createTransport } from 'nodemailer';
 import { readClient, writeClient } from '@/studio-m4ktaba/client';
 import { emailTemplates } from '@/lib/email';
 import { makeKey, begin, commit, fail } from '@/lib/idempotency';
+import { notifySlack } from '@/lib/notify';
 
 async function sendEmail({
   to,
@@ -316,6 +317,13 @@ export async function processRealOrder(
               : String(transferError);
           await fail(appTransferKey);
           console.error("Transfer failed for seller", sellerId + ":", errorMessage);
+          // Human alert: a seller payout silently failed (partial-failure case).
+          await notifySlack({
+            severity: 'critical',
+            title: '⚠️ Stripe Transfer FAILED',
+            text: `Seller ${sellerId} (order ${orderResponse?._id || '?'}) could NOT be paid. amountCents=${transferAmountCents} currency=${paymentIntent.currency} error=${errorMessage}. Investigate in Stripe Dashboard + this order's transferError field.`,
+            footer: 'M4KTABA Payment Flow',
+          });
           if (orderResponse) {
             try {
               await wc
@@ -334,6 +342,13 @@ export async function processRealOrder(
       }
     } else if (!sellerStripeAccountId && !isDestinationCharge) {
       console.error("Seller", sellerId, "has no stripeAccountId -- cannot create transfer");
+      // Human alert: a seller was in the cart but cannot be paid at all.
+      await notifySlack({
+        severity: 'high',
+        title: '⚠️ Seller Missing Stripe Connect Account',
+        text: `Seller ${sellerId} (order ${orderResponse?._id || '?'}) has no stripeAccountId and CANNOT be paid. They must complete Stripe Connect onboarding (billing page → Connect Stripe Account).`,
+        footer: 'M4KTABA Payment Flow',
+      });
     }
     // If isDestinationCharge, funds already routed via transfer_data.destination -- skip
 
@@ -631,6 +646,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (error) {
     console.error('❌ Webhook error:', error);
+    // Human alert: webhook processing failed (rare, but silent before this).
+    await notifySlack({
+      severity: 'high',
+      title: '🔄 Stripe Webhook Processing Error',
+      text: `Stripe webhook event failed in the top-level handler: ${error instanceof Error ? error.message : String(error)}. Check Vercel function logs.`,
+      footer: 'M4KTABA Payment Flow',
+    }).catch(() => {});
     return NextResponse.json({ received: true }, { status: 200 }); // Always return success
   }
 }
@@ -800,6 +822,13 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
       reason: `Refund ${chargeId} (${amountRefundedCents}¢ of ${chargeAmountCents}¢)`,
     });
     await commit(key, { pendingReversalId: created._id });
+    // Human alert: a manual-review reversal now exists and waits for an operator.
+    await notifySlack({
+      severity: 'critical',
+      title: '💰 Refund Reversal Pending Approval',
+      text: `pendingReversal created (${created._id}) for paymentId=${paymentIntentId} transfer=${tr.id} amount=${reversalCents}¢ source=refund (${amountRefundedCents}¢ of ${chargeAmountCents}¢ charged). APPROVE in Sanity Studio → pendingReversal to execute the reversal.`,
+      footer: 'M4KTABA Payment Flow',
+    });
 
     await flagOrder(sellerOrder._id, {
       pendingReversalStatus: 'pending',
@@ -928,6 +957,13 @@ export async function handleDisputeClosed(dispute: Stripe.Dispute) {
     });
     await commit(key, { pendingReversalId: created._id });
     await flagOrder(sellerOrder._id, { pendingReversalStatus: 'pending', status: 'disputed' });
+    // Human alert: a lost dispute now has a manual-review reversal pending.
+    await notifySlack({
+      severity: 'critical',
+      title: '⚖️ Lost Dispute Reversal Pending Approval',
+      text: `pendingReversal created (${created._id}) for paymentId=${paymentIntentId} transfer=${tr.id} amount=${reversalCents}¢ source=dispute (${dispute.id} LOST). APPROVE in Sanity Studio → pendingReversal to claw back the seller payout.`,
+      footer: 'M4KTABA Payment Flow',
+    });
     flaggedCount++;
   }
   console.log('[Phase5] dispute.closed (lost) flagged', flaggedCount, 'reversals for', paymentIntentId);
