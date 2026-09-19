@@ -30,8 +30,21 @@ export async function POST(
     const body = await req.json().catch(() => ({}));
     const { cartItemId, refundReason, refundAmount } = body || {};
 
-    if (!cartItemId || !refundReason || !(Number(refundAmount) > 0)) {
+    // Basic input validation: sale item id, a reason, and a positive amount.
+    // refundReason length is bounded to avoid unbounded Sanity document writes.
+    if (
+      typeof cartItemId !== 'string' ||
+      cartItemId.length === 0 ||
+      typeof refundReason !== 'string' ||
+      refundReason.trim().length === 0 ||
+      refundReason.length > 500
+    ) {
       return NextResponse.json({ message: 'Invalid refund data.' }, { status: 400 });
+    }
+
+    const refundAmountNum = Number(refundAmount);
+    if (!Number.isFinite(refundAmountNum) || refundAmountNum <= 0) {
+      return NextResponse.json({ message: 'Invalid refund amount.' }, { status: 400 });
     }
 
     // Fetch the order document from Sanity
@@ -58,6 +71,16 @@ export async function POST(
       );
     }
 
+    // Cap the refund request at the item's actual price so a buyer can't
+    // request (or later be issued) more than they paid for this item.
+    const itemPrice = Number(order.cart[itemIndex].price) || 0;
+    if (refundAmountNum > itemPrice) {
+      return NextResponse.json(
+        { message: 'Refund amount cannot exceed the item price.' },
+        { status: 400 }
+      );
+    }
+
     // Write into the correct per-item refundDetails (matches the schema used
     // by the webhook/order docs; previously this wrote to a non-existent
     // `cartItems` array).
@@ -66,7 +89,7 @@ export async function POST(
       .set({ [`cart[${itemIndex}].refundDetails`]: {
         refundStatus: 'requested',
         refundReason,
-        refundAmount: Number(refundAmount),
+        refundAmount: refundAmountNum,
         refundDate: new Date().toISOString(),
       }})
       .commit();

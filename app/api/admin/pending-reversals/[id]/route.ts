@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { readClient, writeClient } from '@/studio-m4ktaba/client';
 import { createTransferReversal } from '@/lib/stripe';
 import { makeKey, begin, commit, fail } from '@/lib/idempotency';
+import { verifyCsrf } from '@/lib/csrf';
 
 /**
  * POST /api/admin/pending-reversals/[id]
@@ -18,6 +19,9 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const csrf = await verifyCsrf();
+  if (csrf) return csrf;
+
   try {
     const session = await getServerSession(authOptions);
     const adminEmail = process.env.ADMIN_EMAIL;
